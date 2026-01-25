@@ -1,4 +1,4 @@
-export const PERMISSIONS = {
+export const PERMISSIONS = Object.freeze({
     CREATE_EMPLOYEE: 'CREATE_EMPLOYEE',
     VIEW_EMPLOYEE: 'VIEW_EMPLOYEE',
     UPDATE_EMPLOYEE: 'UPDATE_EMPLOYEE',
@@ -7,4 +7,4 @@ export const PERMISSIONS = {
     VIEW_USER: 'VIEW_USER',
     UPDATE_USER: 'UPDATE_USER',
     DELETE_USER: 'DELETE_USER',
-};
+});
