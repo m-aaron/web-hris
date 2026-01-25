@@ -1,10 +1,16 @@
 import express from 'express';
-import { loginUser } from '../controllers/authController.js';
+import { 
+    loginUser, 
+    getMe
+} from '../controllers/authController.js';
+import { authenticate } from '../middlewares/authenticateMiddleware.js';
 
 
 const router = express.Router();
 
-// Login route
-router.post('/login', loginUser);
+router.post('/login', loginUser); // Login route
+
+// Protected route:
+router.get('/me', authenticate, getMe); // Get current logged in user route
 
 export default router;

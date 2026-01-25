@@ -49,3 +49,15 @@ export const loginUser = asyncHandler(async (req, res) => {
 
     res.status(200).json({ message: 'Login successful', success: true, token, role: userResult.rows[0].role_name });
 });
+
+
+// @desc    Get current logged in user
+// @route   GET /api/auth/me
+// @access  Private
+export const getMe = asyncHandler(async (req, res) => {
+
+    // Retrieve user from request object set by authenticate middleware
+    const user = req.user;
+    res.status(200).json({ message: 'User fetched successfully', success: true, user });
+
+});
