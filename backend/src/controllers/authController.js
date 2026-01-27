@@ -1,8 +1,10 @@
 import asyncHandler from 'express-async-handler';
 import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
 import pool from '../configs/dbConfig.js';
+import { STATUS } from '../constants/statusConstant.js';
 import { comparePassword, hashPassword, hashToken } from '../utils/authUtil.js';
-import { generateToken } from '../utils/tokenUtil.js';
+import { generateAccessToken, generateRefreshToken } from '../utils/tokenUtil.js';
 import { sendEmail } from '../services/emailService.js';
 
 
@@ -28,7 +30,7 @@ export const loginUser = asyncHandler(async (req, res) => {
 
     // Check if user exists
     const userResult = await pool.query(
-        `SELECT u.id, u.password, r.role_name
+        `SELECT u.id, u.password, u.status, r.role_name
         FROM users u
         JOIN roles r ON u.role_id = r.id
         WHERE u.email = $1`,
@@ -40,16 +42,54 @@ export const loginUser = asyncHandler(async (req, res) => {
         return res.status(401).json({ message: 'Invalid email or password', success: false });
     }
 
+    const user = userResult.rows[0];
+
     // Compare passwords
-    const isMatch = await comparePassword(password, userResult.rows[0].password);
+    const isMatch = await comparePassword(password, user.password);
     if (!isMatch) {
         return res.status(401).json({ message: 'Invalid email or password', success: false });
     }
 
-    // Generate token and set cookie
-    const token = generateToken(res, userResult.rows[0].id);
+    // Check if user is active
+    if (user.status !== STATUS.ACTIVE) {
+        return res.status(403).json({ message: 'Account is inactive. Please contact administrator.', success: false });
+    }
 
-    res.status(200).json({ message: 'Login successful', success: true, token, role: userResult.rows[0].role_name });
+    // Generate access token(short-lived) and set cookie
+    generateAccessToken(res, user.id);
+
+    // Generate refresh token(long-lived) and set cookie
+    generateRefreshToken(res, user.id)
+
+    res.status(200).json({ message: 'Login successful', success: true, role: user.role_name });
+});
+
+
+// @desc    Refresh access token
+// @route   POST /api/auth/refresh-token
+// @access  Public
+export const refreshToken = asyncHandler(async (req, res) => {
+
+    const refreshToken = req.cookies.refreshToken;
+
+    // Check if refresh token exists
+    if (!refreshToken) {
+        return res.status(401).json({ message: 'No refresh token provided', success: false });
+    }
+
+    // Verify refresh token
+    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+
+    // If token is invalid
+    if (!decoded) {
+        return res.status(401).json({ message: 'Invalid refresh token', success: false });
+    }
+
+    // Generate new access token and set cookie
+    generateAccessToken(res, decoded.id);
+
+    res.status(200).json({ message: 'Access token refreshed successfully', success: true });
+
 });
 
 

@@ -8,7 +8,7 @@ import pool from '../configs/dbConfig.js';
 // @access  Protected
 export const authenticate = asyncHandler(async (req, res, next) => {
 
-    const token = req.cookies.token;
+    const token = req.cookies.accessToken;
 
     // Check if token exists
     if (!token) {
