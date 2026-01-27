@@ -230,3 +230,29 @@ export const resetPassword = asyncHandler(async (req, res) => {
     res.status(200).json({ message: 'Password reset successfully', success: true });
 
 });
+
+
+export const logoutUser = asyncHandler(async (req, res) => {
+    
+    // Clear the access and refresh token cookies
+    res.clearCookie(
+        'accessToken',
+        {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+        }
+    );
+
+    res.clearCookie(
+        'refreshToken',
+        {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+        }
+    );
+
+    res.status(200).json({ message: 'Logged out successfully', success: true });
+    
+});
