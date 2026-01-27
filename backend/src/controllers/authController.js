@@ -1,7 +1,7 @@
 import asyncHandler from 'express-async-handler';
 import crypto from 'crypto';
 import pool from '../configs/dbConfig.js';
-import { comparePassword, hashToken } from '../utils/authUtil.js';
+import { comparePassword, hashPassword, hashToken } from '../utils/authUtil.js';
 import { generateToken } from '../utils/tokenUtil.js';
 import { sendEmail } from '../services/emailService.js';
 
@@ -135,5 +135,58 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     });;
 
     res.status(200).json({ message: 'If the email exists, a reset link has been sent', success: true });
+
+});
+
+
+// @desc    Reset password
+// @route   POST /api/auth/reset-password/:resetToken
+// @access  Public
+export const resetPassword = asyncHandler(async (req, res) => {
+    
+    const { resetToken } = req.params;
+    const { newPassword } = req.body;
+
+    // Validate input
+    if (!newPassword) {
+        return res.status(400).json({ message: 'New password is required', success: false });
+    }
+
+    // Hash the received token
+    const hashedToken = hashToken(resetToken);
+
+    // Find token in database
+    const tokenResult = await pool.query(
+        `SELECT user_id, expires_at FROM password_resets WHERE token_hash = $1`,
+        [hashedToken]
+    );
+
+    // If token not found
+    if (tokenResult.rows.length === 0) {
+        return res.status(400).json({ message: 'Invalid or expired token', success: false });
+    }
+    
+    const { user_id, expires_at } = tokenResult.rows[0];
+
+    // Check if token is expired
+    if (new Date() > expires_at) {
+        return res.status(400).json({ message: 'Invalid or expired token', success: false });
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+
+    // Update user's password
+    await pool.query(
+        `UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2`,
+        [hashedPassword, user_id]
+    );
+
+    // Remove used token
+    await pool.query(
+        `DELETE FROM password_resets WHERE user_id = $1`,
+        [user_id]
+    );
+
+    res.status(200).json({ message: 'Password reset successfully', success: true });
 
 });
