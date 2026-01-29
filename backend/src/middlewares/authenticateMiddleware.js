@@ -12,7 +12,7 @@ export const authenticate = asyncHandler(async (req, res, next) => {
 
     // Check if token exists
     if (!token) {
-        return res.status(401).json({ message: 'Not authorized, no token', success: false });
+        return res.status(403).json({ message: 'Not authorized, no token', success: false });
     }
 
     // Verify token
