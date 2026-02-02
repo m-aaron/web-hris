@@ -11,8 +11,10 @@ const ProtectedRoute = ({ children }) => {
     if (loading) return <Spinner />;
 
     // If not authenticated, redirect to login page
-    if (!user) return <Navigate to="/login" replace />;
-
+    if (!user) {
+        localStorage.setItem("lastRoute", location.pathname);
+        return <Navigate to="/login" replace />;
+    }
     // If authenticated, render the protected component(s)
     return children ? children : <Outlet />;
 
