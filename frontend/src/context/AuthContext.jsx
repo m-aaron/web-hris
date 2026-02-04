@@ -22,7 +22,16 @@ export const AuthProvider = ({ children }) => {
                 if (response.data.success) setUser(response.data.user);
                 
             } catch (error) { 
-                setUser(null);
+                try {
+                    // TRY refresh token once
+                    await API.post("/auth/refresh-token");
+
+                    // retry /me
+                    const retry = await API.get("/auth/me");
+                    setUser(retry.data.user);
+                } catch {
+                    setUser(null);
+                }
             } finally {
                 setLoading(false);
             }
