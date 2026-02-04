@@ -20,6 +20,7 @@ const ResetPassword = () => {
         setLoading(true);
 
         try {
+            if (!newPassword || !confirmPassword) return toast.error("Please fill in all fields.");
             if (newPassword !== confirmPassword) return toast.error("Passwords do not match.");
 
             const res = await API.post(`/auth/reset-password/${ token }`, { newPassword });
