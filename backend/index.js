@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import authRoutes from './src/routes/authRoute.js';
+import employeeRoutes from './src/routes/employeeRoute.js';
 
 
 dotenv.config();
@@ -19,6 +20,7 @@ app.use(cookieParser());
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
+app.use('/api/employees', employeeRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
