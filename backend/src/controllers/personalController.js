@@ -33,7 +33,7 @@ export const savePersonalInfo = asyncHandler(async (req, res) => {
     if (!employee_id) {
         return res.status(400).json({ message: "Employee ID is required.", success: false });
     }
-    if (!last_name || !first_name || !sex || !birth_date || !civil_status || !citizenship || !religion ||!barangay || !city || !province || !zip) {
+    if (!last_name || !first_name || !sex || !birth_date || !civil_status || !citizenship || !religion ||!barangay || !city || !province) {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
     }
 
@@ -90,9 +90,9 @@ export const savePersonalInfo = asyncHandler(async (req, res) => {
     const addressObj = {
         house_no: house_no || '',
         street: street || '',
-        barangay: barangay || '',
-        city: city || '',
-        province: province || '',
+        barangay: barangay,
+        city: city,
+        province: province,
         zip: zip || ''
     };
 
@@ -100,17 +100,17 @@ export const savePersonalInfo = asyncHandler(async (req, res) => {
         employee_id,
         last_name,
         first_name,
-        middle_name,
-        name_extension,
+        middle_name || '',
+        name_extension || '',
         sex,
         birth_date,
         civil_status,
         citizenship,
         religion,
-        blood_type,
+        blood_type || '',
         addressObj,
-        email,
-        contact_number
+        email || '',
+        contact_number || ''
     ]);
 
     if (result.rowCount === 0) {

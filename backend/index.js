@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import authRoutes from './src/routes/authRoute.js';
 import employeeRoutes from './src/routes/employeeRoute.js';
 import personalRoutes from './src/routes/personalRoute.js';
+import familyRoutes from './src/routes/familyRoute.js';
 
 
 dotenv.config();
@@ -23,6 +24,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/employees', personalRoutes);
+app.use('/api/employees', familyRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
