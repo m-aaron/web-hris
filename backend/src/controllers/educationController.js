@@ -95,3 +95,42 @@ export const saveMajor = asyncHandler(async (req, res) => {
     res.status(201).json({ message: "Major saved successfully.", success: true });
 
 });
+
+export const saveMinor = asyncHandler(async (req, res) => {
+
+    const { id } = req.params;
+    const { minor } = req.body; 
+
+    // Validate required fields
+    if (!id) {
+        return res.status(400).json({ message: "Employee ID is required.", success: false });
+    };
+    if (!minor) {
+        return res.status(400).json({ message: "Required fields are missing.", success: false });
+    }
+
+    // Check if employee exists
+    const checkEmployeeResult = await pool.query(
+        `SELECT 1 FROM employees WHERE id = $1`,
+        [id]
+    );
+
+    if (checkEmployeeResult.rows.length === 0) {
+        return res.status(404).json({ message: "Employee not found.", success: false });
+    };
+
+    const query = 
+    `
+        INSERT INTO education_minors (employee_id, minor_name)
+        VALUES ($1, $2)
+    `;
+
+    const result = await pool.query(query, [id, minor]);
+
+    if (result.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to save minor.", success: false });
+    }
+
+    res.status(201).json({ message: "Minor saved successfully.", success: true });
+
+});
