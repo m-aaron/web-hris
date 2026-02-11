@@ -8,6 +8,7 @@ import employeeRoutes from './src/routes/employeeRoute.js';
 import personalRoutes from './src/routes/personalRoute.js';
 import familyRoutes from './src/routes/familyRoute.js';
 import childrenRoutes from './src/routes/childrenRoute.js';
+import employmentRoutes from './src/routes/employmentRoute.js';
 
 
 dotenv.config();
@@ -27,6 +28,7 @@ app.use('/api/employees', employeeRoutes);
 app.use('/api/employees', personalRoutes);
 app.use('/api/employees', familyRoutes);
 app.use('/api/employees', childrenRoutes);
+app.use('/api/employees', employmentRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
