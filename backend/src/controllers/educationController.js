@@ -53,3 +53,45 @@ export const saveEducationalQualification = asyncHandler(async (req, res) => {
     res.status(201).json({ message: "Educational qualification saved successfully.", success: true });
 
 });
+
+// @desc    Save major for an employee
+// @route   POST /api/employees/:id/major
+// @access  Private
+export const saveMajor = asyncHandler(async (req, res) => {
+
+    const { id } = req.params;
+    const { major } = req.body; 
+
+    // Validate required fields
+    if (!id) {
+        return res.status(400).json({ message: "Employee ID is required.", success: false });
+    };
+    if (!major) {
+        return res.status(400).json({ message: "Required fields are missing.", success: false });
+    };
+
+    // Check if employee exists
+    const checkEmployeeResult = await pool.query(
+        `SELECT 1 FROM employees WHERE id = $1`,
+        [id]
+    );
+
+    if (checkEmployeeResult.rows.length === 0) {
+        return res.status(404).json({ message: "Employee not found.", success: false });
+    };
+
+    const query = 
+    `
+        INSERT INTO education_majors (employee_id, major_name)
+        VALUES ($1, $2)
+    `;
+
+    const result = await pool.query(query, [id, major]);
+
+    if (result.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to save major.", success: false });
+    };
+
+    res.status(201).json({ message: "Major saved successfully.", success: true });
+
+});
