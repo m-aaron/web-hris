@@ -7,6 +7,6 @@ import { saveChild } from '../controllers/childrenController.js';
 
 const router = express.Router();
 
-router.post('/:employee_id/children', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), saveChild);
+router.post('/:id/children', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), saveChild);
 
 export default router;

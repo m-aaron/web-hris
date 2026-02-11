@@ -7,6 +7,6 @@ import { saveFamilyBackground } from '../controllers/familyController.js';
 
 const router = express.Router();
 
-router.put('/:employee_id/family', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), saveFamilyBackground);
+router.put('/:id/family', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), saveFamilyBackground);
 
 export default router;

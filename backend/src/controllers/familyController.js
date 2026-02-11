@@ -3,42 +3,42 @@ import asyncHandler from "express-async-handler";
 
 
 // @desc    Save family background information for an employee
-// @route   PUT /api/employees/:employee_id/family
+// @route   PUT /api/employees/:id/family
 // @access  Private
 export const saveFamilyBackground = asyncHandler(async (req, res) => {
 
-    const { employee_id } = req.params;
+    const { id } = req.params;
     const { 
         spouseLName, 
         spouseFName, 
         spouseMName, 
         spouseNExtension, 
-        spouse_occupation, 
+        spouseOccupation, 
         kinLName, 
         kinFName, 
         kinMName,
         kinNExtension,
-        kin_house_no,
-        kin_street,
-        kin_barangay,
-        kin_city,
-        kin_province,
-        kin_zip,
-        kin_contact_number
+        kinHouseNo,
+        kinStreet,
+        kinBarangay,
+        kinCity,
+        kinProvince,
+        kinZip,
+        kinContactNumber
     } = req.body;
 
     // Validate required fields
-    if (!employee_id) {
+    if (!id) {
         return res.status(400).json({ message: "Employee ID is required.", success: false });
     }
-    if (!spouseLName || !spouseFName || !kinLName || !kinFName || !kin_barangay || !kin_city || !kin_province) {
+    if (!spouseLName || !spouseFName || !kinLName || !kinFName || !kinBarangay || !kinCity || !kinProvince) {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
     }
 
     // Check if employee exists
     const checkEmployeeResult = await pool.query(
         `SELECT 1 FROM employees WHERE id = $1`,
-        [employee_id]
+        [id]
     );
 
     if (checkEmployeeResult.rows.length === 0) {
@@ -79,15 +79,15 @@ export const saveFamilyBackground = asyncHandler(async (req, res) => {
     };
 
     const nearestKinAddress = {
-        house_no: kin_house_no || '',
-        street: kin_street || '',
-        barangay: kin_barangay,
-        city: kin_city,
-        province: kin_province,
-        zip: kin_zip || '',
+        house_no: kinHouseNo || '',
+        street: kinStreet || '',
+        barangay: kinBarangay,
+        city: kinCity,
+        province: kinProvince,
+        zip: kinZip || '',
     };
 
-    const result =  await pool.query(query, [employee_id, spouseNameObj, spouse_occupation || '', nearestKinName, nearestKinAddress, kin_contact_number || '']);
+    const result =  await pool.query(query, [id, spouseNameObj, spouseOccupation || '', nearestKinName, nearestKinAddress, kinContactNumber || '']);
 
     if (result.rowCount === 0) {
         return res.status(500).json({ message: "Failed to save family background.", success: false });

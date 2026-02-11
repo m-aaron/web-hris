@@ -3,44 +3,44 @@ import asyncHandler from "express-async-handler";
 
 
 // @desc    Save personal information for an employee
-// @route   PUT /api/employees/:employee_id/personal
+// @route   PUT /api/employees/:id/personal
 // @access  Private
 export const savePersonalInfo = asyncHandler(async (req, res) => {
 
-    const { employee_id } = req.params;
+    const { id } = req.params;
     const {
-        last_name,
-        first_name,
-        middle_name,
-        name_extension,
+        lastName,
+        firstName,
+        middleName,
+        nameExtension,
         sex,
-        birth_date,
-        civil_status,
+        birthDate,
+        civilStatus,
         citizenship,
         religion,
-        blood_type,
-        house_no,
+        bloodType,
+        houseNo,
         street,
         barangay,
         city,
         province,
         zip,
         email,
-        contact_number,
+        contactNumber,
     } = req.body;
 
     // Validate required fields
-    if (!employee_id) {
+    if (!id) {
         return res.status(400).json({ message: "Employee ID is required.", success: false });
     }
-    if (!last_name || !first_name || !sex || !birth_date || !civil_status || !citizenship || !religion ||!barangay || !city || !province) {
+    if (!lastName || !firstName || !sex || !birthDate || !civilStatus || !citizenship || !religion ||!barangay || !city || !province) {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
     }
 
     // Check if employee exists
     const checkEmployeeResult = await pool.query(
         `SELECT 1 FROM employees WHERE id = $1`,
-        [employee_id]
+        [id]
     );
 
     if (checkEmployeeResult.rows.length === 0) {
@@ -88,7 +88,7 @@ export const savePersonalInfo = asyncHandler(async (req, res) => {
     `;
 
     const addressObj = {
-        house_no: house_no || '',
+        house_no: houseNo || '',
         street: street || '',
         barangay: barangay,
         city: city,
@@ -97,20 +97,20 @@ export const savePersonalInfo = asyncHandler(async (req, res) => {
     };
 
     const result = await pool.query(query, [
-        employee_id,
-        last_name,
-        first_name,
-        middle_name || '',
-        name_extension || '',
+        id,
+        lastName,
+        firstName,
+        middleName || '',
+        nameExtension || '',
         sex,
-        birth_date,
-        civil_status,
+        birthDate,
+        civilStatus,
         citizenship,
         religion,
-        blood_type || '',
+        bloodType || '',
         addressObj,
         email || '',
-        contact_number || ''
+        contactNumber || ''
     ]);
 
     if (result.rowCount === 0) {

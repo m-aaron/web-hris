@@ -3,14 +3,14 @@ import asyncHandler from "express-async-handler";
 
 
 // @desc    Save child information for an employee
-// @route   POST /api/employees/:employee_id/children
+// @route   POST /api/employees/:id/children
 // @access  Private
 export const saveChild = asyncHandler(async (req, res) => {
-    const { employee_id } = req.params;
+    const { id } = req.params;
     const { lastName, firstName, middleName, nameExtension, birthDate, office, occupation } = req.body; 
 
     // Validate required fields
-    if (!employee_id) {
+    if (!id) {
         return res.status(400).json({ message: "Employee ID is required.", success: false });
     };
     if (!lastName || !firstName) {
@@ -20,7 +20,7 @@ export const saveChild = asyncHandler(async (req, res) => {
     // Check if employee exists
     const checkEmployeeResult = await pool.query(
         `SELECT 1 FROM employees WHERE id = $1`,
-        [employee_id]
+        [id]
     );
 
     // If employee does not exist
@@ -41,7 +41,7 @@ export const saveChild = asyncHandler(async (req, res) => {
         name_extension: nameExtension || ''
     };
 
-    const result = await pool.query(query, [employee_id, childNameObj, birthDate || null, office || '', occupation || '']);
+    const result = await pool.query(query, [id, childNameObj, birthDate || null, office || '', occupation || '']);
 
     if (result.rowCount === 0) {
         return res.status(500).json({ message: "Failed to save child information.", success: false });

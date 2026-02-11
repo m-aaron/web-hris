@@ -7,21 +7,21 @@ import asyncHandler from "express-async-handler";
 // @access  Private
 export const createEmployee = asyncHandler(async (req, res) => {
 
-    const { employee_no, employment_type } = req.body;
+    const { employeeNumber, employmentType } = req.body;
 
     // Validate required fields
-    if (!employee_no || !employment_type) {
+    if (!employeeNumber || !employmentType) {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
     }
 
-    if (!["TEACHING", "NON_TEACHING"].includes(employment_type)) {
+    if (!["TEACHING", "NON_TEACHING"].includes(employmentType)) {
         return res.status(400).json({ message: "Invalid employment type. Must be 'TEACHING' or 'NON TEACHING'.", success: false });
     }
 
     // Check if employee number already exists
     const employeeNoResult = await pool.query(
         `SELECT 1 FROM employees WHERE employee_no = $1`,
-        [employee_no]
+        [employeeNumber]
     );
 
     // If employee number already exists, return conflict error
@@ -36,7 +36,7 @@ export const createEmployee = asyncHandler(async (req, res) => {
             VALUES ($1, $2)
             RETURNING id
         `,
-        [employee_no, employment_type]
+        [employeeNumber , employmentType]
     );
 
     if (employeeResult.rows.length === 0) {
