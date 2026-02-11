@@ -7,6 +7,7 @@ import authRoutes from './src/routes/authRoute.js';
 import employeeRoutes from './src/routes/employeeRoute.js';
 import personalRoutes from './src/routes/personalRoute.js';
 import familyRoutes from './src/routes/familyRoute.js';
+import childrenRoutes from './src/routes/childrenRoute.js';
 
 
 dotenv.config();
@@ -25,6 +26,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/employees', personalRoutes);
 app.use('/api/employees', familyRoutes);
+app.use('/api/employees', childrenRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
