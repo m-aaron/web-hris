@@ -29,6 +29,9 @@ app.use(helmet());
 app.use(cookieParser());
 app.use(express.json());
 
+// Serve uploaded files statically
+app.use("/uploads", express.static("uploads"));
+
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/employees', personalRoutes);
