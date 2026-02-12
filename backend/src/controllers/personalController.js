@@ -85,6 +85,7 @@ export const savePersonalInfo = asyncHandler(async (req, res) => {
             address = EXCLUDED.address,
             email = EXCLUDED.email,
             contact_number = EXCLUDED.contact_number
+        RETURNING *
     `;
 
     const addressObj = {
@@ -117,5 +118,5 @@ export const savePersonalInfo = asyncHandler(async (req, res) => {
         return res.status(500).json({ message: "Failed to save personal data.", success: false });
     }
 
-    res.status(200).json({ message: "Personal data saved successfully.", success: true });
+    res.status(200).json({ message: "Personal data saved successfully.", success: true, personalInfo: result.rows[0] });
 });

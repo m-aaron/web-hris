@@ -62,6 +62,7 @@ export const saveFamilyBackground = asyncHandler(async (req, res) => {
             nearest_kin_name = EXCLUDED.nearest_kin_name,
             nearest_kin_address = EXCLUDED.nearest_kin_address,
             nearest_kin_contact_number = EXCLUDED.nearest_kin_contact_number
+        RETURNING *
     `;
 
     const spouseNameObj = {
@@ -93,5 +94,5 @@ export const saveFamilyBackground = asyncHandler(async (req, res) => {
         return res.status(500).json({ message: "Failed to save family background.", success: false });
     };
 
-    res.status(201).json({ message: "Family background saved successfully.", success: true });
+    res.status(201).json({ message: "Family background saved successfully.", success: true, familyBackground: result.rows[0] });
 });

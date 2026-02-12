@@ -32,6 +32,7 @@ export const saveExaminationTaken = asyncHandler(async (req, res) => {
     `
         INSERT INTO examinations_taken (employee_id, title, date_taken, rating)
         VALUES ($1, $2, $3, $4)
+        RETURNING *
     `;
 
     const result = await pool.query(query, [id, title, dateTaken, rating || '']);
@@ -40,6 +41,6 @@ export const saveExaminationTaken = asyncHandler(async (req, res) => {
         return res.status(500).json({ message: "Failed to save examination taken.", success: false });
     };
 
-    res.status(201).json({ message: "Examination taken saved successfully.", success: true });
+    res.status(201).json({ message: "Examination taken saved successfully.", success: true, examinationTaken: result.rows[0] });
 
 });

@@ -41,7 +41,8 @@ export const saveEducationalQualification = asyncHandler(async (req, res) => {
     const query = 
     `
         INSERT INTO educational_qualifications (employee_id, title, school, year_started, year_finished)
-        VALUES ($1, $2, $3, $4, $5)
+        VALUES ($1, $2, $3, $4, $5) 
+        RETURNING *
     `;
 
     const result = await pool.query(query, [id, title, school, yearStarted || null, yearFinished || null]);
@@ -50,7 +51,7 @@ export const saveEducationalQualification = asyncHandler(async (req, res) => {
         return res.status(500).json({ message: "Failed to save educational qualification.", success: false });
     };
 
-    res.status(201).json({ message: "Educational qualification saved successfully.", success: true });
+    res.status(201).json({ message: "Educational qualification saved successfully.", success: true, qualification: result.rows[0] });
 
 });
 
@@ -84,6 +85,7 @@ export const saveMajor = asyncHandler(async (req, res) => {
     `
         INSERT INTO education_majors (employee_id, major_name)
         VALUES ($1, $2)
+         RETURNING *
     `;
 
     const result = await pool.query(query, [id, major]);
@@ -92,7 +94,7 @@ export const saveMajor = asyncHandler(async (req, res) => {
         return res.status(500).json({ message: "Failed to save major.", success: false });
     };
 
-    res.status(201).json({ message: "Major saved successfully.", success: true });
+    res.status(201).json({ message: "Major saved successfully.", success: true, major: result.rows[0] });
 
 });
 
@@ -123,6 +125,7 @@ export const saveMinor = asyncHandler(async (req, res) => {
     `
         INSERT INTO education_minors (employee_id, minor_name)
         VALUES ($1, $2)
+         RETURNING *
     `;
 
     const result = await pool.query(query, [id, minor]);
@@ -131,7 +134,7 @@ export const saveMinor = asyncHandler(async (req, res) => {
         return res.status(500).json({ message: "Failed to save minor.", success: false });
     }
 
-    res.status(201).json({ message: "Minor saved successfully.", success: true });
+    res.status(201).json({ message: "Minor saved successfully.", success: true, minor: result.rows[0] });
 
 });
 
@@ -165,6 +168,7 @@ export const saveHonor = asyncHandler(async (req, res) => {
     `
         INSERT INTO education_honors (employee_id, honor_name)
         VALUES ($1, $2)
+         RETURNING *
     `;
 
     const result = await pool.query(query, [id, honor]);
@@ -173,7 +177,7 @@ export const saveHonor = asyncHandler(async (req, res) => {
         return res.status(500).json({ message: "Failed to save honor.", success: false });
     };
 
-    res.status(201).json({ message: "Honor saved successfully.", success: true });
+    res.status(201).json({ message: "Honor saved successfully.", success: true, honor: result.rows[0] });
 
 });
 
@@ -207,6 +211,7 @@ export const saveScholarship = asyncHandler(async (req, res) => {
     `
         INSERT INTO education_scholarships (employee_id, scholarship_name)
         VALUES ($1, $2)
+        RETURNING *
     `;
 
     const result = await pool.query(query, [id, scholarship]);
@@ -215,6 +220,6 @@ export const saveScholarship = asyncHandler(async (req, res) => {
         return res.status(500).json({ message: "Failed to save scholarship.", success: false });
     };
 
-    res.status(201).json({ message: "Scholarship saved successfully.", success: true });
+    res.status(201).json({ message: "Scholarship saved successfully.", success: true, scholarship: result.rows[0] });
 
 });

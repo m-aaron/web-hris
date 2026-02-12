@@ -40,6 +40,7 @@ export const saveEmploymentHistory = asyncHandler(async (req, res) => {
     `
         INSERT INTO employment_history (employee_id, start_date, end_date, position, employer, salary, reason_for_leaving)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
     `;
 
     const result = await pool.query(query, [id, startDate, endDate || null, position, employer, salary || null, reasonForLeaving || '']);
@@ -48,6 +49,6 @@ export const saveEmploymentHistory = asyncHandler(async (req, res) => {
         return res.status(500).json({ message: "Failed to save employment history.", success: false });
     };
 
-    res.status(201).json({ message: "Employment history saved successfully.", success: true });
+    res.status(201).json({ message: "Employment history saved successfully.", success: true, employmentHistory: result.rows[0] });
 
 });

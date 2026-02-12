@@ -2,6 +2,9 @@ import pool from "../configs/dbConfig.js";
 import asyncHandler from "express-async-handler";
 
 
+// @desc    Save training program for an employee
+// @route   POST /api/employees/:id/training
+// @access  Private
 export const saveTrainingProgram = asyncHandler(async (req, res) => { 
 
     const { id } = req.params;
@@ -37,6 +40,7 @@ export const saveTrainingProgram = asyncHandler(async (req, res) => {
     `
         INSERT INTO training_programs (employee_id, title, place, date_from, date_to, hours, conducted_by)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
     `;
 
     const result = await pool.query(query, [id, title, place || '', dateFrom, dateTo || null, hours || null, conductedBy || '']);
@@ -45,6 +49,6 @@ export const saveTrainingProgram = asyncHandler(async (req, res) => {
         return res.status(500).json({ message: "Failed to save training program.", success: false });
     };
 
-    res.status(201).json({ message: "Training program saved successfully.", success: true });
+    res.status(201).json({ message: "Training program saved successfully.", success: true, trainingProgram: result.rows[0] });
 
 });  

@@ -38,7 +38,7 @@ export const createEmployee = asyncHandler(async (req, res) => {
         `
             INSERT INTO employees (employee_no, employment_type)
             VALUES ($1, $2)
-            RETURNING id
+            RETURNING *
         `,
         [employeeNumber , employmentType]
     );

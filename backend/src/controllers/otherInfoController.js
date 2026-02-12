@@ -64,6 +64,7 @@ export const saveOtherInfo = asyncHandler(async (req, res) => {
             admin_offense_details = EXCLUDED.admin_offense_details,
             was_separated_employment = EXCLUDED.was_separated_employment,
             separation_details = EXCLUDED.separation_details
+        RETURNING *
     `;
 
     const result = await pool.query(query, [
@@ -77,6 +78,6 @@ export const saveOtherInfo = asyncHandler(async (req, res) => {
         return res.status(500).json({ message: "Failed to save other information.", success: false });
     };
 
-    res.status(201).json({ message: "Other information saved successfully.", success: true });
+    res.status(201).json({ message: "Other information saved successfully.", success: true, otherInfo: result.rows[0] });
 
 });

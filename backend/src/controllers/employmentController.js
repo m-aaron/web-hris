@@ -1,3 +1,4 @@
+import e from "express";
 import pool from "../configs/dbConfig.js";
 import asyncHandler from "express-async-handler";
 
@@ -103,6 +104,7 @@ export const saveEmploymentData = asyncHandler(async (req, res) => {
             official_working_hours = EXCLUDED.official_working_hours,
             other_employment = EXCLUDED.other_employment,
             other_employment_working_hours = EXCLUDED.other_employment_working_hours
+        RETURNING *
     `
 
     const result = await pool.query(query, [
@@ -126,5 +128,5 @@ export const saveEmploymentData = asyncHandler(async (req, res) => {
         return res.status(500).json({ message: "Failed to save employment data.", success: false });
     }
 
-    res.status(200).json({ message: "Employment data saved successfully.", success: true });
+    res.status(200).json({ message: "Employment data saved successfully.", success: true, employmentData: result.rows[0] });
 });

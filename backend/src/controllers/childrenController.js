@@ -32,6 +32,7 @@ export const saveChild = asyncHandler(async (req, res) => {
     `
         INSERT INTO childrens (employee_id, children_name, birth_date, office_school, occupation)
         VALUES ($1, $2, $3, $4, $5)
+        RETURNING *
     `;
 
     const childNameObj = {
@@ -47,5 +48,5 @@ export const saveChild = asyncHandler(async (req, res) => {
         return res.status(500).json({ message: "Failed to save child information.", success: false });
     };
 
-    res.status(201).json({ message: "Child information saved successfully.", success: true });
+    res.status(201).json({ message: "Child information saved successfully.", success: true, child: result.rows[0] });
 });

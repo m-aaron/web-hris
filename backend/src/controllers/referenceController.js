@@ -57,6 +57,7 @@ export const saveReference = asyncHandler(async (req, res) => {
     `
         INSERT INTO employee_references (employee_id, name, address, contact_number)
         VALUES ($1, $2, $3, $4)
+        RETURNING *
     `;
 
     const result = await pool.query(query, [id, nameObj, addressObj, contactNumber]);
@@ -65,6 +66,6 @@ export const saveReference = asyncHandler(async (req, res) => {
         return res.status(500).json({ message: "Failed to save reference.", success: false });
     };
 
-    res.status(201).json({ message: "Reference saved successfully.", success: true });
+    res.status(201).json({ message: "Reference saved successfully.", success: true, reference: result.rows[0] });
 
 });
