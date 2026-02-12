@@ -11,6 +11,7 @@ import childrenRoutes from './src/routes/childrenRoute.js';
 import employmentRoutes from './src/routes/employmentRoute.js';
 import educationRoutes from './src/routes/educationRoute.js';
 import examRoutes from './src/routes/examRoute.js';
+import trainingRoutes from './src/routes/trainingRoute.js';
 
 
 dotenv.config();
@@ -33,6 +34,7 @@ app.use('/api/employees', childrenRoutes);
 app.use('/api/employees', employmentRoutes);
 app.use('/api/employees', educationRoutes);
 app.use('/api/employees', examRoutes);
+app.use('/api/employees', trainingRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
