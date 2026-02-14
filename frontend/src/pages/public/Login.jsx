@@ -29,8 +29,7 @@ const Login = () => {
                 
                 toast.success(res.message || "Login successful!");
             } else {
-                if (res.role === ROLES.ADMIN) navigate("/admin/dashboard");
-                else if (res.role === ROLES.HR) navigate("/hr/dashboard");
+                if (res.role === ROLES.ADMIN || res.role === ROLES.HR) navigate("/dashboard");
                 else navigate("/employee/dashboard");
             }
 
@@ -41,7 +40,7 @@ const Login = () => {
         }
     };
 
-
+    
     return (
         <AuthCard title="Welcome back!" description="Access your account to manage your work and records.">
             <form className="mt-10 space-y-4" onSubmit={ handleSubmit }>

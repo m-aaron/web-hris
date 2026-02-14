@@ -1,0 +1,3 @@
+export const CardContent = ({ className = "", children }) => {
+    return <div className={`p-4 ${className}`}>{children}</div>;
+}
