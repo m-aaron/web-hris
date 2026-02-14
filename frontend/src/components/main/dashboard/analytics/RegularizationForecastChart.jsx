@@ -72,9 +72,17 @@ export const RegularizationForecastChart = ({ data }) => {
                                 <Tooltip />
 
                                 <Bar
-                                    dataKey="count"
+                                    dataKey="teaching"
+                                    name="Teaching"
                                     radius={[8, 8, 0, 0]}
                                     fill="var(--blue)"
+                                />
+
+                                <Bar
+                                    dataKey="non_teaching"
+                                    name="Non-Teaching"
+                                    radius={[8, 8, 0, 0]}
+                                    fill="var(--border)"
                                 />
                             </BarChart>
                         ) : (
@@ -83,12 +91,23 @@ export const RegularizationForecastChart = ({ data }) => {
                                 <XAxis dataKey="month" stroke="var(--muted)" />
                                 <YAxis stroke="var(--muted)" />
                                 <Tooltip />
+
                                 <Line
                                     type="monotone"
-                                    dataKey="count"
+                                    dataKey="teaching"
+                                    name="Teaching"
                                     stroke="var(--blue)"
                                     strokeWidth={3}
-                                    dot={{ r: 5 }}
+                                    dot={{ r: 4 }}
+                                />
+
+                                <Line
+                                    type="monotone"
+                                    dataKey="non_teaching"
+                                    name="Non-Teaching"
+                                    stroke="var(--border)"
+                                    strokeWidth={3}
+                                    dot={{ r: 4 }}
                                 />
                             </LineChart>
                         )}
