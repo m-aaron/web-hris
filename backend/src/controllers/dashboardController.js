@@ -6,10 +6,20 @@ import {
 } from "../services/dashboardService.js";
 
 
+// @desc    Get dashboard summary
+// @route   GET /api/dashboard/summary
+// @access  Private
 export const dashboardSummary = asyncHandler(async (req, res) => {
-    const summary = await getDashboardSummary();
-    const becomingRegular = await getEmployeesBecomingRegularSoon();
-    const forecast = await getRegularizationForecast();
+
+    const [
+        summary,
+        becomingRegular,
+        forecast
+    ] = await Promise.all([
+        getDashboardSummary(),
+        getEmployeesBecomingRegularSoon(),
+        getRegularizationForecast()
+    ]);
 
     res.status(200).json({ success: true, summary, becomingRegular, forecast });
 });
