@@ -24,13 +24,12 @@ export const KpiCard = ({
 
     return (
         <Card
-        onClick={onClick}
-        className={`p-5 rounded-xl shadow-sm transition ${
-            onClick
-            ? "cursor-pointer hover:shadow-md hover:scale-[1.02]"
-            : "cursor-default"
-        }`}
+            onClick={onClick}
+            className={`p-5 rounded-xl shadow-sm transition hover:shadow-lg hover:scale-[1.02] ${
+                onClick ? "cursor-pointer" : "cursor-default"
+            }`}
         >
+
         <CardContent className="p-4 flex items-center justify-between">
             <div>
             <p className="text-sm text-muted">{title}</p>

@@ -3,6 +3,7 @@ import {
     getDashboardSummary,
     getEmployeesBecomingRegularSoon,
     getRegularizationForecast,
+    getBirthdaysToday
 } from "../services/dashboardService.js";
 
 
@@ -14,12 +15,18 @@ export const dashboardSummary = asyncHandler(async (req, res) => {
     const [
         summary,
         becomingRegular,
-        forecast
+        forecast,
+        birthdaysToday
     ] = await Promise.all([
         getDashboardSummary(),
         getEmployeesBecomingRegularSoon(),
-        getRegularizationForecast()
+        getRegularizationForecast(),
+        getBirthdaysToday()
     ]);
 
-    res.status(200).json({ success: true, summary, becomingRegular, forecast });
+    res.status(200).json({ 
+        success: true, 
+        message: "Dashboard loaded successfully", 
+        data: { summary, becomingRegular, forecast, birthdaysToday }
+    });
 });

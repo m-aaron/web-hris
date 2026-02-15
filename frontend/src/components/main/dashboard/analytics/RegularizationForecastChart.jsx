@@ -10,15 +10,27 @@ import {
     YAxis,
     Tooltip,
     ResponsiveContainer,
-    CartesianGrid
+    CartesianGrid,
+    Legend
 } from "recharts";
 
 export const RegularizationForecastChart = ({ data }) => {
     const [chartType, setChartType] = useState("bar");
 
+    if (!data || data.length === 0) {
+        return <Card> No forecast data available </Card>
+    }
+
+    const formattedData = data?.map(item => ({
+        ...item,
+        teaching: Number(item.teaching) || 0,
+        non_teaching: Number(item.non_teaching) || 0
+    }));
+
+
     return (
         <Card className="rounded-2xl shadow-sm transition-all duration-300 hover:shadow-lg bg-card">
-            <CardContent className="p-6 h-80 flex flex-col">
+            <CardContent className="p-6" style={{ height: 320 }}>
                 
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
@@ -63,40 +75,42 @@ export const RegularizationForecastChart = ({ data }) => {
 
                 {/* Chart */}
                 <div className="flex-1">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height={260}>
                         {chartType === "bar" ? (
-                            <BarChart data={data}>
+                            <BarChart data={formattedData}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--grey)" />
                                 <XAxis dataKey="month" stroke="var(--muted)" />
-                                <YAxis stroke="var(--muted)" />
+                                <YAxis allowDecimals={false} stroke="var(--muted)" />
                                 <Tooltip />
+                                <Legend />
 
                                 <Bar
                                     dataKey="teaching"
                                     name="Teaching"
                                     radius={[8, 8, 0, 0]}
-                                    fill="var(--blue)"
+                                    fill="#3b82f6"
                                 />
 
                                 <Bar
                                     dataKey="non_teaching"
                                     name="Non-Teaching"
                                     radius={[8, 8, 0, 0]}
-                                    fill="var(--border)"
+                                    fill="#10b981"
                                 />
                             </BarChart>
                         ) : (
                             <LineChart data={data}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--grey)" />
                                 <XAxis dataKey="month" stroke="var(--muted)" />
-                                <YAxis stroke="var(--muted)" />
+                                <YAxis allowDecimals={false} stroke="var(--muted)" />
                                 <Tooltip />
+                                <Legend />
 
                                 <Line
                                     type="monotone"
                                     dataKey="teaching"
                                     name="Teaching"
-                                    stroke="var(--blue)"
+                                    stroke="#3b82f6"
                                     strokeWidth={3}
                                     dot={{ r: 4 }}
                                 />
@@ -105,7 +119,7 @@ export const RegularizationForecastChart = ({ data }) => {
                                     type="monotone"
                                     dataKey="non_teaching"
                                     name="Non-Teaching"
-                                    stroke="var(--border)"
+                                    stroke="#10b981"
                                     strokeWidth={3}
                                     dot={{ r: 4 }}
                                 />

@@ -14,4 +14,3 @@ export const genderData = [
     { name: "Male", value: 60, fill: "#6366f1" },
     { name: "Female", value: 60, fill: "#ec4899" },
 ];
-

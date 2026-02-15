@@ -9,8 +9,9 @@ import {
     TableHeaderCell,
     TableCell,
 } from "../ui/Table";
+import { formatPHDate } from "../../../helpers/dateHelper";
 
-export const RegularizationPreviewTable = () => {
+export const RegularizationPreviewTable = ({ becomingRegular }) => {
     return (
         <Card className="rounded-2xl shadow-sm transition-all duration-300 hover:shadow-lg">
             <CardContent className="p-4">
@@ -21,6 +22,7 @@ export const RegularizationPreviewTable = () => {
                 <Table>
                     <TableHead>
                         <TableRow className="text-heading">
+                            <TableHeaderCell>No.</TableHeaderCell>
                             <TableHeaderCell>Name</TableHeaderCell>
                             <TableHeaderCell>Type</TableHeaderCell>
                             <TableHeaderCell>Regularization Date</TableHeaderCell>
@@ -29,23 +31,17 @@ export const RegularizationPreviewTable = () => {
                     </TableHead>
 
                     <TableBody>
-                        <TableRow className="text-muted hover:bg-[rgba(66,73,77,0.1)] transition">
-                            <TableCell>Juan Dela Cruz</TableCell>
-                            <TableCell>Teaching</TableCell>
-                            <TableCell>March 15, 2026</TableCell>
-                            <TableCell className="text-amber-600 font-medium">
-                                30
-                            </TableCell>
-                        </TableRow>
-
-                        <TableRow className="text-muted hover:bg-[rgba(66,73,77,0.1)] transition">
-                            <TableCell>Maria Santos</TableCell>
-                            <TableCell>Non-Teaching</TableCell>
-                            <TableCell>March 28, 2026</TableCell>
-                            <TableCell className="text-red-600 font-medium">
-                                12
-                            </TableCell>
-                        </TableRow>
+                        {becomingRegular.map((row, index) => (
+                            <TableRow key={index} className="text-muted hover:bg-[rgba(66,73,77,0.1)] transition">
+                                <TableCell>{index + 1}</TableCell>
+                                <TableCell>{row.full_name}</TableCell>
+                                <TableCell>{row.employment_type.replace("_", "-")}</TableCell>
+                                <TableCell>{formatPHDate(row.regularization_date)}</TableCell>
+                                <TableCell className="text-amber-600 font-medium">
+                                    {row.days_remaining}
+                                </TableCell>
+                            </TableRow>
+                        ))}
                     </TableBody>
                 </Table>
             </CardContent>

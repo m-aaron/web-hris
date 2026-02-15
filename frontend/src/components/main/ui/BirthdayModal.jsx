@@ -28,29 +28,29 @@ export const BirthdayModal = ({ isOpen, onClose, data }) => {
 
                 {/* Content */}
                 <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
-                    {data.length === 0 ? (
+                    {!data || data.length === 0 ? (
                         <p className="text-sm text-muted text-center py-8">
                             No birthdays today.
                         </p>
                     ) : (
                         data.map((employee, index) => (
-                        <div
-                            key={index}
-                            className="p-3 rounded-xl border border-border bg-card hover:bg-grey transition flex justify-between items-center"
-                        >
-                            <div>
-                                <p className="font-medium text-heading">
-                                    {employee.name}
-                                </p>
-                                <p className="text-sm text-muted">
-                                    {employee.type}
-                                </p>
-                            </div>
+                            <div
+                                key={index}
+                                className="p-3 rounded-xl border border-border bg-card hover:bg-grey transition flex justify-between items-center"
+                            >
+                                <div>
+                                    <p className="font-medium text-heading">
+                                        {employee.full_name}
+                                    </p>
+                                    <p className="text-sm text-muted">
+                                        {employee.employment_type}
+                                    </p>
+                                </div>
 
-                            <span className="text-sm text-muted">
-                                {employee.date}
-                            </span>
-                        </div>
+                                <span className="text-sm text-muted">
+                                    {employee.birth_date}
+                                </span>
+                            </div>
                         ))
                     )}
                 </div>

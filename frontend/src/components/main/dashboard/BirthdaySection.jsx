@@ -3,16 +3,8 @@ import { Cake } from "lucide-react";
 import { KpiCard } from "./KpiCard";
 import { BirthdayModal } from "../ui/BirthdayModal";
 
-export const BirthdaySection = () => {
+export const BirthdaySection = ( { summary, birthdaysTodayData } ) => {
     const [open, setOpen] = useState(false);
-
-    const birthdayTodayData = [
-        { name: "Juan Dela Cruz", type: "Teaching", date: "Feb 14" },
-        { name: "Maria Santos", type: "Non-Teaching", date: "Feb 14" },
-        { name: "Ana Reyes", type: "Teaching", date: "Feb 14" },
-    ];
-
-    const birthdayCount = 4;
 
     return (
         <>
@@ -25,17 +17,17 @@ export const BirthdaySection = () => {
             {/* Clickable Card */}
             <KpiCard
                 title="Birthday Today"
-                value={birthdayCount}
+                value={ summary.total_birthday_today }
                 icon={Cake}
                 variant="success"
-                onClick={birthdayCount > 0 ? () => setOpen(true) : undefined}
+                onClick={summary.total_birthday_today > 0 ? () => setOpen(true) : undefined}
             />
 
-            <KpiCard title="Birthdays This Month" value={8} icon={Cake} />
+            <KpiCard title="Birthdays This Month" value={ summary.total_birthday_this_month } icon={Cake} />
 
             <KpiCard
                 title="Upcoming (Next 7 Days)"
-                value={3}
+                value={ summary.total_birthday_next_7_days }
                 icon={Cake}
                 variant="warning"
             />
@@ -46,7 +38,7 @@ export const BirthdaySection = () => {
         <BirthdayModal
             isOpen={open}
             onClose={() => setOpen(false)}
-            data={birthdayTodayData}
+            data={birthdaysTodayData}
         />
         </>
     );
