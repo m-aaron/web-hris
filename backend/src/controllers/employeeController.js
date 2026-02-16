@@ -4,6 +4,7 @@ import sharp from "sharp";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
+import { TYPE, STATUS, BASIS } from "../constants/employmentConstant.js";
 
 
 // @desc    Create a new employee
@@ -110,5 +111,182 @@ export const updateEmployeePhoto = asyncHandler(async (req, res) => {
     };
     
     res.status(200).json({ message: "Employee photo updated successfully.", success: true, photoUrl });
+
+});
+
+// @desc    Get employees with pagination and filtering
+// @route   GET /api/employees
+// @access  Private
+export const getEmployees = asyncHandler(async (req, res) => {
+
+    const {
+        search = "",
+        page = 1,
+        limit = 10,
+        type,
+        status,
+        basis,
+        sex,
+        regularization_filter,
+        sort = "date_hired_desc"
+    } = req.query;
+
+    const offset = (page - 1) * limit;
+
+    let whereClauses = [];
+    let values = [];
+    let index = 1;
+
+    // Global Search
+    if (search) {
+        whereClauses.push(`
+            (
+                LOWER(pd.first_name) LIKE LOWER($${index})
+                OR LOWER(pd.last_name) LIKE LOWER($${index})
+                OR LOWER(e.employee_no) LIKE LOWER($${index})
+                OR LOWER(e.employment_type) LIKE LOWER($${index})
+                OR LOWER(ed.employment_status) LIKE LOWER($${index})
+            )
+        `);
+        values.push(`%${search}%`);
+        index++;
+    }
+
+    // Filters
+    if (type) {
+        whereClauses.push(`e.employment_type = $${index}`);
+        values.push(type);
+        index++;
+    }
+
+    if (status) {
+        whereClauses.push(`ed.employment_status = $${index}`);
+        values.push(status);
+        index++;
+    }
+
+    if (basis) {
+        whereClauses.push(`ed.employment_basis = $${index}`);
+        values.push(basis);
+        index++;
+    }
+
+    if (sex) {
+        whereClauses.push(`pd.sex = $${index}`);
+        values.push(sex);
+        index++;
+    }
+
+    // Regularization filter (computed)
+    if (regularization_filter === "near_30_days") {
+        whereClauses.push(`
+            (
+                CASE
+                    WHEN e.employment_type = 'TEACHING'
+                        THEN ed.date_hired + INTERVAL '3 years'
+                    WHEN e.employment_type = 'NON_TEACHING'
+                        THEN ed.date_hired + INTERVAL '6 months'
+                END
+            ) BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'
+        `);
+    }
+
+    if (regularization_filter === "overdue") {
+        whereClauses.push(`
+            (
+                CASE
+                    WHEN e.employment_type = 'TEACHING'
+                        THEN ed.date_hired + INTERVAL '3 years'
+                    WHEN e.employment_type = 'NON_TEACHING'
+                        THEN ed.date_hired + INTERVAL '6 months'
+                END
+            ) < CURRENT_DATE
+            AND ed.employment_status != 'REGULAR'
+        `);
+    }
+
+    const whereQuery = whereClauses.length
+        ? `WHERE ${whereClauses.join(" AND ")}`
+        : "";
+
+    const sortOptions = {
+        name_asc: "pd.last_name ASC, pd.first_name ASC",
+        name_desc: "pd.last_name DESC, pd.first_name DESC",
+        date_hired_asc: "ed.date_hired ASC",
+        date_hired_desc: "ed.date_hired DESC",
+        status_asc: "ed.employment_status ASC",
+        status_desc: "ed.employment_status DESC",
+        type_asc: "e.employment_type ASC",
+        type_desc: "e.employment_type DESC"
+    };
+
+    const orderBy = sortOptions[sort] || "ed.date_hired DESC";
+
+    const dataQuery = `
+        SELECT 
+            e.id,
+            e.employee_no,
+            e.employment_type,
+            ed.employment_status,
+            ed.employment_basis,
+            ed.date_hired,
+            pd.first_name,
+            pd.last_name,
+            pd.middle_name,
+            pd.sex,
+            pd.birth_date,
+
+            -- Computed Regularization Date
+            CASE
+                WHEN e.employment_type = 'TEACHING'
+                    THEN ed.date_hired + INTERVAL '3 years'
+                WHEN e.employment_type = 'NON_TEACHING'
+                    THEN ed.date_hired + INTERVAL '6 months'
+            END AS regularization_date,
+
+            -- Birthday Flag
+            CASE 
+                WHEN pd.birth_date = CURRENT_DATE THEN 'birthday_today'
+                WHEN pd.birth_date BETWEEN CURRENT_DATE 
+                    AND CURRENT_DATE + INTERVAL '7 days'
+                THEN 'birthday_soon'
+                ELSE NULL
+            END AS birthday_flag
+
+        FROM employees e
+        LEFT JOIN personal_data pd ON e.id = pd.employee_id
+        LEFT JOIN employment_data ed ON e.id = ed.employee_id
+        ${whereQuery}
+        ORDER BY ${orderBy}
+        LIMIT $${index}
+        OFFSET $${index + 1}
+    `;
+
+    values.push(limit);
+    values.push(offset);
+
+    const result = await pool.query(dataQuery, values);
+
+    const countResult = await pool.query(
+        `
+        SELECT COUNT(*)
+        FROM employees e
+        LEFT JOIN personal_data pd ON e.id = pd.employee_id
+        LEFT JOIN employment_data ed ON e.id = ed.employee_id
+        ${whereQuery}
+        `,
+        values.slice(0, values.length - 2)
+    );
+
+    res.json({
+        success: true,
+        data: result.rows,
+        pagination: {
+            total: Number(countResult.rows[0].count),
+            page: Number(page),
+            limit: Number(limit),
+            total_pages: Math.ceil(countResult.rows[0].count / limit)
+        }
+    });
 
 });
