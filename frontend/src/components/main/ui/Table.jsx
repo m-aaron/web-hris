@@ -12,41 +12,41 @@ export const Table = ({ children, className = "" }) => {
 }
 
 /* Head */
-export const TableHead = ({ children }) => {
+export const TableHead = ({ children, className = "" }) => {
     return (
-        <thead className="border-b bg-gray-50">
+        <thead className={`text-xs border-b border-border bg-card ${className}`}>
         {children}
         </thead>
     );
 }
 
 /* Body */
-export const TableBody = ({ children }) => {
-    return <tbody>{children}</tbody>;
+export const TableBody = ({ children, className = "" }) => {
+    return <tbody className={className}>{children}</tbody>;
 }
 
 /* Row */
 export const TableRow = ({ children, className = "" }) => {
     return (
-        <tr className={`border-b last:border-0 ${className}`}>
+        <tr className={`border-b border-border last:border-0 ${className}`}>
         {children}
         </tr>
     );
 }
 
 /* Header Cell */
-export const TableHeaderCell = ({ children }) => {
+export const TableHeaderCell = ({ children, className = "", ...props }) => {
     return (
-        <th className="px-4 py-3 font-semibold text-gray-600">
+        <th className={`px-4 py-3 font-semibold text-heading ${className}`} {...props}>
         {children}
         </th>
     );
 }
 
 /* Data Cell */
-export const TableCell = ({ children, className = "" }) => {
+export const TableCell = ({ children, className = "", ...props }) => {
     return (
-        <td className={`px-4 py-3 ${className}`}>
+        <td className={`px-4 py-3 ${className}`} {...props}>
         {children}
         </td>
     );

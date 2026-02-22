@@ -10,12 +10,14 @@
         --border: #6a6e6f;
         --red: #DA5C53;
         --blue: #4AA3BA;
-        --green: #A8E4B1;
+        --green: #91d09a;
         --yellow: #F3B95F;
         --light-red: #fed8c6;
         --light-green: #e5ffd3;
         --light-yellow: #ffedc3;
         --grey: #d7d7d7;
+        --male: #6366f1;
+        --female: #ec4899
     }
 }
 
@@ -39,6 +41,8 @@
         --color-light-green: var(--light-green);
         --color-light-yellow: var(--light-yellow);
         --color-grey: var(--grey);
+        --color-male: var(--male);
+        --color-female: var(--female);
 }
 
 body {

@@ -11,6 +11,7 @@ import Login from "./pages/public/Login";
 import ForgotPassword from "./pages/public/ForgotPassword";
 import ResetPassword from "./pages/public/ResetPassword";
 import Dashboard from "./pages/private/Dashboard";
+import Employee from "./pages/private/Employee";
 
 
 const App = () => {
@@ -36,6 +37,7 @@ const App = () => {
           <Route element={<RoleGuard allowedRoles={ [ROLES.ADMIN, ROLES.HR] } userRole={ user?.role } />}>
             <Route element={ <MainLayout /> }>
               <Route path="/dashboard" element={ <Dashboard /> } />
+              <Route path="/employees" element={ <Employee /> } />
             </Route>
           </Route>
 

@@ -26,7 +26,11 @@ app.use(cors({
     origin: "http://localhost:3000",
     credentials: true, // allow cookies
 }));
-app.use(helmet());
+app.use(
+    helmet({
+        crossOriginResourcePolicy: { policy: "cross-origin" },
+    })
+);
 app.use(cookieParser());
 app.use(express.json());
 

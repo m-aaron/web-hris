@@ -4,7 +4,8 @@ import sharp from "sharp";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
-import { TYPE, STATUS, BASIS } from "../constants/employmentConstant.js";
+import { buildFilterQuery, autoAdjustColumnWidth, generateExcelFile } from "../utils/excelExportUtil.js";
+import { STATUS } from "../constants/employmentConstant.js";
 
 
 // @desc    Create a new employee
@@ -137,8 +138,14 @@ export const getEmployees = asyncHandler(async (req, res) => {
     let values = [];
     let index = 1;
 
+    const normalizedSearch = search.toUpperCase().replace("-", "_");
+
+    whereClauses.push(`e.status = $${index}`);
+    values.push("SUBMITTED");
+    index++;
+
     // Global Search
-    if (search) {
+    if (normalizedSearch) {
         whereClauses.push(`
             (
                 LOWER(pd.first_name) LIKE LOWER($${index})
@@ -146,9 +153,10 @@ export const getEmployees = asyncHandler(async (req, res) => {
                 OR LOWER(e.employee_no) LIKE LOWER($${index})
                 OR LOWER(e.employment_type) LIKE LOWER($${index})
                 OR LOWER(ed.employment_status) LIKE LOWER($${index})
+                OR LOWER(ed.employment_basis) LIKE LOWER($${index})
             )
         `);
-        values.push(`%${search}%`);
+        values.push(`%${normalizedSearch}%`);
         index++;
     }
 
@@ -182,9 +190,11 @@ export const getEmployees = asyncHandler(async (req, res) => {
         whereClauses.push(`
             (
                 CASE
-                    WHEN e.employment_type = 'TEACHING'
+                    WHEN ed.employment_status = 'PROBATIONARY'
+                        AND e.employment_type = 'TEACHING'
                         THEN ed.date_hired + INTERVAL '3 years'
-                    WHEN e.employment_type = 'NON_TEACHING'
+                    WHEN ed.employment_status = 'PROBATIONARY'
+                        AND e.employment_type = 'NON_TEACHING'
                         THEN ed.date_hired + INTERVAL '6 months'
                 END
             ) BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'
@@ -195,9 +205,11 @@ export const getEmployees = asyncHandler(async (req, res) => {
         whereClauses.push(`
             (
                 CASE
-                    WHEN e.employment_type = 'TEACHING'
+                    WHEN ed.employment_status = 'PROBATIONARY'
+                        AND e.employment_type = 'TEACHING'
                         THEN ed.date_hired + INTERVAL '3 years'
-                    WHEN e.employment_type = 'NON_TEACHING'
+                    WHEN ed.employment_status = 'PROBATIONARY'
+                        AND e.employment_type = 'NON_TEACHING'
                         THEN ed.date_hired + INTERVAL '6 months'
                 END
             ) < CURRENT_DATE
@@ -217,7 +229,9 @@ export const getEmployees = asyncHandler(async (req, res) => {
         status_asc: "ed.employment_status ASC",
         status_desc: "ed.employment_status DESC",
         type_asc: "e.employment_type ASC",
-        type_desc: "e.employment_type DESC"
+        type_desc: "e.employment_type DESC",
+        employee_no_asc: "e.employee_no ASC",
+        employee_no_desc: "e.employee_no DESC"
     };
 
     const orderBy = sortOptions[sort] || "ed.date_hired DESC";
@@ -227,6 +241,7 @@ export const getEmployees = asyncHandler(async (req, res) => {
             e.id,
             e.employee_no,
             e.employment_type,
+            e.photo_url,
             ed.employment_status,
             ed.employment_basis,
             ed.date_hired,
@@ -244,12 +259,49 @@ export const getEmployees = asyncHandler(async (req, res) => {
                     THEN ed.date_hired + INTERVAL '6 months'
             END AS regularization_date,
 
+            CASE
+                WHEN (
+                    CASE
+                        WHEN e.employment_type = 'TEACHING'
+                            THEN ed.date_hired + INTERVAL '3 years'
+                        WHEN e.employment_type = 'NON_TEACHING'
+                            THEN ed.date_hired + INTERVAL '6 months'
+                    END
+                ) BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'
+                AND ed.employment_status != 'REGULAR'
+                THEN 'near_30_days'
+
+                WHEN (
+                    CASE
+                        WHEN e.employment_type = 'TEACHING'
+                            THEN ed.date_hired + INTERVAL '3 years'
+                        WHEN e.employment_type = 'NON_TEACHING'
+                            THEN ed.date_hired + INTERVAL '6 months'
+                    END
+                ) < CURRENT_DATE
+                AND ed.employment_status != 'REGULAR'
+                THEN 'overdue'
+
+                ELSE NULL
+            END AS regularization_flag,
+
             -- Birthday Flag
             CASE 
-                WHEN pd.birth_date = CURRENT_DATE THEN 'birthday_today'
-                WHEN pd.birth_date BETWEEN CURRENT_DATE 
+                WHEN EXTRACT(MONTH FROM pd.birth_date) = EXTRACT(MONTH FROM CURRENT_DATE)
+                    AND EXTRACT(DAY FROM pd.birth_date) = EXTRACT(DAY FROM CURRENT_DATE)
+                THEN 'birthday_today'
+
+                WHEN (
+                    MAKE_DATE(
+                        EXTRACT(YEAR FROM CURRENT_DATE)::int,
+                        EXTRACT(MONTH FROM pd.birth_date)::int,
+                        EXTRACT(DAY FROM pd.birth_date)::int
+                    )
+                    BETWEEN CURRENT_DATE 
                     AND CURRENT_DATE + INTERVAL '7 days'
+                )
                 THEN 'birthday_soon'
+
                 ELSE NULL
             END AS birthday_flag
 
@@ -289,4 +341,168 @@ export const getEmployees = asyncHandler(async (req, res) => {
         }
     });
 
+});
+
+// @desc    Archive an employee
+// @route   PUT /api/employees/:id/archive
+// @access  Private
+export const archiveEmployee = asyncHandler(async (req, res) => {
+
+    const { id } = req.params;
+
+    // Validate input
+    if (!id) {
+        return res.status(400).json({ message: "Employee ID is required." });
+    };
+
+    // Check if employee exist
+    const checkResult = await pool.query(
+        `SELECT id FROM employees WHERE id = $1`,
+        [id]
+    );
+    if (checkResult.rows.length === 0) {
+        return res.status(404).json({ message: "No employee found to archive." });
+    };
+
+    const result = await pool.query(
+        `UPDATE employees SET status = $1 WHERE id = $2`,
+        ['ARCHIVED', id]
+    );
+
+    if (result.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to archive employee." });
+    };
+
+    res.status(200).json({ message: "Employee archived successfully", success: true });
+
+});
+
+// @desc    Bulk archive employees
+// @route   PUT /api/employees/bulk-archive
+// @access  Private
+export const bulkArchiveEmployees = asyncHandler(async (req, res) => {
+
+    const { ids } = req.body;
+
+    // Validate input
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+        return res.status(400).json({
+        message: "Employee IDs are required.",
+        success: false,
+        });
+    }
+
+    // Check if employees exist
+    const checkResult = await pool.query(
+        `SELECT id FROM employees WHERE id = ANY($1::uuid[])`,
+        [ids]
+    );
+
+    if (checkResult.rowCount === 0) {
+        return res.status(404).json({
+        message: "No employees found to archive.",
+        success: false,
+        });
+    }
+
+    // Update to ARCHIVED
+    const result = await pool.query(
+        `UPDATE employees 
+        SET status = $1 
+        WHERE id = ANY($2::uuid[])`,
+        ["ARCHIVED", ids]
+    );
+
+    if (result.rowCount === 0) {
+        return res.status(500).json({
+        message: "Failed to archive employees.",
+        success: false,
+        });
+    };
+
+    res.status(200).json({
+        message: "Employees archived successfully",
+        success: true,
+        archived_count: result.rowCount,
+    });
+
+});
+
+// @desc    Change employee status (e.g. from PROBATIONARY to REGULAR)
+// @route   PUT /api/employees/:id/status
+// @access  Private
+export const changeEmployeeStatus = asyncHandler(async (req, res) => {
+
+    const { id } = req.params;
+    const { newStatus } = req.body;
+
+    // Validate input
+    if (!id || !newStatus) {
+        return res.status(400).json({ message: "Employee ID and new status are required." });
+    };
+
+    const upperStatus = newStatus.toUpperCase();
+
+    if (!Object.values(STATUS).includes(upperStatus)) {
+        return res.status(400).json({ message: "Invalid status value." });
+    };
+
+    // Check if employee exist
+    const checkResult = await pool.query(
+        `SELECT id FROM employees WHERE id = $1`,
+        [id]
+    );
+    if (checkResult.rows.length === 0) {
+        return res.status(404).json({ message: "No employee found to update." });
+    };
+
+    const result = await pool.query(
+        `UPDATE employment_data 
+        SET employment_status = $1 
+        WHERE employee_id = $2`,
+        [upperStatus, id]
+    );
+
+    if (result.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to update employee status." });
+    };
+
+    res.status(200).json({ message: "Employee status updated successfully", success: true });
+
+});
+
+// @desc    Export employees to Excel
+// @route   GET /api/employees/export
+// @access  Private
+export const exportEmployeesExcel = asyncHandler(async (req, res) => {
+    const { dataQuery, values } = buildFilterQuery(req.query);
+
+    const result = await pool.query(dataQuery, values);
+
+    if (result.rows.length === 0) {
+        return res.status(400).json({ message: "No employees found to export.", success: false });
+    };
+
+    await generateExcelFile(result.rows, res);
+});
+
+// @desc    Export selected employees to Excel
+// @route   POST /api/employees/export-selected
+// @access  Private
+export const exportSelectedEmployeesExcel = asyncHandler(async (req, res) => {
+    const { ids } = req.body;
+
+    if (!ids || !ids.length) {
+        return res.status(400).json({ message: "No employee IDs provided.", success: false });
+    }
+
+    const { dataQuery, values } = buildFilterQuery({ ids });
+
+    const result = await pool.query(dataQuery, values);
+
+    if (result.rows.length === 0) {
+        return res.status(400).json({ message: "No employees found to export.", success: false });
+    };
+
+    await generateExcelFile(result.rows, res);
 });

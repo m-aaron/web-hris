@@ -30,18 +30,18 @@ export const KpiCard = ({
             }`}
         >
 
-        <CardContent className="p-4 flex items-center justify-between">
-            <div>
-            <p className="text-sm text-muted">{title}</p>
-            <p className="text-2xl font-bold mt-2">{value}</p>
-            </div>
+            <CardContent className="p-4 flex items-center justify-between">
+                <div>
+                    <p className="text-sm text-muted">{title}</p>
+                    <p className="text-2xl font-bold mt-2">{value}</p>
+                </div>
 
-            {Icon && (
-            <div className={`p-3 rounded-xl ${variantStyles[variant]}`}>
-                <Icon className={`w-5 h-5 ${iconColorStyles[variant]}`} />
-            </div>
-            )}
-        </CardContent>
+                {Icon && (
+                <div className={`p-3 rounded-xl ${variantStyles[variant]}`}>
+                    <Icon className={`w-5 h-5 ${iconColorStyles[variant]}`} />
+                </div>
+                )}
+            </CardContent>
         </Card>
     );
 };

@@ -50,16 +50,18 @@ export const getDashboardSummary = async (req, res) => {
             ) AS total_upcoming_regular_this_month,
 
             COUNT(*) FILTER (
-                WHERE EXTRACT(YEAR FROM regularization_date) = EXTRACT(YEAR FROM CURRENT_DATE)
+                WHERE employment_status = $5
+                AND EXTRACT(YEAR FROM regularization_date) = EXTRACT(YEAR FROM CURRENT_DATE)
             ) AS total_upcoming_regular_this_year,
 
             COUNT(*) FILTER (
-                WHERE regularization_date BETWEEN CURRENT_DATE 
+                WHERE employment_status = $6
+                    AND regularization_date BETWEEN CURRENT_DATE 
                     AND CURRENT_DATE + INTERVAL '30 days'
             ) AS total_near_regularization_30_days,
 
             COUNT(*) FILTER (
-                WHERE employment_status = $5
+                WHERE employment_status = $7
                 AND regularization_date < CURRENT_DATE
             ) AS total_overdue_regularization,
 
@@ -92,10 +94,10 @@ export const getDashboardSummary = async (req, res) => {
             COUNT(*) FILTER (WHERE sex = 'FEMALE')
                 AS total_female,
 
-            COUNT(*) FILTER (WHERE employment_type = $6)
+            COUNT(*) FILTER (WHERE employment_type = $8)
                 AS total_teaching,
 
-            COUNT(*) FILTER (WHERE employment_type = $7)
+            COUNT(*) FILTER (WHERE employment_type = $9)
                 AS total_non_teaching
 
         FROM base;
@@ -105,13 +107,15 @@ export const getDashboardSummary = async (req, res) => {
         STATUS.PROBATIONARY,
         STATUS.REGULAR,
         STATUS.PROBATIONARY,
+        STATUS.PROBATIONARY,
+        STATUS.PROBATIONARY,
         TYPE.TEACHING,
         TYPE.NON_TEACHING
     ]); 
 
-    if (result.rows.length === 0) {
-        return res.status(404).json({ message: "No data found" });
-    };
+    if (!result.rows || result.rows.length === 0) {
+        return [];
+    }
 
     return result.rows[0];
 
@@ -167,6 +171,10 @@ export const getEmployeesBecomingRegularSoon = async () => {
         STATUS.PROBATIONARY
     ]);
 
+    if (!result.rows || result.rows.length === 0) {
+        return [];
+    }
+
     return result.rows;
 };
 
@@ -179,16 +187,16 @@ export const getRegularizationForecast = async () => {
                 e.employment_type,
 
                 CASE
-                    WHEN e.employment_type = '${TYPE.TEACHING}'
+                    WHEN e.employment_type = $1
                         THEN ed.date_hired + INTERVAL '3 years'
-                    WHEN e.employment_type = '${TYPE.NON_TEACHING}'
+                    WHEN e.employment_type = $2
                         THEN ed.date_hired + INTERVAL '6 months'
                 END AS regularization_date
 
             FROM employees e
             JOIN employment_data ed ON e.id = ed.employee_id
             WHERE e.status = 'SUBMITTED'
-                AND ed.employment_status = '${STATUS.PROBATIONARY}'
+                AND ed.employment_status = $3
         ),
 
         months AS (
@@ -203,13 +211,13 @@ export const getRegularizationForecast = async () => {
             TO_CHAR(m.month_start, 'Mon YYYY') AS month,
 
             COUNT(*) FILTER (
-                WHERE b.employment_type = '${TYPE.TEACHING}'
+                WHERE b.employment_type = $4
                     AND b.regularization_date >= m.month_start
                     AND b.regularization_date < m.month_start + INTERVAL '1 month'
             ) AS teaching,
 
             COUNT(*) FILTER (
-                WHERE b.employment_type = '${TYPE.NON_TEACHING}'
+                WHERE b.employment_type = $5
                     AND b.regularization_date >= m.month_start
                     AND b.regularization_date < m.month_start + INTERVAL '1 month'
             ) AS non_teaching
@@ -221,7 +229,11 @@ export const getRegularizationForecast = async () => {
 
         GROUP BY m.month_start
         ORDER BY m.month_start;
-    `);
+    `, [TYPE.TEACHING, TYPE.NON_TEACHING, STATUS.PROBATIONARY, TYPE.TEACHING, TYPE.NON_TEACHING]);
+
+    if (!result.rows || result.rows.length === 0) {
+        return [];
+    }
 
     return result.rows;
 };
@@ -242,9 +254,9 @@ export const getBirthdaysToday = async () => {
             ) AS full_name,
 
             CASE
-                WHEN e.employment_type = '${TYPE.TEACHING}'
+                WHEN e.employment_type = $1
                     THEN 'Teaching'
-                WHEN e.employment_type = '${TYPE.NON_TEACHING}'
+                WHEN e.employment_type = $2
                     THEN 'Non-teaching'
             END AS employment_type,
 
@@ -257,7 +269,11 @@ export const getBirthdaysToday = async () => {
             AND EXTRACT(DAY FROM pd.birth_date) = EXTRACT(DAY FROM CURRENT_DATE)
 
         ORDER BY pd.last_name ASC;
-    `);
+    `, [TYPE.TEACHING, TYPE.NON_TEACHING]);
+
+    if (!result.rows || result.rows.length === 0) {
+        return [];
+    }
 
     return result.rows;
 };

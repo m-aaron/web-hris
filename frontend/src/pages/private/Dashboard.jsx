@@ -53,7 +53,7 @@ const Dashboard = () => {
                 </h1>
 
                 <div className="md:justify-self-end md:max-w-xs">
-                    <Button>
+                    <Button size="medium">
                         + Create Employee
                     </Button>
                 </div>

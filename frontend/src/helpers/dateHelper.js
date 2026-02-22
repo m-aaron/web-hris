@@ -3,7 +3,7 @@ export const formatPHDate = (dateString) => {
 
     const date = new Date(dateString);
 
-    return new Intl.DateTimeFormat("en-US", {
+    return new Intl.DateTimeFormat("en-CA", {
         timeZone: "Asia/Manila",
         month: "2-digit",
         day: "2-digit",
