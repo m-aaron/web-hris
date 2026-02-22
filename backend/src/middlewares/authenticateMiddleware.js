@@ -12,11 +12,17 @@ export const authenticate = asyncHandler(async (req, res, next) => {
 
     // Check if token exists
     if (!token) {
-        return res.status(403).json({ message: 'Not authorized, no token', success: false });
+        return res.status(401).json({ message: 'Not authorized, no token', success: false });
     }
 
+    let decoded;
+
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+        return res.status(401).json({ message: 'Not authorized, invalid token', success: false });
+    }
 
     // Fetch user from database
     const userResult = await pool.query(
@@ -29,7 +35,7 @@ export const authenticate = asyncHandler(async (req, res, next) => {
 
     // If user does not exist
     if (userResult.rows.length === 0) {
-        return res.status(401).json({ message: 'Not authorized, invalid token', success: false });
+        return res.status(401).json({ message: 'Not authorized, user does not exist', success: false });
     }
 
     // Attach user to request object
