@@ -3,7 +3,7 @@ import asyncHandler from "express-async-handler";
 
 
 // @desc    Save educational qualification for an employee
-// @route   POST /api/employees/:id/educational-qualification
+// @route   POST /api/employees/:id/education
 // @access  Private
 export const saveEducationalQualification = asyncHandler(async (req, res) => {
 
@@ -52,6 +52,64 @@ export const saveEducationalQualification = asyncHandler(async (req, res) => {
     };
 
     res.status(201).json({ message: "Educational qualification saved successfully.", success: true, qualification: result.rows[0] });
+
+});
+
+// @desc    Update educational qualification for an employee
+// @route   PUT /api/employees/:id/education/update
+// @access  Private
+export const updateEducationalQualification = asyncHandler(async (req, res) => {
+
+    const { id } = req.params;
+    const { title, school, yearStarted, yearFinished } = req.body;
+
+    // Validate required fields
+    if (!id) {
+        return res.status(400).json({ message: "Employee ID is required.", success: false });
+    };
+    if (!title || !school) {
+        return res.status(400).json({ message: "Required fields are missing.", success: false });
+    };
+
+    // Check if employee exists
+    const checkEmployeeResult = await pool.query(
+        `SELECT 1 FROM employees WHERE id = $1`,
+        [id]
+    );
+
+    if (checkEmployeeResult.rows.length === 0) {
+        return res.status(404).json({ message: "Employee not found.", success: false });
+    };
+
+    const currentYear = new Date().getFullYear();
+
+    // Validate year started and year finished
+    if (yearStarted && (yearStarted < 1900 || yearStarted > currentYear)) {
+    return res.status(400).json({ message: "Invalid start year" });
+    };
+    if (yearFinished && (yearFinished < 1900 || yearFinished > currentYear)) {
+        return res.status(400).json({ message: "Invalid finish year" });
+    };
+
+    const query = 
+    `
+        UPDATE educational_qualifications
+        SET 
+            title = $1, 
+            school = $2, 
+            year_started = $3, 
+            year_finished = $4
+        WHERE employee_id = $5
+        RETURNING *
+    `;
+
+    const result = await pool.query(query, [title, school, yearStarted || null, yearFinished || null, id]);
+
+    if (result.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to update educational qualification.", success: false });
+    };
+
+    res.status(201).json({ message: "Educational qualification updated successfully.", success: true, qualification: result.rows[0] });
 
 });
 
