@@ -33,7 +33,7 @@ export const savePersonalInfo = asyncHandler(async (req, res) => {
     if (!id) {
         return res.status(400).json({ message: "Employee ID is required.", success: false });
     }
-    if (!lastName || !firstName || !sex || !birthDate || !civilStatus || !citizenship || !religion ||!barangay || !city || !province) {
+    if (!lastName || !firstName || !sex || !birthDate || !civilStatus || !citizenship || !religion || !barangay || !city || !province) {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
     }
 
