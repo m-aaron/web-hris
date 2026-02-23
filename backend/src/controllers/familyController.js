@@ -31,8 +31,20 @@ export const saveFamilyBackground = asyncHandler(async (req, res) => {
     if (!id) {
         return res.status(400).json({ message: "Employee ID is required.", success: false });
     }
-    if (!spouseLName || !spouseFName || !kinLName || !kinFName || !kinBarangay || !kinCity || !kinProvince) {
-        return res.status(400).json({ message: "Required fields are missing.", success: false });
+    if (spouseLName || spouseFName || spouseMName || spouseNExtension) {
+        if (!spouseLName || !spouseFName) {
+            return res.status(400).json({ message: "Required fields are missing.", success: false });
+        }
+    }
+    if (kinLName || kinFName || kinMName || kinNExtension) {
+        if (!kinLName || !kinFName) {
+            return res.status(400).json({ message: "Required fields are missing.", success: false });
+        }
+    }
+    if (kinHouseNo || kinStreet || kinBarangay || kinCity || kinProvince || kinZip) {
+        if (!kinBarangay || !kinCity || !kinProvince) {
+            return res.status(400).json({ message: "Required fields are missing.", success: false });
+        }
     }
 
     // Check if employee exists
@@ -141,9 +153,6 @@ export const updateFamilyBackground = asyncHandler(async (req, res) => {
             return res.status(400).json({ message: "Required fields are missing.", success: false });
         }
     }
-    // if (!spouseLName || !spouseFName || !kinLName || !kinFName || !kinBarangay || !kinCity || !kinProvince) {
-    //     return res.status(400).json({ message: "Required fields are missing.", success: false });
-    // }
 
     // Check if employee exists
     const checkEmployeeResult = await pool.query(
