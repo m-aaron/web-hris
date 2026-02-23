@@ -10,7 +10,9 @@ import {
     saveScholarship,
     updateEducationalQualification,
     updateMajor,
-    updateMinor
+    updateMinor,
+    updateHonor,
+    updateScholarship
 } from '../controllers/educationController.js';
 
 
@@ -23,6 +25,8 @@ router.put('/:id/major/update', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.
 router.post('/:id/minor', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), saveMinor);
 router.put('/:id/minor/update', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), updateMinor);
 router.post('/:id/honor', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), saveHonor);
+router.put('/:id/honor/update', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), updateHonor);
 router.post('/:id/scholarship', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), saveScholarship);
+router.put('/:id/scholarship/update', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), updateScholarship);
 
 export default router;
