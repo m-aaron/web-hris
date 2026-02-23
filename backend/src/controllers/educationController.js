@@ -56,41 +56,17 @@ export const saveEducationalQualification = asyncHandler(async (req, res) => {
 });
 
 // @desc    Update educational qualification for an employee
-// @route   PUT /api/employees/:id/education/update
+// @route   PUT /api/employees/:employeeId/education/:qualificationId
 // @access  Private
 export const updateEducationalQualification = asyncHandler(async (req, res) => {
 
-    const { id } = req.params;
+    const { employeeId, qualificationId } = req.params;
     const { title, school, yearStarted, yearFinished } = req.body;
 
     // Validate required fields
-    if (!id) {
-        return res.status(400).json({ message: "Employee ID is required.", success: false });
-    };
     if (!title || !school) {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
     };
-
-    // Check if employee exists
-    const checkEmployeeResult = await pool.query(
-        `SELECT 1 FROM employees WHERE id = $1`,
-        [id]
-    );
-
-    if (checkEmployeeResult.rows.length === 0) {
-        return res.status(404).json({ message: "Employee not found.", success: false });
-    };
-
-    // Check if educational qualification exists for the employee
-    const checkQualificationResult = await pool.query(
-        `SELECT id FROM educational_qualifications WHERE employee_id = $1`,
-        [id]
-    );
-
-    // If no educational qualification exists, return an error
-    if (checkQualificationResult.rows.length === 0) {
-        return res.status(404).json({ message: "Educational qualification not found for this employee.", success: false });
-    }
 
     const currentYear = new Date().getFullYear();
 
@@ -114,7 +90,7 @@ export const updateEducationalQualification = asyncHandler(async (req, res) => {
         RETURNING *
     `;
 
-    const result = await pool.query(query, [title, school, yearStarted || null, yearFinished || null, id, checkQualificationResult.rows[0].id]);
+    const result = await pool.query(query, [title, school, yearStarted || null, yearFinished || null, employeeId, qualificationId]);
 
     if (result.rowCount === 0) {
         return res.status(500).json({ message: "Failed to update educational qualification.", success: false });
@@ -168,40 +144,17 @@ export const saveMajor = asyncHandler(async (req, res) => {
 });
 
 // @desc    Update major for an employee
-// @route   POST /api/employees/:id/major/update
+// @route   PUT /api/employees/:employeeId/major/:majorId
 // @access  Private
 export const updateMajor = asyncHandler(async (req, res) => {
 
-    const { id } = req.params;
+    const { employeeId, majorId } = req.params;
     const { major } = req.body; 
 
     // Validate required fields
-    if (!id) {
-        return res.status(400).json({ message: "Employee ID is required.", success: false });
-    };
     if (!major) {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
     };
-
-    // Check if employee exists
-    const checkEmployeeResult = await pool.query(
-        `SELECT 1 FROM employees WHERE id = $1`,
-        [id]
-    );
-
-    if (checkEmployeeResult.rows.length === 0) {
-        return res.status(404).json({ message: "Employee not found.", success: false });
-    };
-
-    // Check if major exists for the employee
-    const checkMajorResult = await pool.query(
-        `SELECT id FROM education_majors WHERE employee_id = $1`,
-        [id]
-    );
-
-    if (checkMajorResult.rows.length === 0) {
-        return res.status(404).json({ message: "Major not found for this employee.", success: false });
-    }
 
     const query = 
     `
@@ -212,7 +165,7 @@ export const updateMajor = asyncHandler(async (req, res) => {
          RETURNING *
     `;
 
-    const result = await pool.query(query, [major, id, checkMajorResult.rows[0].id]);
+    const result = await pool.query(query, [major, employeeId, majorId]);
 
     if (result.rowCount === 0) {
         return res.status(500).json({ message: "Failed to update major.", success: false });
@@ -266,39 +219,16 @@ export const saveMinor = asyncHandler(async (req, res) => {
 });
 
 // @desc    Update minor for an employee
-// @route   POST /api/employees/:id/minor/update
+// @route   PUT /api/employees/:employeeId/minor/:minorId
 // @access  Private
 export const updateMinor = asyncHandler(async (req, res) => {
 
-    const { id } = req.params;
+    const { employeeId, minorId } = req.params;
     const { minor } = req.body; 
 
     // Validate required fields
-    if (!id) {
-        return res.status(400).json({ message: "Employee ID is required.", success: false });
-    };
     if (!minor) {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
-    }
-
-    // Check if employee exists
-    const checkEmployeeResult = await pool.query(
-        `SELECT 1 FROM employees WHERE id = $1`,
-        [id]
-    );
-
-    if (checkEmployeeResult.rows.length === 0) {
-        return res.status(404).json({ message: "Employee not found.", success: false });
-    };
-
-    // Check if minor exists for the employee
-    const checkMinorResult = await pool.query(
-        `SELECT id FROM education_minors WHERE employee_id = $1`,
-        [id]
-    );
-
-    if (checkMinorResult.rows.length === 0) {
-        return res.status(404).json({ message: "Minor not found for this employee.", success: false });
     }
 
     const query = 
@@ -310,7 +240,7 @@ export const updateMinor = asyncHandler(async (req, res) => {
          RETURNING *
     `;
 
-    const result = await pool.query(query, [minor, id, checkMinorResult.rows[0].id]);
+    const result = await pool.query(query, [minor, employeeId, minorId]);
 
     if (result.rowCount === 0) {
         return res.status(500).json({ message: "Failed to update minor.", success: false });
@@ -364,39 +294,17 @@ export const saveHonor = asyncHandler(async (req, res) => {
 });
 
 // @desc    Update honor for an employee
-// @route   POST /api/employees/:id/honor/update
+// @route   PUT /api/employees/:employeeId/honor/:honorId
 // @access  Private
 export const updateHonor = asyncHandler(async (req, res) => {
 
-    const { id } = req.params;
+    const { employeeId, honorId } = req.params;
     const { honor } = req.body; 
 
     // Validate required fields
-    if (!id) {
-        return res.status(400).json({ message: "Employee ID is required.", success: false });
-    };
     if (!honor) {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
     };
-
-    // Check if employee exists
-    const checkEmployeeResult = await pool.query(
-        `SELECT 1 FROM employees WHERE id = $1`,
-        [id]
-    );
-
-    if (checkEmployeeResult.rows.length === 0) {
-        return res.status(404).json({ message: "Employee not found.", success: false });
-    };
-
-    const checkHonorResult = await pool.query(
-        `SELECT id FROM education_honors WHERE employee_id = $1`,
-        [id]
-    );
-
-    if (checkHonorResult.rows.length === 0) {
-        return res.status(404).json({ message: "Honor not found for this employee.", success: false });
-    }
 
     const query = 
     `
@@ -407,7 +315,7 @@ export const updateHonor = asyncHandler(async (req, res) => {
         RETURNING *
     `;
 
-    const result = await pool.query(query, [honor, id, checkHonorResult.rows[0].id]);
+    const result = await pool.query(query, [honor, employeeId, honorId]);
 
     if (result.rowCount === 0) {
         return res.status(500).json({ message: "Failed to update honor.", success: false });
@@ -461,39 +369,17 @@ export const saveScholarship = asyncHandler(async (req, res) => {
 });
 
 // @desc    Update scholarship for an employee
-// @route   POST /api/employees/:id/scholarship/update
+// @route   PUT /api/employees/:employeeId/scholarship/:scholarshipId
 // @access  Private
 export const updateScholarship = asyncHandler(async (req, res) => {
 
-    const { id } = req.params;
+    const { employeeId, scholarshipId } = req.params;
     const { scholarship } = req.body; 
 
     // Validate required fields
-    if (!id) {
-        return res.status(400).json({ message: "Employee ID is required.", success: false });
-    };
     if (!scholarship) {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
     };
-
-    // Check if employee exists
-    const checkEmployeeResult = await pool.query(
-        `SELECT 1 FROM employees WHERE id = $1`,
-        [id]
-    );
-
-    if (checkEmployeeResult.rows.length === 0) {
-        return res.status(404).json({ message: "Employee not found.", success: false });
-    };
-
-    const checkScholarshipResult = await pool.query(
-        `SELECT id FROM education_scholarships WHERE employee_id = $1`,
-        [id]
-    );
-
-    if (checkScholarshipResult.rows.length === 0) {
-        return res.status(404).json({ message: "Scholarship not found for this employee.", success: false });
-    }
 
     const query = 
     `
@@ -504,7 +390,7 @@ export const updateScholarship = asyncHandler(async (req, res) => {
         RETURNING *
     `;
 
-    const result = await pool.query(query, [scholarship, id, checkScholarshipResult.rows[0].id]);
+    const result = await pool.query(query, [scholarship, employeeId, scholarshipId]);
 
     if (result.rowCount === 0) {
         return res.status(500).json({ message: "Failed to update scholarship.", success: false });

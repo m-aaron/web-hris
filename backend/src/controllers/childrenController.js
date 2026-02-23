@@ -52,41 +52,17 @@ export const saveChild = asyncHandler(async (req, res) => {
 });
 
 // @desc    Update child information for an employee
-// @route   PUT /api/employees/:id/children/update
+// @route   PUT /api/employees/:employeeId/children/:childId
 // @access  Private
 export const updateChild = asyncHandler(async (req, res) => {
-    const { id } = req.params;
+
+    const { employeeId, childId } = req.params;
     const { lastName, firstName, middleName, nameExtension, birthDate, office, occupation } = req.body;
 
     // Validate required fields
-    if (!id) {
-        return res.status(400).json({ message: "Employee ID is required.", success: false });
-    };
     if (!lastName || !firstName) {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
     };
-
-    // Check if employee exists
-    const checkEmployeeResult = await pool.query(
-        `SELECT 1 FROM employees WHERE id = $1`,
-        [id]
-    );
-
-    // If employee does not exist
-    if (checkEmployeeResult.rows.length === 0) {
-        return res.status(404).json({ message: "Employee not found.", success: false });
-    };
-
-    // Check if child information exists for this employee
-    const checkChildResult = await pool.query(
-        `SELECT id FROM childrens WHERE employee_id = $1`,
-        [id]
-    );
-
-    // If child information does not exist for this employee
-    if (checkChildResult.rows.length === 0) {
-        return res.status(404).json({ message: "Child information not found for this employee.", success: false });
-    }
 
     const query = 
     `
@@ -107,11 +83,12 @@ export const updateChild = asyncHandler(async (req, res) => {
         name_extension: nameExtension || ''
     };
 
-    const result = await pool.query(query, [childNameObj, birthDate || null, office || '', occupation || '', id, checkChildResult.rows[0].id]);
+    const result = await pool.query(query, [childNameObj, birthDate || null, office || '', occupation || '', employeeId, childId]);
 
     if (result.rowCount === 0) {
         return res.status(500).json({ message: "Failed to update child information.", success: false });
     };
 
     res.status(201).json({ message: "Child information updated successfully.", success: true, child: result.rows[0] });
+    
 });
