@@ -130,3 +130,116 @@ export const saveEmploymentData = asyncHandler(async (req, res) => {
 
     res.status(200).json({ message: "Employment data saved successfully.", success: true, employmentData: result.rows[0] });
 });
+
+
+export const updateEmploymentData = asyncHandler(async (req, res) => {
+
+    const { id } = req.params;
+    const { 
+        dateHired, 
+        position, 
+        designation, 
+        sss,
+        pagibig,
+        tax,
+        philhealth,
+        peraa,
+        employmentStatus,
+        employmentBasis,
+        workingHours,
+        otherEmployment,
+        otherWorkingHours
+    } = req.body;
+
+    // Validate required fields
+    if (!id) {
+        return res.status(400).json({ message: "Employee ID is required.", success: false });
+    };
+    if (!dateHired || !position || !employmentStatus || !employmentBasis) {
+        return res.status(400).json({ message: "Required fields are missing.", success: false });
+    };
+
+    // Check if employee exists
+    const checkEmployeeResult = await pool.query(
+        `SELECT 1 FROM employees WHERE id = $1`,
+        [id]
+    );
+
+    if (checkEmployeeResult.rows.length === 0) {
+        return res.status(404).json({ message: "Employee not found.", success: false });
+    };
+
+    // Check if position exists
+    const checkPositionResult = await pool.query(
+        `SELECT id FROM positions WHERE name = $1`,
+        [position]
+    );
+
+    if (checkPositionResult.rows.length === 0) {
+        return res.status(404).json({ message: "Position not found.", success: false });
+    };
+
+    let checkDesignationResult;
+    
+    // Check if designation exists
+    if (designation) {
+        checkDesignationResult = await pool.query(
+            `SELECT id FROM designations WHERE name = $1`,
+            [designation]
+        );
+
+        if (checkDesignationResult.rows.length === 0) {
+            return res.status(404).json({ message: "Designation not found.", success: false });
+        };
+    };
+
+    // Validate employment status
+    if (!["REGULAR", "PROBATIONARY", "CONTRACTUAL", "RESIGNED"].includes(employmentStatus)) {
+        return res.status(400).json({ message: "Invalid employment status. Must be 'REGULAR', 'PROBATIONARY', 'CONTRACTUAL', or 'RESIGNED'.", success: false });
+    };
+
+    const query = 
+    `
+        UPDATE employment_data 
+        SET
+            date_hired = $1,
+            position_id = $2,
+            designation_id = $3,
+            sss = $4,
+            pagibig = $5,
+            tax = $6,
+            philhealth = $7,
+            peraa = $8,
+            employment_status = $9,
+            employment_basis = $10,
+            official_working_hours = $11,
+            other_employment = $12,
+            other_employment_working_hours = $13
+        WHERE employee_id = $14
+        RETURNING *
+    `
+
+    const result = await pool.query(query, [
+        dateHired,
+        checkPositionResult.rows[0].id,
+        checkDesignationResult ? checkDesignationResult.rows[0].id : null,
+        sss || '',
+        pagibig || '',
+        tax || '',
+        philhealth || '',
+        peraa || '',
+        employmentStatus,
+        employmentBasis,
+        workingHours || null,
+        otherEmployment || '',
+        otherWorkingHours || null,
+        id
+    ]);
+
+    if (result.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to update employment data.", success: false });
+    }
+
+    res.status(200).json({ message: "Employment data updated successfully.", success: true, employmentData: result.rows[0] });
+
+});
