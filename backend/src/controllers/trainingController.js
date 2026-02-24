@@ -52,3 +52,48 @@ export const saveTrainingProgram = asyncHandler(async (req, res) => {
     res.status(201).json({ message: "Training program saved successfully.", success: true, trainingProgram: result.rows[0] });
 
 });  
+
+// @desc    Update training program for an employee
+// @route   PUT /api/employees/:employeeId/training/:trainingId
+// @access  Private
+export const updateTrainingProgram = asyncHandler(async (req, res) => { 
+
+    const { employeeId, trainingId } = req.params;
+    const { title, place, dateFrom, dateTo, hours, conductedBy } = req.body;
+
+    // Validate required fields
+    if (!title || !place || !dateFrom) {
+        return res.status(400).json({ message: "Required fields are missing.", success: false });
+    };
+
+    // Validate date fields
+    if (dateFrom && (dateFrom < 1900 || dateFrom > new Date().getFullYear())) {
+    return res.status(400).json({ message: "Invalid start year" });
+    };
+    if (dateTo && (dateTo < 1900 || dateTo > new Date().getFullYear())) {
+    return res.status(400).json({ message: "Invalid end year" });
+    };
+
+    const query = 
+    `
+        UPDATE training_programs 
+        SET  
+            title = $1,
+            place = $2, 
+            date_from = $3, 
+            date_to = $4,
+            hours = $5,
+            conducted_by = $6
+        WHERE employee_id = $7 AND id = $8
+        RETURNING *
+    `;
+
+    const result = await pool.query(query, [title, place || '', dateFrom, dateTo || null, hours || null, conductedBy || '', employeeId, trainingId]);
+
+    if (result.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to update training program.", success: false });
+    };
+
+    res.status(200).json({ message: "Training program updated successfully.", success: true, trainingProgram: result.rows[0] });
+
+});  
