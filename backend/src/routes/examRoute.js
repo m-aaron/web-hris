@@ -2,11 +2,12 @@ import express from 'express';
 import { ROLES } from "../constants/roleConstant.js";
 import { authenticate } from "../middlewares/authenticateMiddleware.js";
 import { authorizeRoles } from "../middlewares/authorizeMiddleware.js";
-import { saveExaminationTaken } from '../controllers/examController.js';
+import { saveExaminationTaken, updateExaminationTaken } from '../controllers/examController.js';
 
 
 const router = express.Router();
 
 router.post('/:id/examination-taken', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), saveExaminationTaken);
+router.put('/:employeeId/examination-taken/:examId', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), updateExaminationTaken);
 
 export default router;

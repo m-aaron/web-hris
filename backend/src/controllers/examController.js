@@ -44,3 +44,37 @@ export const saveExaminationTaken = asyncHandler(async (req, res) => {
     res.status(201).json({ message: "Examination taken saved successfully.", success: true, examinationTaken: result.rows[0] });
 
 });
+
+// @desc    Update examination taken for an employee
+// @route   PUT /api/employees/:employeeId/examination-taken/:examId
+// @access  Private
+export const updateExaminationTaken = asyncHandler(async (req, res) => {
+
+    const { employeeId, examId } = req.params;
+    const { title, dateTaken, rating } = req.body;
+
+    // Validate required fields
+    if (!title || !dateTaken) {
+        return res.status(400).json({ message: "Required fields are missing.", success: false });
+    };
+
+    const query = 
+    `
+        UPDATE examinations_taken 
+        SET
+            title = $1, 
+            date_taken = $2, 
+            rating = $3
+        WHERE employee_id = $4 AND id = $5
+        RETURNING *
+    `;
+
+    const result = await pool.query(query, [title, dateTaken, rating || '', employeeId, examId]);
+
+    if (result.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to update examination taken.", success: false });
+    };
+
+    res.status(200).json({ message: "Examination taken updated successfully.", success: true, examinationTaken: result.rows[0] });
+
+});

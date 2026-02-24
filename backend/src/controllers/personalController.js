@@ -122,7 +122,7 @@ export const savePersonalInfo = asyncHandler(async (req, res) => {
 });
 
 // @desc    Update personal information for an employee
-// @route   PUT /api/employees/:id/personal
+// @route   PUT /api/employees/:id/personal/update
 // @access  Private
 export const updatePersonalInfo = asyncHandler(async (req, res) => {
 

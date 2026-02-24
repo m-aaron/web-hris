@@ -131,7 +131,9 @@ export const saveEmploymentData = asyncHandler(async (req, res) => {
     res.status(200).json({ message: "Employment data saved successfully.", success: true, employmentData: result.rows[0] });
 });
 
-
+// @desc    Update employment data for an employee
+// @route   PUT /api/employees/:id/employment/update
+// @access  Private
 export const updateEmploymentData = asyncHandler(async (req, res) => {
 
     const { id } = req.params;
