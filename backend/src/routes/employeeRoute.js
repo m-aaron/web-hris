@@ -7,6 +7,7 @@ import {
     createEmployee, 
     updateEmployeePhoto, 
     getEmployees, 
+    getEmployeeById,
     archiveEmployee,
     bulkArchiveEmployees,
     changeEmployeeStatus,
@@ -20,6 +21,7 @@ const router = Router();
 router.post("/", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), createEmployee);
 router.put("/:id/photo", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), upload.single("photo"), updateEmployeePhoto);
 router.get("/", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), getEmployees);
+router.get("/:id", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), getEmployeeById);
 router.put("/:id/archive", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), archiveEmployee);
 router.put("/bulk-archive", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), bulkArchiveEmployees);
 router.put("/:id/status", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), changeEmployeeStatus); 

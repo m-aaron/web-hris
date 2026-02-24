@@ -506,3 +506,211 @@ export const exportSelectedEmployeesExcel = asyncHandler(async (req, res) => {
 
     await generateExcelFile(result.rows, res);
 });
+
+// @desc    Get employee by ID
+// @route   GET /api/employees/:id
+// @access  Private
+export const getEmployeeById = asyncHandler(async (req, res) => {
+
+    const { id } = req.params;
+
+    const employeeResult = await pool.query(`
+        SELECT 
+            e.id,
+            e.employee_no,
+            e.employment_type,
+            e.photo_url,
+            e.updated_at AS employee_updated_at,
+
+            pd.last_name,
+            pd.first_name,
+            pd.middle_name,
+            pd.name_extension,
+            pd.sex,
+            pd.birth_date,
+            pd.civil_status,
+            pd.citizenship,
+            pd.religion,
+            pd.blood_type,
+            pd.address,
+            pd.email,
+            pd.contact_number,
+            pd.updated_at AS personal_data_updated_at,
+
+            fb.spouse,
+            fb.spouse_occupation,
+            fb.nearest_kin_name,
+            fb.nearest_kin_address,
+            fb.nearest_kin_contact_number,
+            fb.updated_at AS family_background_updated_at,
+
+            em.date_hired,
+            em.position_id,
+            em.designation_id,
+            em.sss,
+            em.pagibig,
+            em.tax,
+            em.philhealth,
+            em.peraa,
+            em.employment_status,
+            em.employment_basis,
+            em.official_working_hours,
+            em.other_employment,
+            em.other_employment_working_hours,
+            em.updated_at AS employment_data_updated_at,
+
+            oi.has_criminal_case,
+            oi.criminal_case_details,
+            oi.has_admin_offense,
+            oi.admin_offense_details,
+            oi.was_separated_employment,
+            oi.separation_details,
+            oi.updated_at AS other_information_updated_at
+
+        FROM employees e
+        LEFT JOIN personal_data pd ON pd.employee_id = e.id
+        LEFT JOIN family_background fb ON fb.employee_id = e.id
+        LEFT JOIN employment_data em ON em.employee_id = e.id
+        LEFT JOIN other_information oi ON oi.employee_id = e.id
+        WHERE e.id = $1
+    `, [id]);
+
+    const childrenResult = await pool.query(
+        `SELECT 
+            id,
+            children_name,
+            birth_date,
+            office_school,
+            occupation,
+            updated_at AS children_updated_at
+        FROM childrens 
+        WHERE employee_id = $1`,
+        [id]
+    );
+
+    const educationResult = await pool.query(
+        `SELECT
+            id,
+            title,
+            school,
+            year_started,
+            year_finished,
+            updated_at AS education_updated_at
+        FROM educational_qualifications
+        WHERE employee_id = $1`,
+        [id]
+    );
+
+    const educationMajorResult = await pool.query(
+        `SELECT 
+            id,
+            major_name,
+            updated_at AS education_major_updated_at
+        FROM education_majors
+        WHERE employee_id = $1`,
+        [id]
+    );
+
+    const educationMinorResult = await pool.query(
+        `SELECT 
+            id,
+            minor_name,
+            updated_at AS education_minor_updated_at
+        FROM education_minors
+        WHERE employee_id = $1`,
+        [id]
+    );
+
+    const educationHonorsResult = await pool.query(
+        `SELECT 
+            id,
+            honor_name,
+            updated_at AS education_honor_updated_at
+        FROM education_honors
+        WHERE employee_id = $1`,
+        [id]
+    );
+
+    const educationScholarshipResult = await pool.query(
+        `SELECT 
+            id,
+            scholarship_name,
+            updated_at AS education_scholarship_updated_at
+        FROM education_scholarships
+        WHERE employee_id = $1`,
+        [id]
+    );
+
+    const examinationResult = await pool.query(
+        `SELECT 
+            id,
+            title,
+            date_taken,
+            rating,
+            updated_at AS examination_updated_at
+        FROM examinations_taken
+        WHERE employee_id = $1`,
+        [id]
+    );
+
+    const trainingResult = await pool.query(
+        `SELECT 
+            id,
+            title,
+            place,
+            date_from,
+            date_to,
+            hours,
+            conducted_by,
+            updated_at AS training_updated_at
+        FROM training_programs
+        WHERE employee_id = $1`,
+        [id]
+    );
+
+    const historyResult = await pool.query(
+        `SELECT 
+            id,
+            start_date,
+            end_date,
+            position,
+            employer,
+            salary,
+            reason_for_leaving,
+            updated_at AS history_updated_at
+        FROM employment_history
+        WHERE employee_id = $1`,
+        [id]
+    );
+
+    const referenceResult = await pool.query(
+        `SELECT 
+            id,
+            name,
+            address,
+            contact_number,
+            updated_at AS reference_updated_at
+        FROM employee_references
+        WHERE employee_id = $1`,
+        [id]
+    );
+
+    res.json({
+        message: "Employee retrieved successfully.",
+        success: true,
+        data: {
+            employee: employeeResult.rows[0],
+            children: childrenResult.rows,
+            education: educationResult.rows,
+            education_majors: educationMajorResult.rows,
+            education_minors: educationMinorResult.rows,
+            education_honors: educationHonorsResult.rows,
+            education_scholarships: educationScholarshipResult.rows,
+            examinations: examinationResult.rows,
+            trainings: trainingResult.rows,
+            history: historyResult.rows,
+            references: referenceResult.rows
+        }
+    });
+
+});
