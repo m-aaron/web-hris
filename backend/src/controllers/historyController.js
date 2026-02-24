@@ -52,3 +52,48 @@ export const saveEmploymentHistory = asyncHandler(async (req, res) => {
     res.status(201).json({ message: "Employment history saved successfully.", success: true, employmentHistory: result.rows[0] });
 
 });
+
+// @desc    Update employment history for an employee
+// @route   PUT /api/employees/:employeeId/employment-history/:historyId
+// @access  Private
+export const updateEmploymentHistory = asyncHandler(async (req, res) => {
+
+    const { employeeId, historyId } = req.params;
+    const { startDate, endDate, position, employer, salary, reasonForLeaving } = req.body;
+
+    // Validate required fields
+    if (!startDate || !position || !employer) {
+        return res.status(400).json({ message: "Required fields are missing.", success: false });
+    };
+
+    // Validate date fields
+    if (startDate && (startDate < 1900 || startDate > new Date().getFullYear())) {
+        return res.status(400).json({ message: "Invalid start year" });
+    };
+    if (endDate && (endDate < 1900 || endDate > new Date().getFullYear())) {
+        return res.status(400).json({ message: "Invalid end year" });
+    }
+
+    const query = 
+    `
+        UPDATE employment_history 
+        SET
+            start_date = $1, 
+            end_date = $2, 
+            position = $3, 
+            employer = $4, 
+            salary = $5,
+            reason_for_leaving = $6
+        WHERE employee_id = $7 AND id = $8
+        RETURNING *
+    `;
+
+    const result = await pool.query(query, [startDate, endDate || null, position, employer, salary || null, reasonForLeaving || '', employeeId, historyId]);
+
+    if (result.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to update employment history.", success: false });
+    };
+
+    res.status(201).json({ message: "Employment history updated successfully.", success: true, employmentHistory: result.rows[0] });
+
+});
