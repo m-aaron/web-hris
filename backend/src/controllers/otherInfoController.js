@@ -81,3 +81,62 @@ export const saveOtherInfo = asyncHandler(async (req, res) => {
     res.status(201).json({ message: "Other information saved successfully.", success: true, otherInfo: result.rows[0] });
 
 });
+
+// @desc    Update other information for an employee
+// @route   PUT /api/employees/:id/other-info/update
+// @access  Private
+export const updateOtherInfo = asyncHandler(async (req, res) => {
+
+    const { id } = req.params;
+    const { 
+        hasCriminalCase, criminalCaseDetails, 
+        hasAdminOffense, adminOffenseDetails,
+        wasSeparatedEmployment, separationDetails
+    } = req.body;
+
+    // Validate required fields
+    if (hasCriminalCase === undefined || hasAdminOffense === undefined || wasSeparatedEmployment === undefined) {
+        return res.status(400).json({ message: "Required fields are missing.", success: false });
+    };
+    if (typeof hasCriminalCase !== 'boolean' || typeof hasAdminOffense !== 'boolean' || typeof wasSeparatedEmployment !== 'boolean') {
+        return res.status(400).json({ message: "Boolean fields must be true or false.", success: false });
+    };
+
+    if (hasCriminalCase && !criminalCaseDetails) {
+        return res.status(400).json({ message: "Criminal case details are required when hasCriminalCase is true.", success: false });
+    };
+    if (hasAdminOffense && !adminOffenseDetails) {
+        return res.status(400).json({ message: "Admin offense details are required when hasAdminOffense is true.", success: false });
+    };
+    if (wasSeparatedEmployment && !separationDetails) {
+        return res.status(400).json({ message: "Separation details are required when wasSeparatedEmployment is true.", success: false });
+    };
+
+    const query = 
+    `
+        UPDATE other_information 
+        SET
+            has_criminal_case = $1,
+            criminal_case_details = $2, 
+            has_admin_offense = $3,
+            admin_offense_details = $4, 
+            was_separated_employment = $5, 
+            separation_details = $6
+        WHERE employee_id = $7
+        RETURNING *
+    `;
+
+    const result = await pool.query(query, [
+        Boolean(hasCriminalCase), hasCriminalCase ? criminalCaseDetails : null, 
+        Boolean(hasAdminOffense), hasAdminOffense ? adminOffenseDetails : null, 
+        Boolean(wasSeparatedEmployment), wasSeparatedEmployment ? separationDetails : null,
+        id
+    ]);
+
+    if (result.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to update other information.", success: false });
+    };
+
+    res.status(200).json({ message: "Other information updated successfully.", success: true, otherInfo: result.rows[0] });
+
+});
