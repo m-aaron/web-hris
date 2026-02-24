@@ -69,3 +69,62 @@ export const saveReference = asyncHandler(async (req, res) => {
     res.status(201).json({ message: "Reference saved successfully.", success: true, reference: result.rows[0] });
 
 });
+
+// @desc    Update reference information for an employee
+// @route   PUT /api/employees/:employeeId/reference/:referenceId
+// @access  Private
+export const updateReference = asyncHandler(async (req, res) => {
+
+    const { employeeId, referenceId } = req.params;
+    const { 
+        lastName, firstName, middleName, nameExtension, 
+        houseNo, street, barangay, city, province, zip, 
+        contactNumber 
+    } = req.body;
+
+    // Validate required fields
+    if (!lastName || !firstName) {
+        return res.status(400).json({ message: "Required fields are missing.", success: false });
+    };
+    if (houseNo || street || barangay || city || province || zip) {
+        if (!barangay || !city || !province) {
+            return res.status(400).json({ message: "Required fields are missing.", success: false });
+        };
+    };
+
+    const nameObj = {
+        last_name: lastName,
+        first_name: firstName,
+        middle_name: middleName ? middleName : '',
+        name_extension: nameExtension ? nameExtension : ''
+    };
+
+    const addressObj = {
+        house_no: houseNo ? houseNo : '',
+        street: street ? street : '',
+        barangay: barangay ? barangay : '',
+        city: city ? city : '',
+        province: province ? province : '',
+        zip: zip ? zip : ''
+    };
+
+    const query = 
+    `
+        UPDATE employee_references 
+        SET
+            name = $1,
+            address = $2, 
+            contact_number = $3
+        WHERE employee_id = $4 AND id = $5
+        RETURNING *
+    `;
+
+    const result = await pool.query(query, [nameObj, addressObj, contactNumber, employeeId, referenceId]);
+
+    if (result.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to update reference.", success: false });
+    };
+
+    res.status(200).json({ message: "Reference updated successfully.", success: true, reference: result.rows[0] });
+
+});
