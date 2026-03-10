@@ -8,11 +8,14 @@ import {
     saveMinor,
     saveHonor,
     saveScholarship,
+
     updateEducationalQualification,
     updateMajor,
     updateMinor,
     updateHonor,
-    updateScholarship
+    updateScholarship,
+
+    deleteEducationalQualification
 } from '../controllers/educationController.js';
 
 
@@ -20,6 +23,8 @@ const router = express.Router();
 
 router.post('/:id/education', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), saveEducationalQualification);
 router.put('/:employeeId/education/:qualificationId', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), updateEducationalQualification);
+router.delete('/:employeeId/education/:qualificationId', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), deleteEducationalQualification);
+
 router.post('/:id/major', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), saveMajor);
 router.put('/:employeeId/major/:majorId', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), updateMajor);
 router.post('/:id/minor', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), saveMinor);

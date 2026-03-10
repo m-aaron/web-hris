@@ -15,8 +15,7 @@ const EmployeeTabs = ({ employee, setEmployee }) => {
     "personal",
     "family",
     "children",
-    "employment",
-    "education"
+    "employment"
   ];
 
 
@@ -47,7 +46,6 @@ const EmployeeTabs = ({ employee, setEmployee }) => {
 
 
   return (
-
     <div className="flex flex-col h-full min-h-0">
 
       {/* Tabs Header */}
@@ -89,7 +87,6 @@ const EmployeeTabs = ({ employee, setEmployee }) => {
         </button>
 
       </div>
-
 
       {/* Tab Content */}
       <div className="flex-1 overflow-hidden min-h-0 flex flex-col">
@@ -145,7 +142,7 @@ const EmployeeTabs = ({ employee, setEmployee }) => {
     </div>
 
   )
-
+  
 }
 
 

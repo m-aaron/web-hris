@@ -100,6 +100,26 @@ export const updateEducationalQualification = asyncHandler(async (req, res) => {
 
 });
 
+// @desc    Delete educational qualification for an employee
+// @route   DELETE /api/employees/:employeeId/education/:qualificationId
+// @access  Private
+export const deleteEducationalQualification = asyncHandler(async (req, res) => {
+    const { employeeId, qualificationId } = req.params;
+
+    const query = `
+        DELETE FROM educational_qualifications
+        WHERE employee_id = $1 AND id = $2
+    `;
+
+    const result = await pool.query(query, [employeeId, qualificationId]);
+
+    if (result.rowCount === 0) {
+        return res.status(404).json({ message: "Educational qualification not found.", success: false });
+    }
+
+    res.status(200).json({ message: "Educational qualification deleted successfully.", success: true });
+});
+
 // @desc    Save major for an employee
 // @route   POST /api/employees/:id/major
 // @access  Private
