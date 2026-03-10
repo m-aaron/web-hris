@@ -117,7 +117,9 @@ export const buildFilterQuery = (filters = {}) => {
         status_asc: "ed.employment_status ASC",
         status_desc: "ed.employment_status DESC",
         type_asc: "e.employment_type ASC",
-        type_desc: "e.employment_type DESC"
+        type_desc: "e.employment_type DESC",
+        employee_no_asc: "e.employee_no ASC",
+        employee_no_desc: "e.employee_no DESC"
     };
 
     const orderBy = sortOptions[sort] || "ed.date_hired DESC";
@@ -173,10 +175,21 @@ export const buildFilterQuery = (filters = {}) => {
 
             -- Birthday Flag
             CASE 
-                WHEN pd.birth_date = CURRENT_DATE THEN 'birthday_today'
-                WHEN pd.birth_date BETWEEN CURRENT_DATE 
+                WHEN EXTRACT(MONTH FROM pd.birth_date) = EXTRACT(MONTH FROM CURRENT_DATE)
+                    AND EXTRACT(DAY FROM pd.birth_date) = EXTRACT(DAY FROM CURRENT_DATE)
+                THEN 'birthday_today'
+
+                WHEN (
+                    MAKE_DATE(
+                        EXTRACT(YEAR FROM CURRENT_DATE)::int,
+                        EXTRACT(MONTH FROM pd.birth_date)::int,
+                        EXTRACT(DAY FROM pd.birth_date)::int
+                    )
+                    BETWEEN CURRENT_DATE 
                     AND CURRENT_DATE + INTERVAL '7 days'
+                )
                 THEN 'birthday_soon'
+
                 ELSE NULL
             END AS birthday_flag
 
@@ -186,9 +199,7 @@ export const buildFilterQuery = (filters = {}) => {
         ${whereQuery}
         ORDER BY ${orderBy}
     `;
-
-    console.log("Generated SQL Query:", dataQuery);
-    console.log("With values:", values);
+    
     return { dataQuery, values };
 
 };

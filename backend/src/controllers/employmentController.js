@@ -1,4 +1,3 @@
-import e from "express";
 import pool from "../configs/dbConfig.js";
 import asyncHandler from "express-async-handler";
 
@@ -160,6 +159,9 @@ export const updateEmploymentData = asyncHandler(async (req, res) => {
     if (!dateHired || !position || !employmentStatus || !employmentBasis) {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
     };
+    if (otherWorkingHours && !otherEmployment) {
+        return res.status(400).json({ message: "Other employment must be specified if other working hours are provided.", success: false });
+    };
 
     // Check if employee exists
     const checkEmployeeResult = await pool.query(
@@ -173,7 +175,7 @@ export const updateEmploymentData = asyncHandler(async (req, res) => {
 
     // Check if position exists
     const checkPositionResult = await pool.query(
-        `SELECT id FROM positions WHERE name = $1`,
+        `SELECT id FROM positions WHERE id = $1`,
         [position]
     );
 
@@ -186,7 +188,7 @@ export const updateEmploymentData = asyncHandler(async (req, res) => {
     // Check if designation exists
     if (designation) {
         checkDesignationResult = await pool.query(
-            `SELECT id FROM designations WHERE name = $1`,
+            `SELECT id FROM designations WHERE id = $1`,
             [designation]
         );
 

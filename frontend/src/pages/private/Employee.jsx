@@ -69,7 +69,9 @@ export default function EmployeesPage() {
 
   const handleExportAll = async () => {
     try {
+      console.log("Export query:", query);
       const response = await exportEmployeesExcel(query);
+      
       downloadFile(response, "employees.xlsx");
     } catch (err) {
       console.error(err);
@@ -78,6 +80,7 @@ export default function EmployeesPage() {
   };
 
   const handleExportSelected = async () => {
+    console.log("Exporting selected IDs:", selectedIds);
     try {
       const response = await exportSelectedEmployeesExcel(selectedIds);
       downloadFile(response, "employees-selected-report.xlsx");

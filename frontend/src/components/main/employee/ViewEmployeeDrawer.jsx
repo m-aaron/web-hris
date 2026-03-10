@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -15,12 +16,14 @@ import {
 import { archiveEmployee, changeEmployeeStatus } from "../../../services/employeeService";
 
 const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpdated }) => {
+
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [status, setStatus] = useState(employee?.employment_status);
   const [pendingStatus, setPendingStatus] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const navigate = useNavigate();
 
   useEffect(() => {
     setStatus(employee?.employment_status);
@@ -31,16 +34,21 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
     const handleEsc = (e) => {
       if (e.key === "Escape") onClose();
     };
+
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onClose]);
 
   if (!employee) return null;
 
+  const lastName = employee.last_name;
+  const firstName = employee.first_name;
+  const middleName = employee.middle_name;
+  const nameExt = employee.name_extension;
 
-  const initials =
-    (employee.first_name?.[0] || "") +
-    (employee.last_name?.[0] || "");
+  const initials = (firstName[0] || "") + (lastName[0] || "");
+
+  const fullName = `${lastName}, ${firstName} ${middleName ? middleName[0] + "." : ""} ${nameExt || ""}`.trim();
 
   const statusColors = {
     REGULAR: "bg-light-green text-green border border-green",
@@ -141,12 +149,12 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
                 <img
                   src={`${import.meta.env.VITE_BASE_URL}${employee.photo_url}`}
                   alt="Profile"
-                  className="w-20 h-20 rounded-full object-cover"
+                  className="w-20 h-20 rounded-xl object-cover"
                 />
 
               ) : (
 
-                <div className="w-20 h-20 rounded-full bg-green text-card flex items-center justify-center font-semibold text-lg">
+                <div className="w-20 h-20 rounded-xl bg-green text-card flex items-center justify-center font-semibold text-lg">
                   {initials}
                 </div>
 
@@ -155,7 +163,7 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
               <div className="flex-1">
 
                 <h3 className="text-lg text-heading font-semibold leading-tight">
-                  {employee.last_name}, {employee.first_name}
+                  {fullName}
                 </h3>
 
                 <p className="text-sm text-muted">
@@ -235,7 +243,8 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
               options={[
                 { value: "REGULAR", label: "Regular" },
                 { value: "PROBATIONARY", label: "Probationary" },
-                { value: "CONTRACTUAL", label: "Contractual" }
+                { value: "CONTRACTUAL", label: "Contractual" },
+                { value: "RESIGNED", label: "Resigned" }
               ]}
               disabled={loading}
             />
@@ -261,7 +270,7 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
 
             <Button
               size="small"
-              onClick={() => toast.error("Edit feature not implemented yet")}
+              onClick={() => navigate(`/employees/${employee.id}/edit`)}
               disabled={loading}
             >
               Edit

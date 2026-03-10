@@ -46,6 +46,7 @@ const SearchAndFilters = ({ query, setQuery }) => {
                 { value: "TEACHING", label: "Teaching" },
                 { value: "NON_TEACHING", label: "Non-Teaching" }
               ]}
+              className="px-3 py-2 text-sm"
             />
 
             <SelectField
@@ -58,6 +59,7 @@ const SearchAndFilters = ({ query, setQuery }) => {
                 { value: "PROBATIONARY", label: "Probationary" },
                 { value: "CONTRACTUAL", label: "Contractual" }
               ]}
+              className="px-3 py-2 text-sm"
             />
 
             <SelectField
@@ -69,6 +71,7 @@ const SearchAndFilters = ({ query, setQuery }) => {
                 { value: "FULL_TIME", label: "Full Time" },
                 { value: "PART_TIME", label: "Part Time" }
               ]}
+              className="px-3 py-2 text-sm"
             />
 
             <SelectField
@@ -80,6 +83,7 @@ const SearchAndFilters = ({ query, setQuery }) => {
                 { value: "MALE", label: "Male" },
                 { value: "FEMALE", label: "Female" }
               ]}
+              className="px-3 py-2 text-sm"
             />
 
             <SelectField
@@ -91,6 +95,7 @@ const SearchAndFilters = ({ query, setQuery }) => {
                 { value: "near_30_days", label: "Near 30 Days" },
                 { value: "overdue", label: "Overdue" }
               ]}
+              className="px-3 py-2 text-sm"
             />
 
           </div>

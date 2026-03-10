@@ -52,6 +52,50 @@ export const createEmployee = asyncHandler(async (req, res) => {
     res.status(201).json({ message: "Employee created successfully.", success: true, employee: employeeResult.rows[0] });
 });
 
+// @desc    Update employee details (currently only employee number and type)
+// @route   PUT /api/employees/:id
+// @access  Private
+export const updateEmployee = asyncHandler(async (req, res) => {
+
+    const { id } = req.params;
+    const { employmentType } = req.body;
+
+    // Validate required fields
+    if (!employmentType) {
+        return res.status(400).json({ message: "Required fields are missing.", success: false });
+    }
+
+    if (!["TEACHING", "NON_TEACHING"].includes(employmentType)) {
+        return res.status(400).json({ message: "Invalid employment type. Must be 'TEACHING' or 'NON TEACHING'.", success: false });
+    }
+
+    const checkResult = await pool.query(
+        `SELECT id FROM employees WHERE id = $1`,
+        [id]
+    );
+
+    // If employee does not exist, return not found error
+    if (checkResult.rows.length === 0) {
+        return res.status(404).json({ message: "Employee not found.", success: false });
+    }
+
+    const employeeResult = await pool.query(
+        `
+            UPDATE employees
+            SET employment_type = $1
+            WHERE id = $2
+            RETURNING *
+        `,
+        [employmentType, id]
+    );
+
+    if (employeeResult.rows.length === 0) {
+        return res.status(500).json({ message: "Failed to update employee.", success: false });
+    }
+
+    res.status(200).json({ message: "Employee updated successfully.", success: true, employee: employeeResult.rows[0] });
+});
+
 // @desc    Update employee photo
 // @route   PUT /api/employees/:id/photo
 // @access  Private
@@ -514,66 +558,51 @@ export const getEmployeeById = asyncHandler(async (req, res) => {
 
     const { id } = req.params;
 
-    const employeeResult = await pool.query(`
-        SELECT 
-            e.id,
-            e.employee_no,
-            e.employment_type,
-            e.photo_url,
-            e.updated_at AS employee_updated_at,
+    const employeeResult = await pool.query(
+        `SELECT 
+            id,
+            employee_no,
+            employment_type,
+            photo_url,
+            updated_at AS employee_updated_at
+        FROM employees 
+        WHERE id = $1`,
+        [id]
+    );
 
-            pd.last_name,
-            pd.first_name,
-            pd.middle_name,
-            pd.name_extension,
-            pd.sex,
-            pd.birth_date,
-            pd.civil_status,
-            pd.citizenship,
-            pd.religion,
-            pd.blood_type,
-            pd.address,
-            pd.email,
-            pd.contact_number,
-            pd.updated_at AS personal_data_updated_at,
+    const personalDataResult = await pool.query(
+        `SELECT 
+            last_name,
+            first_name,
+            middle_name,
+            name_extension,
+            sex,
+            birth_date,
+            civil_status,
+            citizenship,
+            religion,
+            blood_type,
+            address,
+            email,
+            contact_number,
+            updated_at AS personal_data_updated_at
+        FROM personal_data 
+        WHERE employee_id = $1`,
+        [id]
+    );
 
-            fb.spouse,
-            fb.spouse_occupation,
-            fb.nearest_kin_name,
-            fb.nearest_kin_address,
-            fb.nearest_kin_contact_number,
-            fb.updated_at AS family_background_updated_at,
-
-            em.date_hired,
-            em.position_id,
-            em.designation_id,
-            em.sss,
-            em.pagibig,
-            em.tax,
-            em.philhealth,
-            em.peraa,
-            em.employment_status,
-            em.employment_basis,
-            em.official_working_hours,
-            em.other_employment,
-            em.other_employment_working_hours,
-            em.updated_at AS employment_data_updated_at,
-
-            oi.has_criminal_case,
-            oi.criminal_case_details,
-            oi.has_admin_offense,
-            oi.admin_offense_details,
-            oi.was_separated_employment,
-            oi.separation_details,
-            oi.updated_at AS other_information_updated_at
-
-        FROM employees e
-        LEFT JOIN personal_data pd ON pd.employee_id = e.id
-        LEFT JOIN family_background fb ON fb.employee_id = e.id
-        LEFT JOIN employment_data em ON em.employee_id = e.id
-        LEFT JOIN other_information oi ON oi.employee_id = e.id
-        WHERE e.id = $1
-    `, [id]);
+    const familyBackgroundResult = await pool.query(
+        `SELECT 
+            spouse,
+            spouse_occupation,
+            nearest_kin_name,
+            nearest_kin_address,
+            nearest_kin_contact_number,
+            updated_at AS family_background_updated_at
+        FROM family_background
+        WHERE employee_id = $1`,
+        [id]
+    );
 
     const childrenResult = await pool.query(
         `SELECT 
@@ -584,6 +613,27 @@ export const getEmployeeById = asyncHandler(async (req, res) => {
             occupation,
             updated_at AS children_updated_at
         FROM childrens 
+        WHERE employee_id = $1`,
+        [id]
+    );
+
+    const employmentDataResult = await pool.query(
+        `SELECT 
+            date_hired,
+            position_id,
+            designation_id,
+            sss,
+            pagibig,
+            tax,
+            philhealth,
+            peraa,
+            employment_status,
+            employment_basis,
+            official_working_hours,
+            other_employment,
+            other_employment_working_hours,
+            updated_at AS employment_data_updated_at
+        FROM employment_data
         WHERE employee_id = $1`,
         [id]
     );
@@ -683,6 +733,20 @@ export const getEmployeeById = asyncHandler(async (req, res) => {
         [id]
     );
 
+    const otherInfoResult = await pool.query(
+        `SELECT
+            has_criminal_case,
+            criminal_case_details,
+            has_admin_offense,
+            admin_offense_details,
+            was_separated_employment,
+            separation_details,
+            updated_at AS other_information_updated_at
+        FROM other_information
+        WHERE employee_id = $1`,
+        [id]
+    );
+
     const referenceResult = await pool.query(
         `SELECT 
             id,
@@ -700,7 +764,10 @@ export const getEmployeeById = asyncHandler(async (req, res) => {
         success: true,
         data: {
             employee: employeeResult.rows[0],
+            personal: personalDataResult.rows[0],
+            family: familyBackgroundResult.rows[0],
             children: childrenResult.rows,
+            employment: employmentDataResult.rows[0],
             education: educationResult.rows,
             education_majors: educationMajorResult.rows,
             education_minors: educationMinorResult.rows,
@@ -709,8 +776,47 @@ export const getEmployeeById = asyncHandler(async (req, res) => {
             examinations: examinationResult.rows,
             trainings: trainingResult.rows,
             history: historyResult.rows,
+            other_information: otherInfoResult.rows[0],
             references: referenceResult.rows
         }
+    });
+
+});
+
+
+
+/*
+    POSITION AND DESIGNATION ENDPOINTS
+    These are used to populate the dropdown options in the employee form.
+ */
+
+// @desc    Get all positions
+// @route   GET /api/employees/positions
+// @access  Private
+export const getAllPositions = asyncHandler(async (req, res) => {
+
+    const result = await pool.query(
+        `SELECT id, name FROM positions ORDER BY name ASC`
+    );
+
+    res.json({
+        message: "Positions retrieved successfully.",
+        success: true,
+        positions: result.rows
+    });
+
+});
+
+export const getAllDesignations = asyncHandler(async (req, res) => {
+
+    const result = await pool.query(
+        `SELECT id, name FROM designations ORDER BY name ASC`
+    );
+
+    res.json({
+        message: "Designations retrieved successfully.",
+        success: true,
+        designations: result.rows
     });
 
 });

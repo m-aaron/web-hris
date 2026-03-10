@@ -66,3 +66,8 @@ body {
 .mobile-link {
     @apply text-sm font-medium text-muted hover:text-primary transition;
 }
+
+.scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-grey) var(--color-card);
+}

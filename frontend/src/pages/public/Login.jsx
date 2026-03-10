@@ -21,12 +21,9 @@ const Login = () => {
 
         try {
             const res = await login({email, password});
-            const lastRoute = localStorage.getItem("lastRoute");
 
             if (lastRoute) {
-                localStorage.removeItem("lastRoute");
-                navigate(lastRoute);
-                
+                navigate("/dashboard");
                 toast.success(res.message || "Login successful!");
             } else {
                 if (res.role === ROLES.ADMIN || res.role === ROLES.HR) navigate("/dashboard");
@@ -62,7 +59,7 @@ const Login = () => {
                     </div>
                 </div>
                 
-                <Button disabled={loading}>{loading ? "Signing in..." : "Sign in"}</Button>
+                <Button className="w-full" disabled={loading}>{loading ? "Signing in..." : "Sign in"}</Button>
             </form>
         </AuthCard>
     )

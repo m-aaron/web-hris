@@ -92,3 +92,24 @@ export const updateChild = asyncHandler(async (req, res) => {
     res.status(201).json({ message: "Child information updated successfully.", success: true, child: result.rows[0] });
     
 });
+
+// @desc    Delete child information for an employee
+// @route   DELETE /api/employees/:employeeId/children/:childId
+// @access  Private
+export const deleteChild = asyncHandler(async (req, res) => {
+    const { employeeId, childId } = req.params;
+
+    const query = `
+        DELETE FROM childrens
+        WHERE employee_id = $1 AND id = $2
+        RETURNING *
+    `;
+
+    const result = await pool.query(query, [employeeId, childId]);
+
+    if (result.rowCount === 0) {
+        return res.status(404).json({ message: "Child not found.", success: false });
+    }
+
+    res.status(200).json({ message: "Child information deleted successfully.", success: true, child: result.rows[0] });
+});

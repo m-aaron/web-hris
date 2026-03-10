@@ -146,7 +146,7 @@ import Badge from "../ui/Badge";
                 className="cursor-pointer"
                 onClick={() => setDrawerEmployee(row)}
               >
-                {row.last_name}, {row.first_name}
+                {row.last_name}, {row.first_name} {row.middle_name ? row.middle_name[0] + "." : ""}
                 {row.birthday_flag === "birthday_today" && (
                   <Badge
                     variant="success"

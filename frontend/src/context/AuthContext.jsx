@@ -1,4 +1,5 @@
 import { createContext, useEffect, useState } from "react";
+import { toast } from "sonner";
 import API from "../api/axios.js";
 
 
@@ -22,16 +23,10 @@ export const AuthProvider = ({ children }) => {
                 if (response.data.success) setUser(response.data.user);
                 
             } catch (error) { 
-                try {
-                    // TRY refresh token once
-                    await API.post("/auth/refresh-token");
-
-                    // retry /me
-                    const retry = await API.get("/auth/me");
-                    setUser(retry.data.user);
-                } catch {
-                    setUser(null);
+                if (error.response?.status === 401) {
+                    toast.error("Session expired. Please log in again.");
                 }
+                setUser(null);
             } finally {
                 setLoading(false);
             }

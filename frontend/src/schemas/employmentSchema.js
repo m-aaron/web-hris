@@ -1,0 +1,56 @@
+import { z } from "zod"
+
+const workingHoursSchema = z.any()
+    .refine(val => {
+        // Allow empty/nullish values to pass, as it's optional.
+        if (val === null || val === undefined || val === '') return true;
+        // For non-empty values, check if it's a valid number representation.
+        return !isNaN(Number(val));
+    }, {
+        message: "Must be a number.",
+    })
+    .refine(val => {
+        if (val === null || val === undefined || val === '') return true;
+        return Number.isInteger(Number(val));
+    }, {
+        message: "Must be a whole number.",
+    })
+    .refine(val => {
+        if (val === null || val === undefined || val === '') return true;
+        return Number(val) > 0;
+    }, {
+        message: "Must be a positive number.",
+    })
+    // After validation, transform to a number or undefined.
+    .transform(val => (val === null || val === undefined || val === '') ? undefined : Number(val));
+
+
+export const employmentSchema = z
+    .object({
+        date_hired: z.string().min(1, "Date hired is required"),
+    
+        position_id: z.coerce.number().min(1, "Position is required"),
+        designation_id: z.coerce.number().optional(),
+    
+        sss: z.string().optional(),
+        pagibig: z.string().optional(),
+        tax: z.string().optional(),
+        philhealth: z.string().optional(),
+        peraa: z.string().optional(),
+    
+        employment_status: z.string().min(1, "Employment status is required"),
+        employment_basis: z.string().min(1, "Employment basis is required"),
+    
+        official_working_hours: workingHoursSchema,
+        other_employment: z.string().optional(),
+        other_employment_working_hours: workingHoursSchema,
+    })
+    .superRefine((data, ctx) => {
+        if (data.other_employment && !data.other_employment_working_hours) {
+        ctx.addIssue({
+            code: "custom",
+            path: ["other_employment_working_hours"],
+            message: "Working hours are required if other employment is specified.",
+        });
+        }
+    });

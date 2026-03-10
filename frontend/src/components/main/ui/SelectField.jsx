@@ -1,59 +1,63 @@
 import { useId } from "react";
+import { useFormContext } from "react-hook-form";
 
 const SelectField = ({
-    label,
-    value = "",
-    onChange,
-    options = [],
-    className = "",
-    disabled = false
+  label,
+  name,
+  value,
+  onChange,
+  options = [],
+  required = false,
+  className = "",
+  disabled = false,
+  ...props
 }) => {
-    const id = useId();
+  const id = useId();
+  const { formState } = useFormContext() || {};
+  const error = name
+    ? formState?.errors?.[name.split(".")[0]]?.[name.split(".")[1]]
+    : null;
 
-    return (
-        
-        <div className="flex flex-col">
+  const isControlled = value !== undefined;
 
-            {label && (
-                <label
-                htmlFor={id}
-                className="text-xs text-muted mb-1"
-                >
-                {label}
-                </label>
-            )}
+  const handleChange = (e) => {
+    if (onChange) onChange(e.target.value);
+    if (props.onChange) props.onChange(e);
+  };
 
-            <select
-                id={id}
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                disabled={disabled}
-                className={`
-                px-3 py-2 
-                bg-card 
-                text-sm 
-                text-heading 
-                border border-border
-                rounded-xl
-                focus:outline-none
-                focus:ring-2 focus:ring-primary
-                focus:border-primary
-                transition duration-200
-                ${disabled ? "opacity-60 cursor-not-allowed" : ""}
-                ${className}
-                `}
-            >
+  return (
+    <div className="flex flex-col">
+      {label && (
+        <label htmlFor={id} className="text-xs mb-1 text-muted">
+          {label}
+          {required && <span className="text-destructive ml-1">*</span>}
+        </label>
+      )}
 
-                {options.map((option) => (
-                <option key={option.value} value={option.value}>
-                    {option.label}
-                </option>
-                ))}
-            </select>
-            
-        </div>
+      <select
+        id={id}
+        value={isControlled ? value : undefined}
+        disabled={disabled}
+        onChange={handleChange}
+        className={`border rounded-xl px-3 py-2 bg-card ${
+          error ? "border-destructive" : "border-border"
+        } ${className}`}
+        {...props}
+      >
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
 
-    );
+      {error && (
+        <span className="text-xs text-destructive mt-1">
+          {error.message}
+        </span>
+      )}
+    </div>
+  );
 };
 
 export default SelectField;

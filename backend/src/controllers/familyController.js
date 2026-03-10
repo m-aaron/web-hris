@@ -164,6 +164,20 @@ export const updateFamilyBackground = asyncHandler(async (req, res) => {
         return res.status(404).json({ message: "Employee not found.", success: false });
     };
 
+    // Check if family background exists
+    const checkFamilyResult = await pool.query(
+        `SELECT 1 FROM family_background WHERE employee_id = $1`,
+        [id]
+    );
+
+    // If no family background record exists, create one first
+    if (checkFamilyResult.rows.length === 0) {
+        await pool.query(
+            `INSERT INTO family_background (employee_id) VALUES ($1)`,
+            [id]
+        );
+    }
+
     const query = 
     `
         UPDATE family_background 

@@ -1,6 +1,4 @@
 import axios from 'axios';
-import { toast } from 'sonner';
-
 
 const API = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
@@ -34,8 +32,7 @@ API.interceptors.response.use(
                 await API.post('/auth/refresh-token');
                 return API(originalRequest);
             } catch (error) {
-                toast.error('Session expired. Please log in again.');
-                window.location.href = '/login';
+                return Promise.reject(error);
             }
         }
 
