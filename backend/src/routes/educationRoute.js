@@ -18,7 +18,8 @@ import {
     deleteEducationalQualification,
     deleteMajor,
     deleteMinor,
-    deleteHonor
+    deleteHonor,
+    deleteScholarship
 } from '../controllers/educationController.js';
 
 
@@ -42,5 +43,6 @@ router.delete('/:employeeId/honor/:honorId', authenticate, authorizeRoles(ROLES.
 
 router.post('/:id/scholarship', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), saveScholarship);
 router.put('/:employeeId/scholarship/:scholarshipId', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), updateScholarship);
+router.delete('/:employeeId/scholarship/:scholarshipId', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), deleteScholarship);
 
 export default router;

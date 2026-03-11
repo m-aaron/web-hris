@@ -421,7 +421,6 @@ export const deleteHonor = asyncHandler(async (req, res) => {
 
 
 
-
 // @desc    Save scholarship for an employee
 // @route   POST /api/employees/:id/scholarship
 // @access  Private
@@ -494,5 +493,27 @@ export const updateScholarship = asyncHandler(async (req, res) => {
     };
 
     res.status(201).json({ message: "Scholarship updated successfully.", success: true, scholarship: result.rows[0] });
+
+});
+
+// @desc    Delete scholarship for an employee
+// @route   DELETE /api/employees/:employeeId/scholarship/:scholarshipId
+// @access  Private
+export const deleteScholarship = asyncHandler(async (req, res) => {
+
+    const { employeeId, scholarshipId } = req.params;
+
+    const query = `
+        DELETE FROM education_scholarships
+        WHERE employee_id = $1 AND id = $2
+    `;
+
+    const result = await pool.query(query, [employeeId, scholarshipId]);    
+
+    if (result.rowCount === 0) {
+        return res.status(404).json({ message: "Scholarship not found.", success: false });
+    }
+
+    res.status(200).json({ message: "Scholarship deleted successfully.", success: true });
 
 });
