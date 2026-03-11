@@ -125,39 +125,39 @@ export const deleteEducationalQualification = asyncHandler(async (req, res) => {
 
 
 // @desc    Save major for an employee
-// @route   POST /api/employees/:id/major
+// @route   POST /api/employees/:educationId/major
 // @access  Private
 export const saveMajor = asyncHandler(async (req, res) => {
 
-    const { id } = req.params;
+    const { educationId } = req.params;
     const { major } = req.body; 
 
     // Validate required fields
-    if (!id) {
-        return res.status(400).json({ message: "Employee ID is required.", success: false });
+    if (!educationId) {
+        return res.status(400).json({ message: "Education ID is required.", success: false });
     };
     if (!major) {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
     };
 
     // Check if employee exists
-    const checkEmployeeResult = await pool.query(
-        `SELECT 1 FROM employees WHERE id = $1`,
-        [id]
+    const checkEducationResult = await pool.query(
+        `SELECT 1 FROM educational_qualifications WHERE id = $1`,
+        [educationId]
     );
 
-    if (checkEmployeeResult.rows.length === 0) {
-        return res.status(404).json({ message: "Employee not found.", success: false });
+    if (checkEducationResult.rows.length === 0) {
+        return res.status(404).json({ message: "Educational qualification not found.", success: false });
     };
 
     const query = 
     `
-        INSERT INTO education_majors (employee_id, major_name)
+        INSERT INTO education_majors (education_id, major_name)
         VALUES ($1, $2)
          RETURNING *
     `;
 
-    const result = await pool.query(query, [id, major]);
+    const result = await pool.query(query, [educationId, major]);
 
     if (result.rowCount === 0) {
         return res.status(500).json({ message: "Failed to save major.", success: false });
@@ -168,50 +168,50 @@ export const saveMajor = asyncHandler(async (req, res) => {
 });
 
 // @desc    Update major for an employee
-// @route   PUT /api/employees/:employeeId/major/:majorId
+// @route   PUT /api/employees/:educationId/major/:majorId
 // @access  Private
 export const updateMajor = asyncHandler(async (req, res) => {
 
-    const { employeeId, majorId } = req.params;
+    const { educationId, majorId } = req.params;
     const { major } = req.body; 
 
     // Validate required fields
     if (!major) {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
-    };
+    }
 
     const query = 
     `
         UPDATE education_majors 
-        SET
+        SET 
             major_name = $1
-        WHERE employee_id = $2 AND id = $3
+        WHERE education_id = $2 AND id = $3
          RETURNING *
     `;
 
-    const result = await pool.query(query, [major, employeeId, majorId]);
+    const result = await pool.query(query, [major, educationId, majorId]);
 
     if (result.rowCount === 0) {
         return res.status(500).json({ message: "Failed to update major.", success: false });
-    };
+    }
 
     res.status(201).json({ message: "Major updated successfully.", success: true, major: result.rows[0] });
 
 });
 
 // @desc    Delete major for an employee
-// @route   DELETE /api/employees/:employeeId/major/:majorId
+// @route   DELETE /api/employees/:educationId/major/:majorId
 // @access  Private
 export const deleteMajor = asyncHandler(async (req, res) => {
 
-    const { employeeId, majorId } = req.params;
+    const { educationId, majorId } = req.params;
 
     const query = `
         DELETE FROM education_majors
-        WHERE employee_id = $1 AND id = $2
+        WHERE education_id = $1 AND id = $2
     `;
 
-    const result = await pool.query(query, [employeeId, majorId]);
+    const result = await pool.query(query, [educationId, majorId]);
 
     if (result.rowCount === 0) {
         return res.status(404).json({ message: "Major not found.", success: false });

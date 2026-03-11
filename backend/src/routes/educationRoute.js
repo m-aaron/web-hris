@@ -29,9 +29,9 @@ router.post('/:id/education', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR
 router.put('/:employeeId/education/:qualificationId', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), updateEducationalQualification);
 router.delete('/:employeeId/education/:qualificationId', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), deleteEducationalQualification);
 
-router.post('/:id/major', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), saveMajor);
-router.put('/:employeeId/major/:majorId', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), updateMajor);
-router.delete('/:employeeId/major/:majorId', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), deleteMajor);
+router.post('/:educationId/major', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), saveMajor);
+router.put('/:educationId/major/:majorId', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), updateMajor);
+router.delete('/:educationId/major/:majorId', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), deleteMajor);
 
 router.post('/:id/minor', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), saveMinor);
 router.put('/:employeeId/minor/:minorId', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), updateMinor);
