@@ -140,7 +140,7 @@ export const saveMajor = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
     };
 
-    // Check if employee exists
+    // Check if education exists
     const checkEducationResult = await pool.query(
         `SELECT 1 FROM educational_qualifications WHERE id = $1`,
         [educationId]
@@ -239,7 +239,7 @@ export const saveMinor = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
     }
 
-    // Check if employee exists
+    // Check if education exists
     const checkEducationResult = await pool.query(
         `SELECT 1 FROM educational_qualifications WHERE id = $1`,
         [educationId]
@@ -338,7 +338,7 @@ export const saveHonor = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
     };
 
-    // Check if employee exists
+    // Check if education exists
     const checkEducationResult = await pool.query(
         `SELECT 1 FROM educational_qualifications WHERE id = $1`,
         [educationId]
@@ -422,39 +422,39 @@ export const deleteHonor = asyncHandler(async (req, res) => {
 
 
 // @desc    Save scholarship for an employee
-// @route   POST /api/employees/:id/scholarship
+// @route   POST /api/employees/:educationId/scholarship
 // @access  Private
 export const saveScholarship = asyncHandler(async (req, res) => {
 
-    const { id } = req.params;
+    const { educationId } = req.params;
     const { scholarship } = req.body; 
 
     // Validate required fields
-    if (!id) {
-        return res.status(400).json({ message: "Employee ID is required.", success: false });
+    if (!educationId) {
+        return res.status(400).json({ message: "Education ID is required.", success: false });
     };
     if (!scholarship) {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
     };
 
-    // Check if employee exists
-    const checkEmployeeResult = await pool.query(
-        `SELECT 1 FROM employees WHERE id = $1`,
-        [id]
+    // Check if education exists
+    const checkEducationResult = await pool.query(
+        `SELECT 1 FROM educational_qualifications WHERE id = $1`,
+        [educationId]
     );
 
-    if (checkEmployeeResult.rows.length === 0) {
-        return res.status(404).json({ message: "Employee not found.", success: false });
+    if (checkEducationResult.rows.length === 0) {
+        return res.status(404).json({ message: "Educational qualification not found.", success: false });
     };
 
     const query = 
     `
-        INSERT INTO education_scholarships (employee_id, scholarship_name)
+        INSERT INTO education_scholarships (education_id, scholarship_name)
         VALUES ($1, $2)
         RETURNING *
     `;
 
-    const result = await pool.query(query, [id, scholarship]);
+    const result = await pool.query(query, [educationId, scholarship]);
 
     if (result.rowCount === 0) {
         return res.status(500).json({ message: "Failed to save scholarship.", success: false });
@@ -465,11 +465,11 @@ export const saveScholarship = asyncHandler(async (req, res) => {
 });
 
 // @desc    Update scholarship for an employee
-// @route   PUT /api/employees/:employeeId/scholarship/:scholarshipId
+// @route   PUT /api/employees/:educationId/scholarship/:scholarshipId
 // @access  Private
 export const updateScholarship = asyncHandler(async (req, res) => {
 
-    const { employeeId, scholarshipId } = req.params;
+    const { educationId, scholarshipId } = req.params;
     const { scholarship } = req.body; 
 
     // Validate required fields
@@ -482,11 +482,11 @@ export const updateScholarship = asyncHandler(async (req, res) => {
         UPDATE education_scholarships 
         SET 
             scholarship_name = $1
-        WHERE employee_id = $2 AND id = $3
+        WHERE education_id = $2 AND id = $3
         RETURNING *
     `;
 
-    const result = await pool.query(query, [scholarship, employeeId, scholarshipId]);
+    const result = await pool.query(query, [scholarship, educationId, scholarshipId]);
 
     if (result.rowCount === 0) {
         return res.status(500).json({ message: "Failed to update scholarship.", success: false });
@@ -497,18 +497,18 @@ export const updateScholarship = asyncHandler(async (req, res) => {
 });
 
 // @desc    Delete scholarship for an employee
-// @route   DELETE /api/employees/:employeeId/scholarship/:scholarshipId
+// @route   DELETE /api/employees/:educationId/scholarship/:scholarshipId
 // @access  Private
 export const deleteScholarship = asyncHandler(async (req, res) => {
 
-    const { employeeId, scholarshipId } = req.params;
+    const { educationId, scholarshipId } = req.params;
 
     const query = `
         DELETE FROM education_scholarships
-        WHERE employee_id = $1 AND id = $2
+        WHERE education_id = $1 AND id = $2
     `;
 
-    const result = await pool.query(query, [employeeId, scholarshipId]);    
+    const result = await pool.query(query, [educationId, scholarshipId]);    
 
     if (result.rowCount === 0) {
         return res.status(404).json({ message: "Scholarship not found.", success: false });

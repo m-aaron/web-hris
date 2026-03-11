@@ -41,8 +41,8 @@ router.post('/:educationId/honor', authenticate, authorizeRoles(ROLES.ADMIN, ROL
 router.put('/:educationId/honor/:honorId', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), updateHonor);
 router.delete('/:educationId/honor/:honorId', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), deleteHonor);
 
-router.post('/:id/scholarship', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), saveScholarship);
-router.put('/:employeeId/scholarship/:scholarshipId', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), updateScholarship);
-router.delete('/:employeeId/scholarship/:scholarshipId', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), deleteScholarship);
+router.post('/:educationId/scholarship', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), saveScholarship);
+router.put('/:educationId/scholarship/:scholarshipId', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), updateScholarship);
+router.delete('/:educationId/scholarship/:scholarshipId', authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), deleteScholarship);
 
 export default router;
