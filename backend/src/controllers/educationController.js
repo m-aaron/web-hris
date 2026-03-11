@@ -104,6 +104,7 @@ export const updateEducationalQualification = asyncHandler(async (req, res) => {
 // @route   DELETE /api/employees/:employeeId/education/:qualificationId
 // @access  Private
 export const deleteEducationalQualification = asyncHandler(async (req, res) => {
+    
     const { employeeId, qualificationId } = req.params;
 
     const query = `
@@ -118,7 +119,10 @@ export const deleteEducationalQualification = asyncHandler(async (req, res) => {
     }
 
     res.status(200).json({ message: "Educational qualification deleted successfully.", success: true });
+
 });
+
+
 
 // @desc    Save major for an employee
 // @route   POST /api/employees/:id/major
@@ -194,6 +198,30 @@ export const updateMajor = asyncHandler(async (req, res) => {
     res.status(201).json({ message: "Major updated successfully.", success: true, major: result.rows[0] });
 
 });
+
+// @desc    Delete major for an employee
+// @route   DELETE /api/employees/:employeeId/major/:majorId
+// @access  Private
+export const deleteMajor = asyncHandler(async (req, res) => {
+
+    const { employeeId, majorId } = req.params;
+
+    const query = `
+        DELETE FROM education_majors
+        WHERE employee_id = $1 AND id = $2
+    `;
+
+    const result = await pool.query(query, [employeeId, majorId]);
+
+    if (result.rowCount === 0) {
+        return res.status(404).json({ message: "Major not found.", success: false });
+    }
+
+    res.status(200).json({ message: "Major deleted successfully.", success: true });
+
+});
+
+
 
 // @desc    Save minor for an employee
 // @route   POST /api/employees/:id/minor
