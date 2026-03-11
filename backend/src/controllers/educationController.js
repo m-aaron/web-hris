@@ -323,39 +323,39 @@ export const deleteMinor = asyncHandler(async (req, res) => {
 
 
 // @desc    Save honor for an employee
-// @route   POST /api/employees/:id/honor
+// @route   POST /api/employees/:educationId/honor
 // @access  Private
 export const saveHonor = asyncHandler(async (req, res) => {
 
-    const { id } = req.params;
+    const { educationId } = req.params;
     const { honor } = req.body; 
 
     // Validate required fields
-    if (!id) {
-        return res.status(400).json({ message: "Employee ID is required.", success: false });
+    if (!educationId) {
+        return res.status(400).json({ message: "Education ID is required.", success: false });
     };
     if (!honor) {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
     };
 
     // Check if employee exists
-    const checkEmployeeResult = await pool.query(
-        `SELECT 1 FROM employees WHERE id = $1`,
-        [id]
+    const checkEducationResult = await pool.query(
+        `SELECT 1 FROM educational_qualifications WHERE id = $1`,
+        [educationId]
     );
 
-    if (checkEmployeeResult.rows.length === 0) {
-        return res.status(404).json({ message: "Employee not found.", success: false });
+    if (checkEducationResult.rows.length === 0) {
+        return res.status(404).json({ message: "Educational qualification not found.", success: false });
     };
 
     const query = 
     `
-        INSERT INTO education_honors (employee_id, honor_name)
+        INSERT INTO education_honors (education_id, honor_name)
         VALUES ($1, $2)
          RETURNING *
     `;
 
-    const result = await pool.query(query, [id, honor]);
+    const result = await pool.query(query, [educationId, honor]);
 
     if (result.rowCount === 0) {
         return res.status(500).json({ message: "Failed to save honor.", success: false });
@@ -366,11 +366,11 @@ export const saveHonor = asyncHandler(async (req, res) => {
 });
 
 // @desc    Update honor for an employee
-// @route   PUT /api/employees/:employeeId/honor/:honorId
+// @route   PUT /api/employees/:educationId/honor/:honorId
 // @access  Private
 export const updateHonor = asyncHandler(async (req, res) => {
 
-    const { employeeId, honorId } = req.params;
+    const { educationId, honorId } = req.params;
     const { honor } = req.body; 
 
     // Validate required fields
@@ -383,11 +383,11 @@ export const updateHonor = asyncHandler(async (req, res) => {
         UPDATE education_honors 
         SET 
             honor_name = $1
-        WHERE employee_id = $2 AND id = $3
+        WHERE education_id = $2 AND id = $3
         RETURNING *
     `;
 
-    const result = await pool.query(query, [honor, employeeId, honorId]);
+    const result = await pool.query(query, [honor, educationId, honorId]);
 
     if (result.rowCount === 0) {
         return res.status(500).json({ message: "Failed to update honor.", success: false });
@@ -398,18 +398,18 @@ export const updateHonor = asyncHandler(async (req, res) => {
 });
 
 // @desc    Delete honor for an employee
-// @route   DELETE /api/employees/:employeeId/honor/:honorId
+// @route   DELETE /api/employees/:educationId/honor/:honorId
 // @access  Private
 export const deleteHonor = asyncHandler(async (req, res) => {
 
-    const { employeeId, honorId } = req.params;
+    const { educationId, honorId } = req.params;
 
     const query = `
         DELETE FROM education_honors
-        WHERE employee_id = $1 AND id = $2
+        WHERE education_id = $1 AND id = $2
     `;
 
-    const result = await pool.query(query, [employeeId, honorId]);
+    const result = await pool.query(query, [educationId, honorId]);
 
     if (result.rowCount === 0) {
         return res.status(404).json({ message: "Honor not found.", success: false });
