@@ -653,41 +653,49 @@ export const getEmployeeById = asyncHandler(async (req, res) => {
 
     const educationMajorResult = await pool.query(
         `SELECT 
-            id,
-            major_name,
-            updated_at AS education_major_updated_at
-        FROM education_majors
-        WHERE employee_id = $1`,
+            em.id,
+            em.education_id,
+            em.major_name,
+            em.updated_at AS education_major_updated_at
+        FROM education_majors em
+        JOIN educational_qualifications eq ON em.education_id = eq.id
+        WHERE eq.employee_id = $1`,
         [id]
     );
 
     const educationMinorResult = await pool.query(
         `SELECT 
-            id,
-            minor_name,
-            updated_at AS education_minor_updated_at
-        FROM education_minors
-        WHERE employee_id = $1`,
+            emn.id,
+            emn.education_id,
+            emn.minor_name,
+            emn.updated_at AS education_minor_updated_at
+        FROM education_minors emn
+        JOIN educational_qualifications eq ON emn.education_id = eq.id
+        WHERE eq.employee_id = $1`,
         [id]
     );
 
     const educationHonorsResult = await pool.query(
         `SELECT 
-            id,
-            honor_name,
-            updated_at AS education_honor_updated_at
-        FROM education_honors
-        WHERE employee_id = $1`,
+            eh.id,
+            eh.education_id,
+            eh.honor_name,
+            eh.updated_at AS education_honor_updated_at
+        FROM education_honors eh
+        JOIN educational_qualifications eq ON eh.education_id = eq.id
+        WHERE eq.employee_id = $1`,
         [id]
     );
 
     const educationScholarshipResult = await pool.query(
         `SELECT 
-            id,
-            scholarship_name,
-            updated_at AS education_scholarship_updated_at
-        FROM education_scholarships
-        WHERE employee_id = $1`,
+            es.id,
+            es.education_id,
+            es.scholarship_name,
+            es.updated_at AS education_scholarship_updated_at
+        FROM education_scholarships es
+        JOIN educational_qualifications eq ON es.education_id = eq.id
+        WHERE eq.employee_id = $1`,
         [id]
     );
 
