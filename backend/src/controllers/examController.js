@@ -78,3 +78,25 @@ export const updateExaminationTaken = asyncHandler(async (req, res) => {
     res.status(200).json({ message: "Examination taken updated successfully.", success: true, examinationTaken: result.rows[0] });
 
 });
+
+// @desc    Delete examination taken for an employee
+// @route   DELETE /api/employees/:employeeId/examination-taken/:examId
+// @access  Private
+export const deleteExaminationTaken = asyncHandler(async (req, res) => {
+
+    const { employeeId, examId } = req.params;
+
+    const query = `
+        DELETE FROM examinations_taken
+        WHERE employee_id = $1 AND id = $2
+    `;
+
+    const result = await pool.query(query, [employeeId, examId]);
+
+    if (result.rowCount === 0) {
+        return res.status(404).json({ message: "Examination taken not found.", success: false });
+    }
+
+    res.status(200).json({ message: "Examination taken deleted successfully.", success: true });
+    
+});
