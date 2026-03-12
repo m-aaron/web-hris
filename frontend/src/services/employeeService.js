@@ -196,6 +196,24 @@ export const deleteScholarshipData = async (educationId, scholarshipId) => {
 
 
 
+// EXAM SECTION
+export const saveExaminationTaken = async (employeeId, examinationData) => {
+    const response = await API.post(`/employees/${employeeId}/examination-taken`, examinationData);
+    return response.data;
+}
+
+export const updateExaminationTaken = async (employeeId, examId, examinationData) => {
+    const response = await API.put(`/employees/${employeeId}/examination-taken/${examId}`, examinationData);
+    return response.data;
+}
+
+export const deleteExaminationTaken = async (employeeId, examId) => {
+    const response = await API.delete(`/employees/${employeeId}/examination-taken/${examId}`);
+    return response.data;
+}
+
+
+
 export const getAllPositions = async () => {
     const response = await API.get("/employees/positions");
     return response.data;
