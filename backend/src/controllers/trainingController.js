@@ -97,3 +97,25 @@ export const updateTrainingProgram = asyncHandler(async (req, res) => {
     res.status(200).json({ message: "Training program updated successfully.", success: true, trainingProgram: result.rows[0] });
 
 });  
+
+// @desc    Delete training program for an employee
+// @route   DELETE /api/employees/:employeeId/training/:trainingId
+// @access  Private
+export const deleteTrainingProgram = asyncHandler(async (req, res) => {
+
+    const { employeeId, trainingId } = req.params;
+
+    const query = `
+        DELETE FROM training_programs
+        WHERE employee_id = $1 AND id = $2
+    `;
+
+    const result = await pool.query(query, [employeeId, trainingId]);
+
+    if (result.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to delete training program.", success: false });
+    };
+
+    res.status(200).json({ message: "Training program deleted successfully.", success: true });
+
+});
