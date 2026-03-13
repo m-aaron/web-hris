@@ -6,6 +6,7 @@ import ChildrenSection from "./ChildrenSection"
 import EmploymentSection from "./EmploymentSection"
 import EducationSection from "./EducationSection"
 import ExaminationSection from "./ExaminationSection"
+import TrainingSection from "./TrainingSection"
 
 
 const EmployeeTabs = ({ employee, setEmployee }) => {
@@ -19,7 +20,8 @@ const EmployeeTabs = ({ employee, setEmployee }) => {
     "children",
     "employment",
     "education",
-    "examination"
+    "examination",
+    "training"
   ];
 
 
@@ -104,6 +106,13 @@ const EmployeeTabs = ({ employee, setEmployee }) => {
           Examination
         </button>
 
+        <button
+          onClick={() => setActiveTab("training")}
+          className={tabClass("training")}
+        >
+          Training
+        </button>
+
       </div>
 
       {/* Tab Content */}
@@ -166,6 +175,15 @@ const EmployeeTabs = ({ employee, setEmployee }) => {
 
         {activeTab === "examination" && (
           <ExaminationSection
+            employee={employee}
+            setEmployee={setEmployee}
+            onPrevious={goPrevious}
+            onNext={goNext}
+          />
+        )}
+
+        {activeTab === "training" && (
+          <TrainingSection
             employee={employee}
             setEmployee={setEmployee}
             onPrevious={goPrevious}

@@ -214,6 +214,24 @@ export const deleteExaminationTaken = async (employeeId, examId) => {
 
 
 
+// TRAINING SECTION
+export const saveTrainingProgram = async (employeeId, trainingData) => {
+    const response = await API.post(`/employees/${employeeId}/training`, trainingData);
+    return response.data;
+}
+
+export const updateTrainingProgram = async (employeeId, trainingId, trainingData) => {
+    const response = await API.put(`/employees/${employeeId}/training/${trainingId}`, trainingData);
+    return response.data;
+}
+
+export const deleteTrainingProgram = async (employeeId, trainingId) => {
+    const response = await API.delete(`/employees/${employeeId}/training/${trainingId}`);
+    return response.data;
+}
+
+
+
 export const getAllPositions = async () => {
     const response = await API.get("/employees/positions");
     return response.data;
