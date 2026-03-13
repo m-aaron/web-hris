@@ -232,6 +232,24 @@ export const deleteTrainingProgram = async (employeeId, trainingId) => {
 
 
 
+// HISTORY SECTION
+export const saveEmploymentHistory = async (employeeId, historyData) => {   
+    const response = await API.post(`/employees/${employeeId}/employment-history`, historyData);
+    return response.data;
+}
+
+export const updateEmploymentHistory = async (employeeId, historyId, historyData) => {
+    const response = await API.put(`/employees/${employeeId}/employment-history/${historyId}`, historyData);
+    return response.data;
+}
+
+export const deleteEmploymentHistory = async (employeeId, historyId) => {
+    const response = await API.delete(`/employees/${employeeId}/employment-history/${historyId}`);
+    return response.data;
+}
+
+
+
 export const getAllPositions = async () => {
     const response = await API.get("/employees/positions");
     return response.data;
