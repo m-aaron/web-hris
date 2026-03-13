@@ -250,6 +250,14 @@ export const deleteEmploymentHistory = async (employeeId, historyId) => {
 
 
 
+// OTHER INFO SECTION
+export const saveOtherInfo = async (employeeId, otherInfoData) => {
+    const response = await API.put(`/employees/${employeeId}/other-info`, otherInfoData);
+    return response.data;
+}
+
+
+
 export const getAllPositions = async () => {
     const response = await API.get("/employees/positions");
     return response.data;
