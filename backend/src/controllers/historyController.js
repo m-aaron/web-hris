@@ -97,3 +97,25 @@ export const updateEmploymentHistory = asyncHandler(async (req, res) => {
     res.status(201).json({ message: "Employment history updated successfully.", success: true, employmentHistory: result.rows[0] });
 
 });
+
+// @desc    Delete employment history for an employee
+// @route   DELETE /api/employees/:employeeId/employment-history/:historyId
+// @access  Private
+export const deleteEmploymentHistory = asyncHandler(async (req, res) => {
+
+    const { employeeId, historyId } = req.params;
+
+    const query = `
+        DELETE FROM employment_history
+        WHERE employee_id = $1 AND id = $2
+    `;
+
+    const result = await pool.query(query, [employeeId, historyId]);
+
+    if (result.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to delete employment history.", success: false });
+    };
+
+    res.status(200).json({ message: "Employment history deleted successfully.", success: true });
+
+});
