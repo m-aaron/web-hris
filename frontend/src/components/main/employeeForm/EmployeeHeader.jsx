@@ -2,9 +2,13 @@ import { ArrowLeft } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import StatusBadge from "../ui/StatusBadge"
 
+import ProgressBar from "../ui/ProgressBar"
+import { calculateEmployeeProgress } from "../../../helpers/progressHelper"
+
 export default function EmployeeHeader({ employee, mode = "edit" }) {
   
   const navigate = useNavigate()
+  const progress = calculateEmployeeProgress(employee);
 
   const employeeData = employee.employee;
   const personalData = employee.personal;
@@ -51,7 +55,7 @@ export default function EmployeeHeader({ employee, mode = "edit" }) {
       </div>
 
       {/* Profile Section */}
-      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 px-6 py-6">
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 px-6 pt-6 pb-4">
 
         {/* Avatar */}
         <div className="relative">
@@ -89,6 +93,8 @@ export default function EmployeeHeader({ employee, mode = "edit" }) {
         </div>
 
       </div>
+
+      <ProgressBar progress={progress} />
 
     </div>
     

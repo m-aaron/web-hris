@@ -53,14 +53,14 @@ const OtherInfoSection = ({ employee, setEmployee, onPrevious, onNext }) => {
         try {
 
             const payload = {
-                hasCriminalCase: data.has_criminal_case,
-                criminalCaseDetails: data.has_criminal_case ? data.criminal_case_details : "",
+                hasCriminalCase: data.has_criminal_case === true || data.has_criminal_case === "true",
+                criminalCaseDetails: (data.has_criminal_case === true || data.has_criminal_case === "true") ? data.criminal_case_details : "",
 
-                hasAdminOffense: data.has_admin_offense,
-                adminOffenseDetails: data.has_admin_offense ? data.admin_offense_details : "",
+                hasAdminOffense: data.has_admin_offense === true || data.has_admin_offense === "true",
+                adminOffenseDetails: (data.has_admin_offense === true || data.has_admin_offense === "true") ? data.admin_offense_details : "",
 
-                wasSeparatedEmployment: data.was_separated_employment,
-                separationDetails: data.was_separated_employment ? data.separation_details : ""
+                wasSeparatedEmployment: data.was_separated_employment === true || data.was_separated_employment === "true",
+                separationDetails: (data.was_separated_employment === true || data.was_separated_employment === "true") ? data.separation_details : ""
             }
 
             const res = await saveOtherInfo(employee.employee.id, payload)
