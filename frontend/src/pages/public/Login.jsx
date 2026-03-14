@@ -43,6 +43,7 @@ const Login = () => {
             <form className="mt-10 space-y-4" onSubmit={ handleSubmit }>
                 <Input 
                     type="email" 
+                    className="p-3"
                     placeholder="Enter your email" 
                     value={ email } 
                     onChange={ e => setEmail(e.target.value) } 
@@ -50,6 +51,7 @@ const Login = () => {
                 <div>
                     <Input 
                         type="password" 
+                        className="p-3"
                         placeholder="Enter your password" 
                         value={ password } 
                         onChange={ e => setPassword(e.target.value) } 
