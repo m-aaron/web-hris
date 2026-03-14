@@ -32,7 +32,7 @@ const ExaminationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
         },
     });
 
-    const { register, control, watch, reset, formState: { errors, dirtyFields } } = methods;
+    const { register, control, watch, reset, trigger, formState: { errors, dirtyFields } } = methods;
 
 
     const { fields, append, remove } = useFieldArray({
@@ -56,6 +56,13 @@ const ExaminationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
 
 
     const handleSaveExam = async (index) => {
+
+        const isValid = await trigger(`examinations.${index}`);
+
+        if (!isValid) {
+            toast.error("Please fix validation errors");
+            return;
+        } 
 
         const exam = examinations[index];
 

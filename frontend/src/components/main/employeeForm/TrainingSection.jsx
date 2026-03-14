@@ -32,7 +32,7 @@ const TrainingSection = ({ employee, setEmployee, onPrevious, onNext }) => {
         },
     });
 
-    const { register, control, watch, reset, formState: { errors, dirtyFields } } = methods;
+    const { register, control, watch, reset, trigger, formState: { errors, dirtyFields } } = methods;
 
     const { fields, append, remove } = useFieldArray({
         control,
@@ -56,6 +56,14 @@ const TrainingSection = ({ employee, setEmployee, onPrevious, onNext }) => {
 
 
     const handleSaveTraining = async (index) => {
+
+        const isValid = await trigger(`trainings.${index}`);
+
+        if (!isValid) {
+            toast.error("Please fix validation errors");
+            return;
+        } 
+
         const training = trainings[index];
 
         const payload = {
@@ -247,14 +255,14 @@ const TrainingSection = ({ employee, setEmployee, onPrevious, onNext }) => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
                                     <InputForm
-                                        label="Title"
+                                        label="Title of Seminar / Training / Workshop"
                                         required
                                         message={errors.trainings?.[index]?.title?.message}
                                         {...register(`trainings.${index}.title`)}
                                     />
 
                                     <InputForm
-                                        label="Place"
+                                        label="Place / Venue"
                                         required
                                         message={errors.trainings?.[index]?.place?.message}
                                         {...register(`trainings.${index}.place`)}
@@ -282,7 +290,7 @@ const TrainingSection = ({ employee, setEmployee, onPrevious, onNext }) => {
                                     />
 
                                     <InputForm
-                                        label="Conducted By"
+                                        label="Conducted / Sponsored By"
                                         {...register(`trainings.${index}.conducted_by`)}
                                     />
                                 </div>

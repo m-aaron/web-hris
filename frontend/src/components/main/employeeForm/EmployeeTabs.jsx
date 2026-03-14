@@ -61,86 +61,95 @@ const EmployeeTabs = ({ employee, setEmployee }) => {
     <div className="flex flex-col h-full min-h-0">
 
       {/* Tabs Header */}
-      <div className="flex gap-6 px-6 py-4 border-y border-border">
+      <div className="border-y border-border">
 
-        <button
-          onClick={() => setActiveTab("identity")}
-          className={tabClass("identity")}
-        >
-          Identity
-        </button>
+        <div className="overflow-x-auto scrollbar">
 
-        <button
-          onClick={() => setActiveTab("personal")}
-          className={tabClass("personal")}
-        >
-          Personal
-        </button>
+          <div className="flex gap-6 px-6 py-4 whitespace-nowrap min-w-max">
 
-        <button
-          onClick={() => setActiveTab("family")}
-          className={tabClass("family")}
-        >
-          Family
-        </button>
+            <button
+              onClick={() => setActiveTab("identity")}
+              className={tabClass("identity")}
+            >
+              Identity
+            </button>
 
-        <button
-          onClick={() => setActiveTab("children")}
-          className={tabClass("children")}
-        >
-          Children
-        </button>
+            <button
+              onClick={() => setActiveTab("personal")}
+              className={tabClass("personal")}
+            >
+              Personal
+            </button>
 
-        <button
-          onClick={() => setActiveTab("employment")}
-          className={tabClass("employment")}
-        >
-          Employment
-        </button>
+            <button
+              onClick={() => setActiveTab("family")}
+              className={tabClass("family")}
+            >
+              Family
+            </button>
 
-        <button
-          onClick={() => setActiveTab("education")}
-          className={tabClass("education")}
-        >
-          Education
-        </button>
+            <button
+              onClick={() => setActiveTab("children")}
+              className={tabClass("children")}
+            >
+              Children
+            </button>
 
-        <button
-          onClick={() => setActiveTab("examination")}
-          className={tabClass("examination")}
-        >
-          Examination
-        </button>
+            <button
+              onClick={() => setActiveTab("employment")}
+              className={tabClass("employment")}
+            >
+              Employment
+            </button>
 
-        <button
-          onClick={() => setActiveTab("training")}
-          className={tabClass("training")}
-        >
-          Training
-        </button>
+            <button
+              onClick={() => setActiveTab("education")}
+              className={tabClass("education")}
+            >
+              Education
+            </button>
 
-        <button
-          onClick={() => setActiveTab("history")}
-          className={tabClass("history")}
-        >
-          History
-        </button>
+            <button
+              onClick={() => setActiveTab("examination")}
+              className={tabClass("examination")}
+            >
+              Examination
+            </button>
 
-        <button
-          onClick={() => setActiveTab("other_info")}
-          className={tabClass("other_info")}
-        >
-          Other Info
-        </button>
+            <button
+              onClick={() => setActiveTab("training")}
+              className={tabClass("training")}
+            >
+              Training
+            </button>
 
-        <button
-          onClick={() => setActiveTab("reference")}
-          className={tabClass("reference")}
-        >
-          Reference
-        </button>
+            <button
+              onClick={() => setActiveTab("history")}
+              className={tabClass("history")}
+            >
+              History
+            </button>
+
+            <button
+              onClick={() => setActiveTab("other_info")}
+              className={tabClass("other_info")}
+            >
+              Other Info
+            </button>
+
+            <button
+              onClick={() => setActiveTab("reference")}
+              className={tabClass("reference")}
+            >
+              Reference
+            </button>
+
+          </div>
+
+        </div>
 
       </div>
+
 
       {/* Tab Content */}
       <div className="flex-1 overflow-hidden min-h-0 flex flex-col">

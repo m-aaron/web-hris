@@ -10,10 +10,10 @@ export const examinationSchema = z.object({
 
             return dateTaken < today
             }, {
-            message: "Date taken cannot be in the future"
+                message: "Date taken cannot be in the future"
             }),
 
         rating: z.string().optional(),
         })
     )
-});
+});;

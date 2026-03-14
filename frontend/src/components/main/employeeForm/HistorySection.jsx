@@ -32,7 +32,7 @@ const HistorySection = ({ employee, setEmployee, onPrevious, onNext }) => {
         },
     });
 
-    const { register, control, watch, reset, formState: { errors, dirtyFields } } = methods;
+    const { register, control, watch, reset, trigger, formState: { errors, dirtyFields } } = methods;
 
     const { fields, append, remove } = useFieldArray({
         control,
@@ -57,6 +57,13 @@ const HistorySection = ({ employee, setEmployee, onPrevious, onNext }) => {
 
 
     const handleSaveHistory = async (index) => {
+
+        const isValid = await trigger(`history.${index}`);
+
+        if (!isValid) {
+            toast.error("Please fix validation errors");
+            return;
+        } 
 
         const history = histories[index];
 
@@ -302,7 +309,7 @@ const HistorySection = ({ employee, setEmployee, onPrevious, onNext }) => {
                                         />
 
                                         <InputForm
-                                            label="Reason for Leaving"
+                                            label="Cause of Separation"
                                             {...register(`history.${index}.reason_for_leaving`)}
                                         />
 

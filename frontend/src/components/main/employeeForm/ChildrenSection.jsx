@@ -19,7 +19,6 @@ import SelectForm from "../../SelectForm";
 import Button from "../../Button";
 import ConfirmModal from "../ui/ConfirmModal";
 
-
 const ChildrenSection = ({ employee, setEmployee, onPrevious, onNext }) => {
   const [saveIndex, setSaveIndex] = useState(null);
   const [deleteIndex, setDeleteIndex] = useState(null);
@@ -38,6 +37,7 @@ const ChildrenSection = ({ employee, setEmployee, onPrevious, onNext }) => {
     control,
     watch,
     reset,
+    trigger,
     formState: { errors, dirtyFields },
   } = methods;
 
@@ -61,6 +61,13 @@ const ChildrenSection = ({ employee, setEmployee, onPrevious, onNext }) => {
 
   // SAVE CHILD
   const handleSaveChild = async (index) => {
+    const isValid = await trigger(`children.${index}`);
+
+    if (!isValid) {
+      toast.error("Please fix validation errors");
+      return;
+    }
+
     const child = children[index];
 
     const payload = {
@@ -233,6 +240,7 @@ const ChildrenSection = ({ employee, setEmployee, onPrevious, onNext }) => {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <InputForm
                       label="Last Name"
+                      required
                       message={
                         errors.children?.[index]?.children_name?.last_name
                           ?.message
@@ -242,6 +250,7 @@ const ChildrenSection = ({ employee, setEmployee, onPrevious, onNext }) => {
 
                     <InputForm
                       label="First Name"
+                      required
                       message={
                         errors.children?.[index]?.children_name?.first_name
                           ?.message

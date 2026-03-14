@@ -74,12 +74,14 @@ const EducationCard = ({ index, savingRow, openSaveConfirm, setDeleteIndex, isDi
 
         <InputForm
           label="Degree / Title / Certificate"
+          required
           message={educationErrors?.title?.message}
           {...register(`education.${index}.title`)}
         />
 
         <InputForm
           label="School / College"
+          required
           message={educationErrors?.school?.message}
           {...register(`education.${index}.school`)}
         />

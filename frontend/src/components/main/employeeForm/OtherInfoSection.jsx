@@ -125,9 +125,9 @@ const OtherInfoSection = ({ employee, setEmployee, onPrevious, onNext }) => {
 
                             {hasCriminalCase && (
                                 <InputForm
-                                label="Criminal Case Details"
-                                message={errors.criminal_case_details?.message}
-                                {...register("criminal_case_details")}
+                                    label="Criminal Case Details"
+                                    message={errors.criminal_case_details?.message}
+                                    {...register("criminal_case_details")}
                                 />
                             )}
 

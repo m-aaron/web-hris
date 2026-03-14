@@ -239,6 +239,7 @@ const EmploymentSection = ({ employee, setEmployee, onPrevious, onNext, isFirstS
 
                         <SelectForm
                             label="Employment Status"
+                            required
                             {...register("employment_status")}
                             options={[
                                 { value: STATUSES.REGULAR, label: STATUSES.REGULAR },
@@ -250,6 +251,7 @@ const EmploymentSection = ({ employee, setEmployee, onPrevious, onNext, isFirstS
 
                         <SelectForm
                             label="Employment Basis"
+                            required
                             {...register("employment_basis")}
                             options={[
                                 { value: BASIS.FULL_TIME, label: "Full Time" },
