@@ -72,16 +72,16 @@ export const updateEmployeePhoto = async (id, formData) => {
 
 
 // PERSONAL SECTION
-export const updatePersonalData = async (id, personalData) => {
-    const response = await API.put(`/employees/${id}/personal/update`, personalData);
+export const savePersonalData = async (id, personalData) => {
+    const response = await API.put(`/employees/${id}/personal`, personalData);
     return response.data;
 }
 
 
 
 // FAMILY SECTION
-export const updateFamilyData = async (id, familyData) => {
-    const response = await API.put(`/employees/${id}/family/update`, familyData);
+export const saveFamilyData = async (id, familyData) => {
+    const response = await API.put(`/employees/${id}/family`, familyData);
     return response.data;
 }
 
@@ -106,8 +106,8 @@ export const deleteChildrenData = async (employeeId, childId) => {
 
 
 // EMPLOYMENT SECTION
-export const updateEmploymentData = async (id, employmentData) => {
-    const response = await API.put(`/employees/${id}/employment/update`, employmentData);
+export const saveEmploymentData = async (id, employmentData) => {
+    const response = await API.put(`/employees/${id}/employment`, employmentData);
     return response.data;
 }
 

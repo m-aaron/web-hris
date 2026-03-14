@@ -3,7 +3,7 @@ import { useForm, FormProvider } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 
-import { updatePersonalData } from "../../../services/employeeService"
+import { savePersonalData } from "../../../services/employeeService"
 import { personalSchema } from "../../../schemas/personalSchema"
 import { calculateAge } from "../../../helpers/employeeHelper"
 import { formatPHDate } from "../../../helpers/dateHelper"
@@ -68,14 +68,14 @@ const PersonalSection = ({ employee, setEmployee, onPrevious, onNext, isFirstSec
         contactNumber: data.contact_number
       };
 
-      const res = await updatePersonalData(employee.employee.id, payload)
+      const res = await savePersonalData(employee.employee.id, payload)
 
       setEmployee(prev => ({
         ...prev,
         personal: res.personalInfo
       }));
 
-      toast.success(res.message || "Personal information updated successfully");
+      toast.success("Personal information updated successfully");
 
     } catch (err) {
       toast.error(err?.response?.data?.message || "Failed to update personal information");

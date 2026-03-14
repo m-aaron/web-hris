@@ -3,7 +3,7 @@ import { useForm, FormProvider } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 
-import { updateFamilyData } from "../../../services/employeeService"
+import { saveFamilyData } from "../../../services/employeeService"
 import { familySchema } from "../../../schemas/familySchema"
 
 import InputForm from "../../InputForm"
@@ -58,14 +58,14 @@ const FamilySection = ({ employee, setEmployee, onPrevious, onNext }) => {
                 kinContactNumber: data.nearest_kin_contact_number
             }
 
-            const res = await updateFamilyData(employee.employee.id, payload);
+            const res = await saveFamilyData(employee.employee.id, payload);
 
             setEmployee(prev => ({
                 ...prev,
                 family: res.familyBackground
             }))
 
-            toast.success(res.message || "Family background updated successfully");
+            toast.success("Family background updated successfully");
             
         } catch (err) {
             toast.error(err?.response?.data?.message || "Failed to update family background");

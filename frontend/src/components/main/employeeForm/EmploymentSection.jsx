@@ -3,7 +3,7 @@ import { useForm, FormProvider } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 
-import { updateEmploymentData, getAllPositions, getAllDesignations } from "../../../services/employeeService"
+import { saveEmploymentData, getAllPositions, getAllDesignations } from "../../../services/employeeService"
 import { employmentSchema } from "../../../schemas/employmentSchema"
 import { STATUSES, BASIS } from "../../../constants/roleConstant"
 import { formatPHDate } from "../../../helpers/dateHelper"
@@ -94,14 +94,14 @@ const EmploymentSection = ({ employee, setEmployee, onPrevious, onNext, isFirstS
                 otherWorkingHours: data.other_employment_working_hours
             };
 
-            const res = await updateEmploymentData(employee.employee.id, payload)
+            const res = await saveEmploymentData(employee.employee.id, payload)
 
             setEmployee(prev => ({
                 ...prev,
                 employment: res.employmentData
             }));
 
-            toast.success(res.message || "Employment information updated successfully");
+            toast.success("Employment information updated successfully");
 
         } catch (err) {
             toast.error(err?.response?.data?.message || "Failed to update employment information");
