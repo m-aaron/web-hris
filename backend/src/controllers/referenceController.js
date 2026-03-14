@@ -128,3 +128,26 @@ export const updateReference = asyncHandler(async (req, res) => {
     res.status(200).json({ message: "Reference updated successfully.", success: true, reference: result.rows[0] });
 
 });
+
+// @desc    Delete reference information for an employee
+// @route   DELETE /api/employees/:employeeId/reference/:referenceId
+// @access  Private
+export const deleteReference = asyncHandler(async (req, res) => {
+
+    const { employeeId, referenceId } = req.params;
+
+    const query = 
+    `
+        DELETE FROM employee_references 
+        WHERE employee_id = $1 AND id = $2
+    `;
+
+    const result = await pool.query(query, [employeeId, referenceId]);      
+    
+    if (result.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to delete reference.", success: false });
+    };
+
+    res.status(200).json({ message: "Reference deleted successfully.", success: true });
+
+});

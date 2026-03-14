@@ -72,11 +72,8 @@ const HistorySection = ({ employee, setEmployee, onPrevious, onNext }) => {
                 : null,
 
             position: history.position || "",
-
             employer: history.employer || "",
-
             salary: history.salary || null,
-
             reasonForLeaving: history.reason_for_leaving || ""
         };
 
@@ -88,14 +85,14 @@ const HistorySection = ({ employee, setEmployee, onPrevious, onNext }) => {
 
             if (history.id) {
                 res = await updateEmploymentHistory(
-                employee.employee.id,
-                history.id,
-                payload
+                    employee.employee.id,
+                    history.id,
+                    payload
                 );
             } else {
                 res = await saveEmploymentHistory(
-                employee.employee.id,
-                payload
+                    employee.employee.id,
+                    payload
                 );
             }
 

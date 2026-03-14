@@ -258,6 +258,24 @@ export const saveOtherInfo = async (employeeId, otherInfoData) => {
 
 
 
+// REFERENCE SECTION
+export const saveReference = async (employeeId, referenceData) => {
+    const response = await API.post(`/employees/${employeeId}/reference`, referenceData);
+    return response.data;
+}
+
+export const updateReference = async (employeeId, referenceId, referenceData) => {
+    const response = await API.put(`/employees/${employeeId}/reference/${referenceId}`, referenceData);
+    return response.data;
+}
+
+export const deleteReference = async (employeeId, referenceId) => {
+    const response = await API.delete(`/employees/${employeeId}/reference/${referenceId}`);
+    return response.data;
+}
+
+
+
 export const getAllPositions = async () => {
     const response = await API.get("/employees/positions");
     return response.data;

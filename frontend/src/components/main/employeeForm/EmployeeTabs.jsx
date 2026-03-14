@@ -9,6 +9,7 @@ import ExaminationSection from "./ExaminationSection"
 import TrainingSection from "./TrainingSection"
 import HistorySection from "./HistorySection"
 import OtherInfoSection from "./OtherInfoSection"
+import ReferenceSection from "./ReferenceSection"
 
 
 const EmployeeTabs = ({ employee, setEmployee }) => {
@@ -25,7 +26,8 @@ const EmployeeTabs = ({ employee, setEmployee }) => {
     "examination",
     "training",
     "history",
-    "other_info"
+    "other_info",
+    "reference"
   ];
 
 
@@ -131,6 +133,13 @@ const EmployeeTabs = ({ employee, setEmployee }) => {
           Other Info
         </button>
 
+        <button
+          onClick={() => setActiveTab("reference")}
+          className={tabClass("reference")}
+        >
+          Reference
+        </button>
+
       </div>
 
       {/* Tab Content */}
@@ -224,6 +233,16 @@ const EmployeeTabs = ({ employee, setEmployee }) => {
             setEmployee={setEmployee}
             onPrevious={goPrevious}
             onNext={goNext}
+          />
+        )}
+
+        {activeTab === "reference" && (
+          <ReferenceSection
+            employee={employee}
+            setEmployee={setEmployee}
+            onPrevious={goPrevious}
+            onNext={goNext}
+            isLastSection={activeTab === "reference"}
           />
         )}
 
