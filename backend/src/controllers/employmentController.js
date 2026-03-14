@@ -43,7 +43,7 @@ export const saveEmploymentData = asyncHandler(async (req, res) => {
 
     // Check if position exists
     const checkPositionResult = await pool.query(
-        `SELECT id FROM positions WHERE name = $1`,
+        `SELECT id FROM positions WHERE id = $1`,
         [position]
     );
 
@@ -56,7 +56,7 @@ export const saveEmploymentData = asyncHandler(async (req, res) => {
     // Check if designation exists
     if (designation) {
         checkDesignationResult = await pool.query(
-            `SELECT id FROM designations WHERE name = $1`,
+            `SELECT id FROM designations WHERE id = $1`,
             [designation]
         );
 
