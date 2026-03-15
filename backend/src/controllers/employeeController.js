@@ -4,7 +4,9 @@ import sharp from "sharp";
 import path from "path";
 import fs from "fs";
 import crypto from "crypto";
-import { buildFilterQuery, autoAdjustColumnWidth, generateExcelFile } from "../utils/excelExportUtil.js";
+
+import { buildFilterQuery, generateExcelFile } from "../utils/excelExportUtil.js";
+import { updateEmployeeStatusIfComplete } from "../helpers/employeeStatusHelper.js";
 import { STATUS } from "../constants/employmentConstant.js";
 
 
@@ -48,6 +50,8 @@ export const createEmployee = asyncHandler(async (req, res) => {
     if (employeeResult.rows.length === 0) {
         return res.status(500).json({ message: "Failed to create employee.", success: false });
     }
+
+    await updateEmployeeStatusIfComplete(employeeResult.rows[0].id, pool);
 
     res.status(201).json({ message: "Employee created successfully.", success: true, employee: employeeResult.rows[0] });
 });

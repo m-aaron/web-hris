@@ -1,6 +1,7 @@
 import pool from "../configs/dbConfig.js";
 import asyncHandler from "express-async-handler";
 
+import { updateEmployeeStatusIfComplete } from "../helpers/employeeStatusHelper.js";
 
 // @desc    Save employment history for an employee
 // @route   POST /api/employees/:id/employment-history
@@ -48,6 +49,8 @@ export const saveEmploymentHistory = asyncHandler(async (req, res) => {
     if (result.rowCount === 0) {
         return res.status(500).json({ message: "Failed to save employment history.", success: false });
     };
+
+    await updateEmployeeStatusIfComplete(result.rows[0].employee_id, pool);
 
     res.status(201).json({ message: "Employment history saved successfully.", success: true, employmentHistory: result.rows[0] });
 

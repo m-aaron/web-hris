@@ -1,6 +1,8 @@
 import pool from "../configs/dbConfig.js";
 import asyncHandler from "express-async-handler";
 
+import { updateEmployeeStatusIfComplete } from "../helpers/employeeStatusHelper.js";
+
 
 // @desc    Save educational qualification for an employee
 // @route   POST /api/employees/:id/education
@@ -50,6 +52,8 @@ export const saveEducationalQualification = asyncHandler(async (req, res) => {
     if (result.rowCount === 0) {
         return res.status(500).json({ message: "Failed to save educational qualification.", success: false });
     };
+
+    await updateEmployeeStatusIfComplete(result.rows[0].employee_id, pool);
 
     res.status(201).json({ message: "Educational qualification saved successfully.", success: true, qualification: result.rows[0] });
 

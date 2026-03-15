@@ -1,6 +1,8 @@
 import pool from "../configs/dbConfig.js";
 import asyncHandler from "express-async-handler";
 
+import { updateEmployeeStatusIfComplete } from "../helpers/employeeStatusHelper.js";
+
 
 // @desc    Save personal information for an employee
 // @route   PUT /api/employees/:id/personal
@@ -117,6 +119,8 @@ export const savePersonalInfo = asyncHandler(async (req, res) => {
     if (result.rowCount === 0) {
         return res.status(500).json({ message: "Failed to save personal data.", success: false });
     }
+
+    await updateEmployeeStatusIfComplete(result.rows[0].id, pool);
 
     res.status(200).json({ message: "Personal data saved successfully.", success: true, personalInfo: result.rows[0] });
 });

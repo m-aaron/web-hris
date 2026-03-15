@@ -14,7 +14,7 @@ export default function EmployeeHeader({ employee, mode = "edit" }) {
   const personalData = employee?.personal || {};
   const employmentData = employee?.employment || {};
 
-  const { employee_no, employment_type, photo_url } = employeeData;
+  const { employee_no, employment_type, status, photo_url } = employeeData;
   const { last_name, first_name, middle_name } = personalData;
   const { employment_status } = employmentData;
 
@@ -89,9 +89,11 @@ export default function EmployeeHeader({ employee, mode = "edit" }) {
               {fullName}
             </h2>
 
-            <span className="text-xs text-muted">
-              Draft Profile
-            </span>
+            {status === "DRAFT" &&(
+              <span className="text-xs text-muted">
+                Draft Profile
+              </span>
+            )}
 
           </div>
 
