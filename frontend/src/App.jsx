@@ -13,6 +13,7 @@ import ResetPassword from "./pages/public/ResetPassword";
 import Dashboard from "./pages/private/Dashboard";
 import Employee from "./pages/private/Employee";
 import EmployeeEdit from "./pages/private/EmployeeEdit";
+import EmployeeCreate from "./pages/private/EmployeeCreate";
 
 
 const App = () => {
@@ -41,6 +42,7 @@ const App = () => {
               <Route path="/employees" element={ <Employee /> } />
             </Route>
             <Route path="/employees/:id/edit" element={<EmployeeEdit />} />
+            <Route path="/employees/create" element={<EmployeeCreate />} />
           </Route>
 
         </Route>

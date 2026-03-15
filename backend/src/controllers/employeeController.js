@@ -563,6 +563,7 @@ export const getEmployeeById = asyncHandler(async (req, res) => {
             id,
             employee_no,
             employment_type,
+            status,
             photo_url,
             updated_at AS employee_updated_at
         FROM employees 

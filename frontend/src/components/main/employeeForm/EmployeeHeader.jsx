@@ -10,24 +10,30 @@ export default function EmployeeHeader({ employee, mode = "edit" }) {
   const navigate = useNavigate()
   const progress = calculateEmployeeProgress(employee);
 
-  const employeeData = employee.employee;
-  const personalData = employee.personal;
-  const employmentData = employee.employment;
+  const employeeData = employee?.employee || {};
+  const personalData = employee?.personal || {};
+  const employmentData = employee?.employment || {};
 
   const { employee_no, employment_type, photo_url } = employeeData;
   const { last_name, first_name, middle_name } = personalData;
   const { employment_status } = employmentData;
 
-  const fullName = `${last_name}, ${first_name} ${middle_name ? middle_name[0] + "." : ""}`;
+  const fullName = last_name || first_name 
+    ? `${last_name || ""}, ${first_name || ""} ${middle_name ? middle_name[0] + "." : ""}`
+    : "New Employee";
+
+  const initials = first_name || last_name
+      ? `${first_name?.[0] || ""}${last_name?.[0] || ""}`
+      : "NE";
 
   return (
 
     <div className="bg-card">
 
       {/* Top Bar */}
-      <div className="flex items-center justify-between px-6 py-4">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3">
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
 
           <button
             onClick={() => navigate("/employees")}
@@ -37,7 +43,7 @@ export default function EmployeeHeader({ employee, mode = "edit" }) {
           </button>
 
           <div>
-            <h1 className="text-lg font-semibold">
+            <h1 className="text-base font-semibold">
               {mode === "edit" ? "Edit Employee" : "Create Employee"}
             </h1>
 
@@ -55,21 +61,20 @@ export default function EmployeeHeader({ employee, mode = "edit" }) {
       </div>
 
       {/* Profile Section */}
-      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 px-6 pt-6 pb-4">
+      <div className="flex items-center gap-4 px-4 sm:px-6 py-4">
 
         {/* Avatar */}
-        <div className="relative">
+        <div className="relative shrink-0">
 
           {photo_url ? (
             <img
               src={`${import.meta.env.VITE_BASE_URL}${photo_url}`}
               alt="Employee"
-              className="w-20 h-20 object-cover rounded-xl shadow"
+              className="w-14 h-14 sm:w-20 sm:h-20 object-cover rounded-xl shadow"
             />
           ) : (
-            <div className="w-20 h-20 rounded-xl bg-green flex items-center justify-center text-xl font-semibold text-card">
-              {first_name?.[0]}
-              {last_name?.[0]}
+            <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl bg-green flex items-center justify-center text-xl font-semibold text-card">
+              {initials}
             </div>
           )}
 
@@ -78,23 +83,25 @@ export default function EmployeeHeader({ employee, mode = "edit" }) {
         {/* Info */}
         <div className="text-center sm:text-left">
 
-          <h2 className="text-xl text-heading font-semibold leading-tight">
+          <h2 className="text-base sm:text-xl text-heading font-semibold leading-tight truncate">
             {fullName}
           </h2>
 
-          <p className="text-sm text-muted mt-2">
-            Employee No: <span className="text-heading font-medium">{employee_no}</span>
+          <p className="text-xs sm:text-sm text-muted mt-2">
+            Employee No: <span className="text-heading font-medium">{employee_no || "Not assigned"}</span>
           </p>
 
-          <p className="text-sm text-muted">
-            Employment Type: <span className="text-heading font-medium">{employment_type.replace("_", "-")}</span>
+          <p className="text-xs sm:text-sm text-muted">
+            Employment Type: <span className="text-heading font-medium">{employment_type?.replace("_", "-") || "Not selected"}</span>
           </p>
 
         </div>
 
       </div>
 
-      <ProgressBar progress={progress} />
+      <div className="px-4 sm:px-6 pb-2 ">
+        <ProgressBar progress={progress} />
+      </div>
 
     </div>
     

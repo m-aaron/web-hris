@@ -6,7 +6,7 @@ const ProfileProgressBar = ({ progress }) => {
 
     return (
 
-        <div className="w-full flex items-center gap-3 px-6 pb-2">
+        <div className="w-full flex items-center gap-3">
 
             {/* Label */}
             <span className="text-xs text-heading whitespace-nowrap">

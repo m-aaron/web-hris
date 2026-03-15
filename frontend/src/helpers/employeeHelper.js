@@ -20,3 +20,28 @@ export const formatEnum = (value) => {
         .replaceAll("_", " ")
         .replace(/\b\w/g, (c) => c.toUpperCase());
 };
+
+
+export const createEmployeeTemplate = () => ({
+    employee: {},
+    personal: {
+        address: {}
+    },
+    family: {
+        spouse: {},
+        nearest_kin_name: {},
+        nearest_kin_address: {}
+    },
+    children: [],
+    employment: {},
+    education: [],
+    education_majors: [],
+    education_minors: [],
+    education_honors: [],
+    education_scholarships: [],
+    examination: [],
+    training: [],
+    history: [],
+    other_information: {},
+    reference: []
+})

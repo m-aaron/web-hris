@@ -14,7 +14,7 @@ import Button from "../../Button"
 import ConfirmModal from "../ui/ConfirmModal"
 
 
-const PersonalSection = ({ employee, setEmployee, onPrevious, onNext, isFirstSection }) => {
+const PersonalSection = ({ employee, setEmployee, mode = "edit", onPrevious, onNext, isFirstSection }) => {
 
   const methods = useForm({
     resolver: zodResolver(personalSchema),

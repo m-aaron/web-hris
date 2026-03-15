@@ -1,7 +1,7 @@
 import { useState, useRef } from "react"
 import { employeeTabs } from "../../../configs/employeeTabConfig"
 
-const EmployeeTabs = ({ employee, setEmployee }) => {
+const EmployeeTabs = ({ employee, setEmployee, mode = "edit" }) => {
 
   const [activeTab, setActiveTab] = useState("identity")
   const tabRefs = useRef({})
@@ -87,6 +87,7 @@ const EmployeeTabs = ({ employee, setEmployee }) => {
           <ActiveComponent
             employee={employee}
             setEmployee={setEmployee}
+            mode={mode}
             onPrevious={goPrevious}
             onNext={goNext}
             isFirstSection={currentIndex === 0}
