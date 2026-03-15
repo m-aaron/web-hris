@@ -55,6 +55,11 @@ export const getEmployeeById = async (id) => {
 
 
 // IDENTITY SECTION
+export const createEmployeeIdentity = async (payload) => {
+    const res = await API.post("/employees", payload);
+    return res.data;
+}
+
 export const updateEmployeeType = async (id, payload) => {
     const res = await API.put(`/employees/${id}`, payload);
     return res.data

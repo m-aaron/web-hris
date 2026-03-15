@@ -7,14 +7,27 @@ import SelectForm from "../../SelectForm";
 import InputForm from "../../InputForm";
 import ConfirmModal from "../ui/ConfirmModal";
 
-import { updateEmployeeType, updateEmployeePhoto, } from "../../../services/employeeService";
+import {
+  createEmployeeIdentity,
+  updateEmployeeType,
+  updateEmployeePhoto,
+} from "../../../services/employeeService";
 
-
-const EmployeeIdentitySection = ({ employee, setEmployee, onPrevious, onNext, isFirstSection, }) => {
-
+const EmployeeIdentitySection = ({
+  employee,
+  setEmployee,
+  onPrevious,
+  onNext,
+  isFirstSection,
+  mode,
+}) => {
   const fileInputRef = useRef(null);
 
-  const [employmentType, setEmploymentType] = useState("");
+  const [employeeNo, setEmployeeNo] = useState("");
+  const [originalEmployeeNo, setOriginalEmployeeNo] = useState(
+    employee?.employee?.employee_no || "",
+  );
+  const [employmentType, setEmploymentType] = useState("TEACHING");
   const [originalEmploymentType, setOriginalEmploymentType] = useState("");
 
   const [selectedPhoto, setSelectedPhoto] = useState(null);
@@ -23,7 +36,6 @@ const EmployeeIdentitySection = ({ employee, setEmployee, onPrevious, onNext, is
 
   const [uploading, setUploading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-
 
   useEffect(() => {
     // This effect handles the cleanup of the blob URL created by URL.createObjectURL.
@@ -37,14 +49,25 @@ const EmployeeIdentitySection = ({ employee, setEmployee, onPrevious, onNext, is
     };
   }, [preview]);
 
-
   useEffect(() => {
     if (!employee) return;
 
-    const { employment_type, photo_url } = employee.employee;
+    const { employee_no, employment_type, photo_url } = employee.employee;
 
-    setEmploymentType(employment_type);
-    setOriginalEmploymentType(employment_type);
+    const nextEmploymentType =
+      employment_type || (mode === "create" ? "TEACHING" : "");
+    setEmploymentType(nextEmploymentType);
+    setOriginalEmploymentType(nextEmploymentType);
+
+    if (mode === "create") {
+      if (employee_no) {
+        setEmployeeNo(employee_no);
+        setOriginalEmployeeNo(employee_no);
+      }
+    } else {
+      setEmployeeNo(employee_no || "");
+      setOriginalEmployeeNo(employee_no || "");
+    }
 
     // When the employee prop is updated with the new URL from the parent,
     // we can clear our temporary state holder. This ensures that photoSrc
@@ -52,14 +75,11 @@ const EmployeeIdentitySection = ({ employee, setEmployee, onPrevious, onNext, is
     if (lastSuccessfulPhotoUrl && photo_url === lastSuccessfulPhotoUrl) {
       setLastSuccessfulPhotoUrl(null);
     }
-  }, [employee, lastSuccessfulPhotoUrl]);
-
-
+  }, [employee, lastSuccessfulPhotoUrl, mode]);
 
   const handleAvatarClick = () => {
     fileInputRef.current.click();
   };
-
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -73,17 +93,26 @@ const EmployeeIdentitySection = ({ employee, setEmployee, onPrevious, onNext, is
     e.target.value = null;
   };
 
-
   const handleCancelPhoto = () => {
     setSelectedPhoto(null);
     setPreview(null);
   };
 
-
+  const normalizedEmployeeNo = employeeNo.trim();
+  const hasEmployeeId = !!employee?.employee?.id;
+  const hasEmployeeNoChanged = normalizedEmployeeNo !== originalEmployeeNo;
   const hasEmploymentTypeChanged = employmentType !== originalEmploymentType;
   const hasPhotoChanged = !!selectedPhoto;
-  const hasChanges = hasEmploymentTypeChanged || hasPhotoChanged;
+  const canSaveInCreate = !!normalizedEmployeeNo && !!employmentType;
+  const hasIdentityChanged =
+    mode === "create" && !hasEmployeeId
+      ? hasEmployeeNoChanged || hasEmploymentTypeChanged
+      : hasEmploymentTypeChanged;
 
+  const hasChanges =
+    mode === "create"
+      ? canSaveInCreate && (hasIdentityChanged || hasPhotoChanged)
+      : hasEmploymentTypeChanged || hasPhotoChanged;
 
   const openConfirmModal = () => {
     if (!hasChanges) return;
@@ -91,16 +120,41 @@ const EmployeeIdentitySection = ({ employee, setEmployee, onPrevious, onNext, is
     setShowConfirmModal(true);
   };
 
-
   const handleSaveChanges = async () => {
     if (!employee || !hasChanges) return;
 
     try {
       setUploading(true);
-      const id = employee.employee.id;
+      let id = employee?.employee?.id;
+
+      if (mode === "create" && !id) {
+        const res = await createEmployeeIdentity({
+          employeeNumber: normalizedEmployeeNo,
+          employmentType,
+        });
+
+        const createdEmployee = res?.employee;
+
+        if (!createdEmployee?.id) {
+          throw new Error("Failed to create employee identity");
+        }
+
+        id = createdEmployee.id;
+        setEmployee((prev) => ({
+          ...prev,
+          employee: createdEmployee,
+        }));
+        setEmployeeNo(createdEmployee.employee_no || normalizedEmployeeNo);
+        setOriginalEmployeeNo(
+          createdEmployee.employee_no || normalizedEmployeeNo,
+        );
+        setOriginalEmploymentType(
+          createdEmployee.employment_type || employmentType,
+        );
+      }
 
       // Sequentially update employment type and then the photo
-      if (hasEmploymentTypeChanged) {
+      if (id && hasEmploymentTypeChanged) {
         console.log("Updating employment type to:", employmentType);
         const res = await updateEmployeeType(id, { employmentType });
         setEmployee((prev) => ({
@@ -124,15 +178,18 @@ const EmployeeIdentitySection = ({ employee, setEmployee, onPrevious, onNext, is
           ...prev,
           employee: {
             ...prev.employee,
-            photo_url: res.photoUrl
+            photo_url: res.photoUrl,
           },
         }));
         setSelectedPhoto(null);
         setPreview(null);
       }
 
-      toast.success("Employee identity updated");
-
+      toast.success(
+        mode === "create" && !hasEmployeeId
+          ? "Employee identity created"
+          : "Employee identity updated",
+      );
     } catch (err) {
       toast.error(
         err?.response?.data?.message || "Failed to update employee identity",
@@ -143,27 +200,20 @@ const EmployeeIdentitySection = ({ employee, setEmployee, onPrevious, onNext, is
     }
   };
 
-
-  const employeeNo = employee?.employee?.employee_no;
   const photoUrl = employee?.employee?.photo_url;
 
-
-  const photoSrc = preview || (lastSuccessfulPhotoUrl
+  const photoSrc =
+    preview ||
+    (lastSuccessfulPhotoUrl
       ? `${import.meta.env.VITE_BASE_URL}${lastSuccessfulPhotoUrl}`
-      : null) || 
-      (photoUrl ? `${import.meta.env.VITE_BASE_URL}${photoUrl}` : null);
+      : null) ||
+    (photoUrl ? `${import.meta.env.VITE_BASE_URL}${photoUrl}` : null);
 
-      
   return (
-
     <div className="flex flex-col h-full">
-
       <div className="flex-1 overflow-y-auto p-6 space-y-10 scrollbar">
-        
-        
         {/* EMPLOYEE IDENTITY */}
         <div className="space-y-4">
-
           <h3 className="text-sm font-semibold text-muted uppercase tracking-wide">
             Employee Identity
           </h3>
@@ -172,7 +222,8 @@ const EmployeeIdentitySection = ({ employee, setEmployee, onPrevious, onNext, is
             <InputForm
               label="Employee Number"
               value={employeeNo || ""}
-              disabled
+              onChange={(e) => setEmployeeNo(e.target.value)}
+              disabled={mode !== "create" || hasEmployeeId}
             />
 
             <SelectForm
@@ -185,21 +236,16 @@ const EmployeeIdentitySection = ({ employee, setEmployee, onPrevious, onNext, is
                 { value: "NON_TEACHING", label: "Non Teaching" },
               ]}
             />
-          
           </div>
-
         </div>
-
 
         {/* PROFILE PHOTO */}
         <div className="space-y-4">
-
           <h3 className="text-sm font-semibold text-muted uppercase tracking-wide">
             Profile Photo
           </h3>
 
           <div className="flex items-center gap-6">
-
             <div
               className="relative group cursor-pointer"
               onClick={handleAvatarClick}
@@ -232,7 +278,6 @@ const EmployeeIdentitySection = ({ employee, setEmployee, onPrevious, onNext, is
                 hidden
                 onChange={handleFileChange}
               />
-
             </div>
 
             {/* Cancel preview */}
@@ -248,19 +293,13 @@ const EmployeeIdentitySection = ({ employee, setEmployee, onPrevious, onNext, is
                 Cancel new photo
               </Button>
             )}
-
           </div>
-
         </div>
-
       </div>
-
 
       {/* ACTION BAR */}
       <div className="sticky bottom-0 bg-card border-t border-border px-6 py-4 flex justify-between items-center">
-
         <div className="flex gap-2">
-
           <Button
             type="button"
             size="medium"
@@ -279,20 +318,17 @@ const EmployeeIdentitySection = ({ employee, setEmployee, onPrevious, onNext, is
           >
             Next
           </Button>
-
         </div>
 
         <Button
           type="button"
           size="medium"
           onClick={openConfirmModal}
-          disabled={uploading || !hasChanges || !employmentType}
+          disabled={uploading || !hasChanges}
         >
           {uploading ? "Saving..." : "Save Changes"}
         </Button>
-
       </div>
-
 
       {/* CONFIRM MODAL */}
       {showConfirmModal && (
@@ -305,12 +341,8 @@ const EmployeeIdentitySection = ({ employee, setEmployee, onPrevious, onNext, is
           onConfirm={handleSaveChanges}
         />
       )}
-
     </div>
-
   );
-
-}
-
+};
 
 export default EmployeeIdentitySection;
