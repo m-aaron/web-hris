@@ -80,7 +80,7 @@ const EmployeeTabs = ({ employee, setEmployee, mode = "edit" }) => {
       </div>
 
       {/* Section */}
-      <div className="flex-1 overflow-hidden min-h-0 flex flex-col">
+      <div className="flex-1 min-h-0 flex flex-col">
 
         {ActiveComponent && (
 

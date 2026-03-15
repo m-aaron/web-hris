@@ -30,31 +30,33 @@ const EmployeeEdit = () => {
     if (loading) return <div>Loading...</div>
     if (!employee) return <div>Employee not found</div>
 
-return (
-  <div className="h-screen bg-background flex items-center justify-center p-6 overflow-hidden">
-    
-    <div className="w-full max-w-7xl">
+  return (
+    <div className="bg-background sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:p-6">
       
-      <Card className="h-[90vh] flex flex-col overflow-hidden shadow-xl">
-        
-        <EmployeeHeader 
-          employee={employee}
-          mode="edit"
-        />
+      <div className="w-full sm:max-w-7xl">
 
-        <div className="flex-1 overflow-hidden min-h-0">
-          <EmployeeTabs
-            employee={employee}
-            setEmployee={setEmployee}
-          />
-        </div>
+        <Card className="w-full flex flex-col shadow-xl h-screen sm:h-[90vh] rounded-none sm:rounded-xl">
 
-      </Card>
+          <div className="shrink-0">
+            <EmployeeHeader 
+              employee={employee}
+              mode="edit"
+            />
+          </div>
+
+          <div className="flex-1 min-h-0">
+            <EmployeeTabs
+              employee={employee}
+              setEmployee={setEmployee}
+            />
+          </div>
+
+        </Card>
+
+      </div>
 
     </div>
-
-  </div>
-)
+  )
 }
 
 export default EmployeeEdit

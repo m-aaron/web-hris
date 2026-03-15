@@ -61,7 +61,7 @@ export default function EmployeeHeader({ employee, mode = "edit" }) {
       </div>
 
       {/* Profile Section */}
-      <div className="flex items-center gap-4 px-4 sm:px-6 py-4">
+      <div className="flex flex-col items-center sm:flex-row sm:items-center gap-3 sm:gap-4 px-4 sm:px-6 py-4">
 
         {/* Avatar */}
         <div className="relative shrink-0">
@@ -83,9 +83,17 @@ export default function EmployeeHeader({ employee, mode = "edit" }) {
         {/* Info */}
         <div className="text-center sm:text-left">
 
-          <h2 className="text-base sm:text-xl text-heading font-semibold leading-tight truncate">
-            {fullName}
-          </h2>
+          <div className="flex flex-col items-center sm:flex-row sm:items-center sm:gap-2">
+
+            <h2 className="text-base sm:text-xl text-heading font-semibold leading-tight">
+              {fullName}
+            </h2>
+
+            <span className="text-xs text-muted">
+              Draft Profile
+            </span>
+
+          </div>
 
           <p className="text-xs sm:text-sm text-muted mt-2">
             Employee No: <span className="text-heading font-medium">{employee_no || "Not assigned"}</span>
@@ -100,7 +108,9 @@ export default function EmployeeHeader({ employee, mode = "edit" }) {
       </div>
 
       <div className="px-4 sm:px-6 pb-2 ">
+
         <ProgressBar progress={progress} />
+
       </div>
 
     </div>

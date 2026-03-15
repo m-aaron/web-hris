@@ -11,26 +11,28 @@ const EmployeeCreate = () => {
     const [employee, setEmployee] = useState(createEmployeeTemplate());
 
 return (
-    <div className="h-screen bg-background flex items-center justify-center p-6 overflow-hidden">
+    <div className="bg-background sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:p-6">
         
-        <div className="w-full max-w-7xl">
+        <div className="w-full sm:max-w-7xl">
         
-        <Card className="h-[90vh] flex flex-col overflow-hidden shadow-xl">
-            
-            <EmployeeHeader 
-            employee={employee}
-            mode="create"
-            />
+            <Card className="w-full flex flex-col shadow-xl h-screen sm:h-[90vh] rounded-none sm:rounded-xl">
+                
+                <div className="shrink-0">
+                    <EmployeeHeader 
+                    employee={employee}
+                    mode="create"
+                    />
+                </div>
 
-            <div className="flex-1 overflow-hidden min-h-0">
-            <EmployeeTabs
-                employee={employee}
-                setEmployee={setEmployee}
-                mode="create"
-            />
-            </div>
+                <div className="flex-1 min-h-0">
+                    <EmployeeTabs
+                        employee={employee}
+                        setEmployee={setEmployee}
+                        mode="create"
+                    />
+                </div>
 
-        </Card>
+            </Card>
 
         </div>
 
