@@ -27,7 +27,14 @@ const workingHoursSchema = z.any()
 
 export const employmentSchema = z
     .object({
-        date_hired: z.string().min(1, "Date hired is required"),
+        date_hired: z.string().min(1, "Date hired is required").refine((date) => {
+            const today = new Date()
+            const dateHired = new Date(date)
+
+            return dateHired < today
+            }, {
+                message: "Date hired cannot be in the future"
+            }),
     
         position_id: z.coerce.number().min(1, "Position is required"),
         designation_id: z.coerce.number().optional(),
