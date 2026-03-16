@@ -129,7 +129,7 @@ export const saveEmploymentData = asyncHandler(async (req, res) => {
         return res.status(500).json({ message: "Failed to save employment data.", success: false });
     }
 
-    await updateEmployeeStatusIfComplete(result.rows[0].employee_id, pool);
+    const updatedEmployee =  await updateEmployeeStatusIfComplete(result.rows[0].employee_id, pool);
 
-    res.status(200).json({ message: "Employment data saved successfully.", success: true, employmentData: result.rows[0] });
+    res.status(200).json({ message: "Employment data saved successfully.", success: true, employmentData: result.rows[0], employee: updatedEmployee });
 });

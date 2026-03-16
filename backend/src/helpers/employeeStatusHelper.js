@@ -35,15 +35,22 @@ export const updateEmployeeStatusIfComplete = async (employeeId, pool) => {
 
     const isComplete = await checkEmployeeCompletion(employeeId, pool);
 
-    if (isComplete) {
+    if (!isComplete) return null;
 
-        await pool.query(
-            `UPDATE employees
-            SET status = 'SUBMITTED'
-            WHERE id = $1`,
-            [employeeId]
-        );
+    const result = await pool.query(
+        `UPDATE employees
+        SET status = 'SUBMITTED'
+        WHERE id = $1
+        RETURNING
+            id,
+            employee_no,
+            employment_type,
+            status,
+            photo_url,
+            updated_at AS employee_updated_at`,
+        [employeeId]
+    );
 
-    }
+    return result.rows[0];
 
 };

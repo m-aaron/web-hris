@@ -98,7 +98,10 @@ const EmploymentSection = ({ employee, setEmployee, onPrevious, onNext, isFirstS
 
             setEmployee(prev => ({
                 ...prev,
-                employment: res.employmentData
+                employment: res.employmentData,
+                employee: res.employee
+                    ? { ...prev.employee, ...res.employee }
+                    : prev.employee
             }));
 
             toast.success("Employment information updated successfully");

@@ -72,7 +72,10 @@ const PersonalSection = ({ employee, setEmployee, mode = "edit", onPrevious, onN
 
       setEmployee(prev => ({
         ...prev,
-        personal: res.personalInfo
+        personal: res.personalInfo,
+        employee: res.employee
+          ? { ...prev.employee, ...res.employee }
+          : prev.employee
       }));
 
       toast.success("Personal information updated successfully");

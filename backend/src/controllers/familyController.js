@@ -1,8 +1,6 @@
 import pool from "../configs/dbConfig.js";
 import asyncHandler from "express-async-handler";
 
-import { updateEmployeeStatusIfComplete } from "../helpers/employeeStatusHelper.js";
-
 
 // @desc    Save family background information for an employee
 // @route   PUT /api/employees/:id/family
@@ -107,8 +105,6 @@ export const saveFamilyBackground = asyncHandler(async (req, res) => {
     if (result.rowCount === 0) {
         return res.status(500).json({ message: "Failed to save family background.", success: false });
     };
-
-    await updateEmployeeStatusIfComplete(result.rows[0].id, pool);
 
     res.status(201).json({ message: "Family background saved successfully.", success: true, familyBackground: result.rows[0] });
 });

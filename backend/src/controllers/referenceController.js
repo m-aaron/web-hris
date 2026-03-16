@@ -1,8 +1,6 @@
 import pool from "../configs/dbConfig.js";
 import asyncHandler from "express-async-handler";
 
-import { updateEmployeeStatusIfComplete } from "../helpers/employeeStatusHelper.js";
-
 
 // @desc    Save reference information for an employee
 // @route   POST /api/employees/:id/reference
@@ -67,8 +65,6 @@ export const saveReference = asyncHandler(async (req, res) => {
     if (result.rowCount === 0) {
         return res.status(500).json({ message: "Failed to save reference.", success: false });
     };
-
-    await updateEmployeeStatusIfComplete(result.rows[0].employee_id, pool);
 
     res.status(201).json({ message: "Reference saved successfully.", success: true, reference: result.rows[0] });
 
