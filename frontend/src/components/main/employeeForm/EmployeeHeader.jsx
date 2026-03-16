@@ -31,13 +31,14 @@ export default function EmployeeHeader({ employee, mode = "edit" }) {
   const employmentData = employee?.employment || {};
 
   const { employee_no, employment_type, status, photo_url } = employeeData;
-  const { last_name, first_name, middle_name } = personalData;
+  const { last_name, first_name, middle_name, name_extension } = personalData;
   const { employment_status } = employmentData;
 
-  const fullName =
-    last_name || first_name
-      ? `${last_name || ""}, ${first_name || ""} ${middle_name ? middle_name[0] + "." : ""}`
-      : "New Employee";
+  const fullName = last_name || first_name
+    ? `${last_name || ""}, ${first_name || ""} ${
+        middle_name ? middle_name[0] + "." : ""
+      }`.trim() + (name_extension ? ` ${name_extension}` : "")
+    : "New Employee";
 
   const initials =
     first_name || last_name
