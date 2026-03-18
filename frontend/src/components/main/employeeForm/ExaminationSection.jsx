@@ -17,9 +17,7 @@ import InputForm from "../../InputForm";
 import Button from "../../Button";
 import ConfirmModal from "../ui/ConfirmModal";
 
-
 const ExaminationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
-
     const [saveIndex, setSaveIndex] = useState(null);
     const [deleteIndex, setDeleteIndex] = useState(null);
     const [savingRow, setSavingRow] = useState(null);
@@ -32,14 +30,19 @@ const ExaminationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
         },
     });
 
-    const { register, control, watch, reset, trigger, formState: { errors, dirtyFields } } = methods;
-
+    const {
+        register,
+        control,
+        watch,
+        reset,
+        trigger,
+        formState: { errors, dirtyFields },
+    } = methods;
 
     const { fields, append, remove } = useFieldArray({
         control,
         name: "examinations",
     });
-
 
     useEffect(() => {
         if (!employee) return;
@@ -52,25 +55,25 @@ const ExaminationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
         });
     }, [employee, reset]);
 
+
     const examinations = watch("examinations") || [];
 
 
     const handleSaveExam = async (index) => {
-
         const isValid = await trigger(`examinations.${index}`);
 
         if (!isValid) {
             toast.error("Please fix validation errors");
             return;
-        } 
+        }
 
         const exam = examinations[index];
 
         const payload = {
-        title: exam.title || "",
-        dateTaken:
-            exam.date_taken && exam.date_taken !== "-" ? exam.date_taken : null,
-        rating: exam.rating || "",
+            title: exam.title || "",
+            dateTaken:
+                exam.date_taken && exam.date_taken !== "-" ? exam.date_taken : null,
+            rating: exam.rating || ""
         };
 
         try {
@@ -82,7 +85,7 @@ const ExaminationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
                 res = await updateExaminationTaken(
                 employee.employee.id,
                 exam.id,
-                payload
+                payload,
                 );
             } else {
                 res = await saveExaminationTaken(employee.employee.id, payload);
@@ -109,7 +112,6 @@ const ExaminationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
         } finally {
             setSavingRow(null);
         }
-
     };
 
 
@@ -137,10 +139,7 @@ const ExaminationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
         }
 
         try {
-            await deleteExaminationTaken(
-                employee.employee.id,
-                exam.id
-            );
+            await deleteExaminationTaken(employee.employee.id, exam.id);
 
             remove(deleteIndex);
 
@@ -170,164 +169,143 @@ const ExaminationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
 
     return (
         <FormProvider {...methods}>
+        <div className="flex flex-col h-full">
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h3 className="text-sm font-semibold text-muted uppercase tracking-wide">
+                        Examinations Taken
+                    </h3>
 
-            <div className="flex flex-col h-full">
+                    <Button type="button" size="small" onClick={handleAddExam}>
+                        + Add Examination
+                    </Button>
+                </div>
 
-                <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar">
+                {fields.length === 0 && (
+                    <p className="text-sm text-muted">
+                        No examinations added yet. Click + Add Examination to create one.
+                    </p>
+                )}
 
-                    <div className="flex flex-wrap items-center justify-between gap-3">
+                <AnimatePresence>
+                    {fields.map((field, index) => {
+                    const isDirty = !!dirtyFields?.examinations?.[index];
 
-                        <h3 className="text-sm font-semibold text-muted uppercase tracking-wide">
-                            Examinations Taken
-                        </h3>
+                    return (
+                        <motion.div
+                        key={field.id}
+                        layout
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.25 }}
+                        className={`border rounded-lg p-4 space-y-4 ${
+                            isDirty ? "border-yellow bg-yellow/5" : "border-border"
+                        }`}
+                        >
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                            <h4 className="text-sm text-heading font-medium flex items-center gap-2">
+                                Examination {index + 1}
+                                {isDirty && (
+                                    <span className="text-xs text-yellow">Unsaved</span>
+                                )}
+                            </h4>
 
-                        <Button type="button" size="small" onClick={handleAddExam}>
-                            + Add Examination
-                        </Button>
-                    </div>
-
-                    {fields.length === 0 && (
-                        <p className="text-sm text-muted">No examinations added.</p>
-                    )}
-
-                    <AnimatePresence>
-
-                        {fields.map((field, index) => {
-
-                            const isDirty = !!dirtyFields?.examinations?.[index];
-
-                            return (
-                                <motion.div
-                                key={field.id}
-                                layout
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.25 }}
-                                className={`border rounded-lg p-4 space-y-4 ${
-                                    isDirty ? "border-yellow bg-yellow/5" : "border-border"
-                                }`}
+                            <div className="flex w-full sm:w-auto flex-wrap gap-2">
+                                <Button
+                                    type="button"
+                                    size="small"
+                                    onClick={() => openSaveConfirm(index)}
+                                    disabled={savingRow === index}
                                 >
+                                    {savingRow === index ? "Saving..." : "Save"}
+                                </Button>
 
-                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                <Button
+                                    type="button"
+                                    size="small"
+                                    variant="outline"
+                                    onClick={() => setDeleteIndex(index)}
+                                >
+                                    Delete
+                                </Button>
+                            </div>
+                        </div>
 
-                                        <h4 className="text-sm text-heading font-medium flex items-center gap-2">
-                                            Examination {index + 1}
-                                            {isDirty && (
-                                                <span className="text-xs text-yellow">Unsaved</span>
-                                            )}
-                                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <InputForm
+                                label="Title of Examination"
+                                required
+                                message={errors.examinations?.[index]?.title?.message}
+                                {...register(`examinations.${index}.title`)}
+                            />
 
-                                        <div className="flex w-full sm:w-auto flex-wrap gap-2">
+                            <InputForm
+                                label="Date Taken"
+                                required
+                                type="date"
+                                message={errors.examinations?.[index]?.date_taken?.message}
+                                {...register(`examinations.${index}.date_taken`)}
+                            />
 
-                                            <Button
-                                                type="button"
-                                                size="small"
-                                                onClick={() => openSaveConfirm(index)}
-                                                disabled={savingRow === index}
-                                            >
-                                                {savingRow === index ? "Saving..." : "Save"}
-                                            </Button>
-
-                                            <Button
-                                                type="button"
-                                                size="small"
-                                                variant="outline"
-                                                onClick={() => setDeleteIndex(index)}
-                                            >
-                                                Delete
-                                            </Button>
-
-                                        </div>
-
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-                                        <InputForm
-                                            label="Title of Examination"
-                                            required
-                                            message={errors.examinations?.[index]?.title?.message}
-                                            {...register(`examinations.${index}.title`)}
-                                        />
-
-                                        <InputForm
-                                            label="Date Taken"
-                                            required
-                                            type="date"
-                                            message={errors.examinations?.[index]?.date_taken?.message}
-                                            {...register(`examinations.${index}.date_taken`)}
-                                        />
-
-                                        <InputForm
-                                            label="Rating"
-                                            message={errors.examinations?.[index]?.rating?.message}
-                                            {...register(`examinations.${index}.rating`)}
-                                        />
-
-                                    </div>
-
-                                </motion.div>
-                            );
-                        })}
-
-                    </AnimatePresence>
-
-                </div>
-
-                <div className="sticky bottom-0 bg-card border-t border-border px-4 sm:px-6 py-4 flex gap-2">
-
-                    <Button
-                        type="button"
-                        size="medium"
-                        variant="outline"
-                        className="flex-1 sm:flex-none"
-                        onClick={onPrevious}
-                    >
-                        Previous
-                    </Button>
-
-                    <Button
-                        type="button"
-                        size="medium"
-                        variant="outline"
-                        className="flex-1 sm:flex-none"
-                        onClick={onNext}
-                    >
-                        Next
-                    </Button>
-
-                </div>
-
+                            <InputForm
+                                label="Rating"
+                                message={errors.examinations?.[index]?.rating?.message}
+                                {...register(`examinations.${index}.rating`)}
+                            />
+                        </div>
+                        </motion.div>
+                    );
+                    })}
+                </AnimatePresence>
             </div>
 
-            {saveIndex !== null && (
-                <ConfirmModal
-                    title="Save Examination"
-                    description="Are you sure you want to save this examination?"
-                    action="Save"
-                    primaryButtonVariant="primary"
-                    onCancel={() => setSaveIndex(null)}
-                    onConfirm={confirmSaveExam}
-                />
-            )}
+            <div className="sticky bottom-0 bg-card border-t border-border px-4 sm:px-6 py-4 flex gap-2">
+            <Button
+                type="button"
+                size="medium"
+                variant="outline"
+                className="flex-1 sm:flex-none"
+                onClick={onPrevious}
+            >
+                Previous
+            </Button>
 
-            {deleteIndex !== null && (
-                <ConfirmModal
-                    title="Delete Examination"
-                    description="Are you sure you want to remove this examination?"
-                    action="Delete"
-                    primaryButtonVariant="solidDanger"
-                    onCancel={() => setDeleteIndex(null)}
-                    onConfirm={confirmDelete}
-                />
-            )}
+            <Button
+                type="button"
+                size="medium"
+                variant="outline"
+                className="flex-1 sm:flex-none"
+                onClick={onNext}
+            >
+                Next
+            </Button>
+            </div>
+        </div>
 
+        {saveIndex !== null && (
+            <ConfirmModal
+            title="Save Examination"
+            description="Are you sure you want to save this examination?"
+            action="Save"
+            primaryButtonVariant="primary"
+            onCancel={() => setSaveIndex(null)}
+            onConfirm={confirmSaveExam}
+            />
+        )}
+
+        {deleteIndex !== null && (
+            <ConfirmModal
+            title="Delete Examination"
+            description="Are you sure you want to remove this examination?"
+            action="Delete"
+            primaryButtonVariant="solidDanger"
+            onCancel={() => setDeleteIndex(null)}
+            onConfirm={confirmDelete}
+            />
+        )}
         </FormProvider>
-
     );
-
 };
-
 
 export default ExaminationSection;

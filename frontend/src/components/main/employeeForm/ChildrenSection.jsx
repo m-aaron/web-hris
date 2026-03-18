@@ -19,7 +19,9 @@ import SelectForm from "../../SelectForm";
 import Button from "../../Button";
 import ConfirmModal from "../ui/ConfirmModal";
 
+
 const ChildrenSection = ({ employee, setEmployee, onPrevious, onNext }) => {
+
   const [saveIndex, setSaveIndex] = useState(null);
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [savingRow, setSavingRow] = useState(null);
@@ -46,6 +48,7 @@ const ChildrenSection = ({ employee, setEmployee, onPrevious, onNext }) => {
     name: "children",
   });
 
+
   useEffect(() => {
     if (!employee) return;
 
@@ -57,7 +60,9 @@ const ChildrenSection = ({ employee, setEmployee, onPrevious, onNext }) => {
     });
   }, [employee, reset]);
 
+
   const children = watch("children") || [];
+
 
   // SAVE CHILD
   const handleSaveChild = async (index) => {
@@ -115,9 +120,11 @@ const ChildrenSection = ({ employee, setEmployee, onPrevious, onNext }) => {
     }
   };
 
+
   const openSaveConfirm = (index) => {
     setSaveIndex(index);
   };
+
 
   const confirmSaveChild = async () => {
     if (saveIndex === null) return;
@@ -126,6 +133,7 @@ const ChildrenSection = ({ employee, setEmployee, onPrevious, onNext }) => {
 
     setSaveIndex(null);
   };
+
 
   // DELETE CHILD
   const confirmDelete = async () => {
@@ -155,6 +163,7 @@ const ChildrenSection = ({ employee, setEmployee, onPrevious, onNext }) => {
     setDeleteIndex(null);
   };
 
+
   // ADD CHILD
   const handleAddChild = () => {
     append({
@@ -171,6 +180,7 @@ const ChildrenSection = ({ employee, setEmployee, onPrevious, onNext }) => {
     });
   };
 
+  
   return (
     <FormProvider {...methods}>
       <div className="flex flex-col h-full">
@@ -186,7 +196,9 @@ const ChildrenSection = ({ employee, setEmployee, onPrevious, onNext }) => {
           </div>
 
           {fields.length === 0 && (
-            <p className="text-sm text-muted">No children added.</p>
+            <p className="text-sm text-muted">
+              No children added yet. Click + Add Child to create one.
+            </p>
           )}
 
           <AnimatePresence>
@@ -242,8 +254,7 @@ const ChildrenSection = ({ employee, setEmployee, onPrevious, onNext }) => {
                       label="Last Name"
                       required
                       message={
-                        errors.children?.[index]?.children_name?.last_name
-                          ?.message
+                        errors.children?.[index]?.children_name?.last_name?.message
                       }
                       {...register(`children.${index}.children_name.last_name`)}
                     />
@@ -252,8 +263,7 @@ const ChildrenSection = ({ employee, setEmployee, onPrevious, onNext }) => {
                       label="First Name"
                       required
                       message={
-                        errors.children?.[index]?.children_name?.first_name
-                          ?.message
+                        errors.children?.[index]?.children_name?.first_name?.message
                       }
                       {...register(
                         `children.${index}.children_name.first_name`,

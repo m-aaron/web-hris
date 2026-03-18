@@ -24,9 +24,7 @@ import Button from "../../Button";
 import ConfirmModal from "../ui/ConfirmModal";
 import EducationCard from "./EducationCard";
 
-
 const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
-
   const [saveIndex, setSaveIndex] = useState(null);
   const [deleteIndex, setDeleteIndex] = useState(null);
   const [savingRow, setSavingRow] = useState(null);
@@ -39,7 +37,14 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
     },
   });
 
-  const { control, watch, reset, setValue, trigger, formState: { dirtyFields } } = methods;
+  const {
+    control,
+    watch,
+    reset,
+    setValue,
+    trigger,
+    formState: { dirtyFields },
+  } = methods;
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -48,7 +53,7 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
 
   const education = watch("education") || [];
 
-  
+
   // TRANSFORM BACKEND DATA
   useEffect(() => {
     if (!employee) return;
@@ -100,7 +105,7 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
     });
   }, [employee, reset]);
 
-  
+
   // SAVE NESTED ITEMS
   const saveNestedItems = async (
     educationId,
@@ -108,9 +113,8 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
     saveFn,
     updateFn,
     key,
-    path
+    path,
   ) => {
-
     if (!items || items.length === 0) return [];
 
     const results = [];
@@ -130,11 +134,7 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
         }
 
         const saved =
-          res[key] ||
-          res.major ||
-          res.minor ||
-          res.honor ||
-          res.scholarship;
+          res[key] || res.major || res.minor || res.honor || res.scholarship;
 
         if (saved) {
           results.push({
@@ -142,7 +142,6 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
             name: item.name,
           });
         }
-
       } catch (error) {
         console.error(`Error saving ${key}`, error);
       }
@@ -154,13 +153,12 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
 
 
   const handleSaveEducation = async (index) => {
-
     const isValid = await trigger(`education.${index}`);
 
     if (!isValid) {
       toast.error("Please fix validation errors");
       return;
-    } 
+    }
 
     const edu = education[index];
 
@@ -180,13 +178,10 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
         res = await updateQualificationData(
           employee.employee.id,
           edu.id,
-          payload
+          payload,
         );
       } else {
-        res = await saveQualificationData(
-          employee.employee.id,
-          payload
-        );
+        res = await saveQualificationData(employee.employee.id, payload);
       }
 
       const savedQualification = res.qualification;
@@ -198,7 +193,7 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
         saveMajorData,
         updateMajorData,
         "major",
-        `education.${index}.majors`
+        `education.${index}.majors`,
       );
 
       const minors = await saveNestedItems(
@@ -207,7 +202,7 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
         saveMinorData,
         updateMinorData,
         "minor",
-        `education.${index}.minors`
+        `education.${index}.minors`,
       );
 
       const honors = await saveNestedItems(
@@ -216,7 +211,7 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
         saveHonorData,
         updateHonorData,
         "honor",
-        `education.${index}.honors`
+        `education.${index}.honors`,
       );
 
       const scholarships = await saveNestedItems(
@@ -225,7 +220,7 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
         saveScholarshipData,
         updateScholarshipData,
         "scholarship",
-        `education.${index}.scholarships`
+        `education.${index}.scholarships`,
       );
 
       const updatedEducation = [...(employee.education || [])];
@@ -239,14 +234,11 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
       };
 
       if (edu.id) {
-        const i = updatedEducation.findIndex(
-          (e) => e.id === edu.id
-        );
+        const i = updatedEducation.findIndex((e) => e.id === edu.id);
 
         if (i !== -1) {
           updatedEducation[i] = newEdu;
         }
-
       } else {
         updatedEducation.push(newEdu);
       }
@@ -254,7 +246,7 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
       setEmployee((prev) => {
         const merge = (oldArr, newArr, field) => {
           const others = (oldArr || []).filter(
-            (i) => i.education_id !== educationId
+            (i) => i.education_id !== educationId,
           );
 
           const mapped = (newArr || []).map((i) => ({
@@ -272,18 +264,20 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
           education_majors: merge(prev.education_majors, majors, "major"),
           education_minors: merge(prev.education_minors, minors, "minor"),
           education_honors: merge(prev.education_honors, honors, "honor"),
-          education_scholarships: merge(prev.education_scholarships, scholarships, "scholarship"),
+          education_scholarships: merge(
+            prev.education_scholarships,
+            scholarships,
+            "scholarship",
+          ),
         };
       });
 
       toast.success("Education saved");
-
     } catch (err) {
       toast.error(err?.response?.data?.message || "Failed to save education");
     } finally {
       setSavingRow(null);
     }
-
   };
 
 
@@ -295,9 +289,7 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
     setSaveIndex(null);
   };
 
-
   const confirmDelete = async () => {
-
     const edu = education[deleteIndex];
 
     if (!edu?.id) {
@@ -307,34 +299,25 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
     }
 
     try {
-
-      await deleteQualificationData(
-        employee.employee.id,
-        edu.id
-      );
+      await deleteQualificationData(employee.employee.id, edu.id);
 
       remove(deleteIndex);
 
       setEmployee((prev) => ({
         ...prev,
-        education: prev.education.filter(
-          (e) => e.id !== edu.id
-        ),
+        education: prev.education.filter((e) => e.id !== edu.id),
       }));
 
       toast.success("Education deleted");
-
     } catch (err) {
       toast.error(err?.response?.data?.message || "Delete failed");
     }
 
     setDeleteIndex(null);
-
   };
 
 
   const handleAddEducation = () => {
-
     append({
       id: undefined,
       title: "",
@@ -346,38 +329,31 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
       honors: [],
       scholarships: [],
     });
-
   };
 
 
   return (
-
     <FormProvider {...methods}>
-
       <div className="flex flex-col h-full">
-
         <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar">
-
           <div className="flex flex-wrap items-center justify-between gap-3">
-
             <h3 className="text-sm font-semibold text-muted uppercase tracking-wide">
               Educational Qualifications
             </h3>
 
-            <Button
-              type="button"
-              size="small"
-              onClick={handleAddEducation}
-            >
+            <Button type="button" size="small" onClick={handleAddEducation}>
               + Add Education
             </Button>
-
           </div>
 
+          {fields.length === 0 && (
+            <p className="text-sm text-muted">
+              No education records added yet. Click + Add Education to create one.
+            </p>
+          )}
+
           <AnimatePresence>
-
             {fields.map((field, index) => (
-
               <motion.div
                 key={field.id}
                 layout
@@ -386,7 +362,6 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.25 }}
               >
-
                 <EducationCard
                   index={index}
                   savingRow={savingRow}
@@ -394,17 +369,12 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
                   openSaveConfirm={setSaveIndex}
                   setDeleteIndex={setDeleteIndex}
                 />
-
               </motion.div>
-
             ))}
-
           </AnimatePresence>
-
         </div>
 
         <div className="sticky bottom-0 bg-card border-t border-border px-4 sm:px-6 py-4 flex gap-2">
-
           <Button
             type="button"
             size="medium"
@@ -424,9 +394,7 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
           >
             Next
           </Button>
-
         </div>
-
       </div>
 
       {saveIndex !== null && (
@@ -450,11 +418,8 @@ const EducationSection = ({ employee, setEmployee, onPrevious, onNext }) => {
           onConfirm={confirmDelete}
         />
       )}
-
     </FormProvider>
-
   );
 };
-
 
 export default EducationSection;
