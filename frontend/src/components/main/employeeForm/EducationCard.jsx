@@ -38,14 +38,14 @@ const EducationCard = ({ index, savingRow, openSaveConfirm, setDeleteIndex, isDi
       className={`border rounded-lg p-4 space-y-6 ${isDirty ? "border-yellow bg-yellow/5" : "border-border"}`}
     >
 
-      <div className="flex justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
 
         <h4 className="text-sm text-heading font-medium flex items-center gap-2">
           Education {index + 1}{" "}
           {isDirty && <span className="text-xs text-yellow">Unsaved</span>}
         </h4>
 
-        <div className="flex gap-2">
+        <div className="flex w-full sm:w-auto flex-wrap gap-2">
 
           <Button
             type="button"
@@ -70,7 +70,7 @@ const EducationCard = ({ index, savingRow, openSaveConfirm, setDeleteIndex, isDi
 
 
       {/* Education fields */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
         <InputForm
           label="Degree / Title / Certificate"
@@ -164,7 +164,7 @@ const NestedSection = ({ title, fieldArray, register, path, isParentSaved }) => 
 
     <div>
 
-      <div className="flex justify-between mb-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
 
         <h5 className="text-xs font-semibold uppercase text-muted">{title}</h5>
 
@@ -175,7 +175,7 @@ const NestedSection = ({ title, fieldArray, register, path, isParentSaved }) => 
       </div>
 
       {fieldArray.fields.map((item, i) => (
-        <div key={item.id} className="flex items-end gap-2 mb-2">
+        <div key={item.id} className="flex flex-col sm:flex-row sm:items-end gap-2 mb-2">
           <InputForm
             label={title.slice(0, -1)}
             {...register(`${path}.${i}.name`)}
@@ -185,6 +185,7 @@ const NestedSection = ({ title, fieldArray, register, path, isParentSaved }) => 
             type="button"
             size="small"
             variant="outline"
+            className="self-start sm:self-auto"
             onClick={() => fieldArray.remove(i)}
           >
             Delete

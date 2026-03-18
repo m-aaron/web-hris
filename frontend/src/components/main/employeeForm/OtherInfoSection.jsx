@@ -183,14 +183,15 @@ const OtherInfoSection = ({ employee, setEmployee, onPrevious, onNext }) => {
 
                 </div>
 
-                <div className="sticky bottom-0 bg-card border-t border-border px-6 py-4 flex justify-between items-center">
+                <div className="sticky bottom-0 bg-card border-t border-border px-4 sm:px-6 py-4 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
 
-                    <div className="flex gap-2">
+                    <div className="flex w-full sm:w-auto flex-wrap gap-2">
 
                         <Button
                             type="button"
                             size="medium"
                             variant="outline"
+                            className="flex-1 sm:flex-none"
                             onClick={onPrevious}
                         >
                         Previous
@@ -200,6 +201,7 @@ const OtherInfoSection = ({ employee, setEmployee, onPrevious, onNext }) => {
                             type="button"
                             size="medium"
                             variant="outline"
+                            className="flex-1 sm:flex-none"
                             onClick={onNext}
                         >
                         Next
@@ -210,6 +212,7 @@ const OtherInfoSection = ({ employee, setEmployee, onPrevious, onNext }) => {
                     <Button
                         type="submit"
                         size="medium"
+                        className="w-full sm:w-auto"
                         disabled={isSubmitting || !isDirty}
                     >
                         {isSubmitting ? "Saving..." : "Save Changes"}

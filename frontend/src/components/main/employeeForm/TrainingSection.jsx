@@ -187,7 +187,7 @@ const TrainingSection = ({ employee, setEmployee, onPrevious, onNext }) => {
 
                 <div className="flex-1 overflow-y-auto p-6 space-y-8 scrollbar">
                     
-                    <div className="flex justify-between items-center">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
 
                         <h3 className="text-sm font-semibold text-muted uppercase tracking-wide">
                             Trainings Attended
@@ -219,7 +219,7 @@ const TrainingSection = ({ employee, setEmployee, onPrevious, onNext }) => {
                                 isDirty ? "border-yellow bg-yellow/5" : "border-border"
                             }`}
                             >
-                                <div className="flex justify-between items-center">
+                                <div className="flex flex-wrap items-center justify-between gap-3">
 
                                     <h4 className="text-sm font-medium flex items-center gap-2">
                                         Training {index + 1}
@@ -228,7 +228,7 @@ const TrainingSection = ({ employee, setEmployee, onPrevious, onNext }) => {
                                         )}
                                     </h4>
 
-                                    <div className="flex gap-2">
+                                    <div className="flex w-full sm:w-auto flex-wrap gap-2">
 
                                         <Button
                                             type="button"
@@ -302,12 +302,13 @@ const TrainingSection = ({ employee, setEmployee, onPrevious, onNext }) => {
 
                 </div>
 
-                <div className="sticky bottom-0 bg-card border-t border-border px-6 py-4 flex justify-between">
+                <div className="sticky bottom-0 bg-card border-t border-border px-4 sm:px-6 py-4 flex gap-2">
 
                     <Button
                         type="button"
                         size="medium"
                         variant="outline"
+                        className="flex-1 sm:flex-none"
                         onClick={onPrevious}
                     >
                         Previous
@@ -317,6 +318,7 @@ const TrainingSection = ({ employee, setEmployee, onPrevious, onNext }) => {
                         type="button"
                         size="medium"
                         variant="outline"
+                        className="flex-1 sm:flex-none"
                         onClick={onNext}
                     >
                         Next
