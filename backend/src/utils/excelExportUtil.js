@@ -7,6 +7,7 @@ export const buildFilterQuery = (filters = {}) => {
         search, 
         type, 
         status, 
+        record_status,
         basis, 
         sex, 
         regularization_filter, 
@@ -22,9 +23,23 @@ export const buildFilterQuery = (filters = {}) => {
         ? search.toUpperCase().replace("-", "_")
         : "";
 
-    whereClauses.push(`e.status = $${index}`);
-    values.push("SUBMITTED");
-    index++;
+    const allowedRecordStatuses = ["DRAFT", "SUBMITTED", "ARCHIVED"];
+    const normalizedRecordStatus = record_status
+        ? String(record_status).toUpperCase().trim()
+        : "";
+
+    if (normalizedRecordStatus === "ALL") {
+        // No status clause: include all record statuses.
+    } else if (normalizedRecordStatus && allowedRecordStatuses.includes(normalizedRecordStatus)) {
+        whereClauses.push(`e.status = $${index}`);
+        values.push(normalizedRecordStatus);
+        index++;
+    } else {
+        // Keep existing behavior when no record status filter is provided.
+        whereClauses.push(`e.status = $${index}`);
+        values.push("SUBMITTED");
+        index++;
+    }
 
     if (ids && ids.length) {
         whereClauses.push(`e.id = ANY($${index}::uuid[])`);
@@ -110,16 +125,16 @@ export const buildFilterQuery = (filters = {}) => {
         : "";
 
     const sortOptions = {
-        name_asc: "pd.last_name ASC, pd.first_name ASC",
-        name_desc: "pd.last_name DESC, pd.first_name DESC",
-        date_hired_asc: "ed.date_hired ASC",
-        date_hired_desc: "ed.date_hired DESC",
-        status_asc: "ed.employment_status ASC",
-        status_desc: "ed.employment_status DESC",
-        type_asc: "e.employment_type ASC",
-        type_desc: "e.employment_type DESC",
-        employee_no_asc: "e.employee_no ASC",
-        employee_no_desc: "e.employee_no DESC"
+        name_asc: "pd.last_name ASC NULLS LAST, pd.first_name ASC NULLS LAST",
+        name_desc: "pd.last_name DESC NULLS LAST, pd.first_name DESC NULLS LAST",
+        date_hired_asc: "ed.date_hired ASC NULLS LAST",
+        date_hired_desc: "ed.date_hired DESC NULLS LAST",
+        status_asc: "ed.employment_status ASC NULLS LAST",
+        status_desc: "ed.employment_status DESC NULLS LAST",
+        type_asc: "e.employment_type ASC NULLS LAST",
+        type_desc: "e.employment_type DESC NULLS LAST",
+        employee_no_asc: "e.employee_no ASC NULLS LAST",
+        employee_no_desc: "e.employee_no DESC NULLS LAST"
     };
 
     const orderBy = sortOptions[sort] || "ed.date_hired DESC";
@@ -227,6 +242,19 @@ export const autoAdjustColumnWidth = (worksheet) => {
 // Utility to generate Excel file from employee data
 export const generateExcelFile = async (rows, res) => {
 
+    const formatPHDate = (dateString) => {
+        if (!dateString) return "-";
+
+        const date = new Date(dateString);
+
+        return new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Asia/Manila",
+            month: "2-digit",
+            day: "2-digit",
+            year: "numeric",
+        }).format(date);
+    };
+
     const workbook = new ExcelJS.Workbook();
 
     // Create Employees Sheet
@@ -247,7 +275,13 @@ export const generateExcelFile = async (rows, res) => {
         { header: "Date Hired", key: "date_hired", width: 15 },
     ];
 
-    worksheet.addRows(rows);
+    const exportRows = rows.map((row) => ({
+        ...row,
+        birth_date: formatPHDate(row.birth_date),
+        date_hired: formatPHDate(row.date_hired),
+    }));
+
+    worksheet.addRows(exportRows);
 
     // Bold header
     worksheet.getRow(1).font = { bold: true };

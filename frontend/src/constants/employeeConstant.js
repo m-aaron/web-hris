@@ -15,3 +15,9 @@ export const BASIS = Object.freeze({
     PART_TIME: 'PART_TIME',
     FULL_TIME: 'FULL_TIME'
 });
+
+export const RECORD_STATUSES = Object.freeze({
+    DRAFT: 'DRAFT',
+    SUBMITTED: 'SUBMITTED',
+    ARCHIVED: 'ARCHIVED'
+});

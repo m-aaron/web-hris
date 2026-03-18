@@ -17,6 +17,7 @@ import BulkActionBar from "../../components/main/employee/BulkActionBar";
 import ViewEmployeeDrawer from "../../components/main/employee/ViewEmployeeDrawer";
 import ConfirmModal from "../../components/main/ui/ConfirmModal";
 import { Card } from "../../components/main/ui/Card";
+import { RECORD_STATUSES } from "../../constants/employeeConstant";
 
 export default function EmployeesPage() {
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ export default function EmployeesPage() {
     limit: 10,
     type: "",
     status: "",
+    record_status: RECORD_STATUSES.SUBMITTED,
     basis: "",
     sex: "",
     regularization_filter: "",
@@ -119,6 +121,7 @@ export default function EmployeesPage() {
             limit: 10,
             type: "",
             status: "",
+            record_status: RECORD_STATUSES.SUBMITTED,
             basis: "",
             sex: "",
             regularization_filter: "",

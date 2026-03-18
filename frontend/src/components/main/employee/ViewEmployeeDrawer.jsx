@@ -13,7 +13,9 @@ import {
   formatEnum,
   calculateAge,
 } from "../../../helpers/employeeHelper";
+import { formatPHDate } from "../../../helpers/dateHelper";
 import { archiveEmployee, changeEmployeeStatus } from "../../../services/employeeService";
+import { STATUSES } from "../../../constants/employeeConstant";
 
 const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpdated }) => {
 
@@ -61,21 +63,36 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
 
   if (!activeEmployee) return null;
 
+  const formatDateOrNA = (value) => {
+    if (!value) return "N/A";
+    return formatPHDate(value);
+  };
 
-  const lastName = activeEmployee.last_name;
-  const firstName = activeEmployee.first_name;
-  const middleName = activeEmployee.middle_name;
-  const nameExt = activeEmployee.name_extension;
 
-  const initials = (firstName[0] || "") + (lastName[0] || "");
+  const lastName = activeEmployee.last_name || "";
+  const firstName = activeEmployee.first_name || "";
+  const middleName = activeEmployee.middle_name || "";
+  const nameExt = activeEmployee.name_extension || "";
 
-  const fullName = `${lastName}, ${firstName} ${middleName ? middleName[0] + "." : ""} ${nameExt || ""}`.trim();
+  const initials = (firstName?.[0] || "") + (lastName?.[0] || "");
+
+  const fullName = `${lastName}, ${firstName} ${middleName ? `${middleName[0]}.` : ""} ${nameExt}`.replace(/\s+/g, " ").trim();
+  const displayName = fullName === "," || fullName === ", " ? "N/A" : fullName;
+  const canChangeEmploymentStatus = Boolean(activeEmployee.employment_status);
+  const effectiveEmploymentStatus = status || activeEmployee.employment_status;
+  const effectiveRecordStatus = activeEmployee.record_status || activeEmployee.status;
 
   const statusColors = {
     REGULAR: "bg-light-green text-green border border-green",
     PROBATIONARY: "bg-light-yellow text-yellow border border-yellow",
     CONTRACTUAL: "bg-grey text-muted border border-muted",
     ARCHIVED: "bg-light-red text-red border border-red",
+  };
+
+  const recordStatusColors = {
+    DRAFT: "bg-light-yellow text-yellow border border-yellow",
+    ARCHIVED: "bg-light-red text-red border border-red",
+    SUBMITTED: "bg-light-green text-green border border-green",
   };
 
 
@@ -185,7 +202,7 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
               <div className="flex-1">
 
                 <h3 className="text-lg text-heading font-semibold leading-tight">
-                  {fullName}
+                  {displayName}
                 </h3>
 
                 <p className="text-sm text-muted">
@@ -194,12 +211,23 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
 
                 <span
                   className={`inline-flex items-center text-xs px-2.5 py-0.5 rounded-full font-medium ${
-                    statusColors[activeEmployee.employment_status] ||
+                    statusColors[effectiveEmploymentStatus] ||
                     "bg-grey text-muted border border-muted"
                   }`}
                 >
-                  {formatEnum(activeEmployee.employment_status)}
+                  {formatEnum(effectiveEmploymentStatus)}
                 </span>
+
+                {effectiveRecordStatus && (
+                  <span
+                    className={`ml-2 inline-flex items-center text-xs px-2.5 py-0.5 rounded-full font-medium ${
+                      recordStatusColors[effectiveRecordStatus] ||
+                      "bg-grey text-muted border border-muted"
+                    }`}
+                  >
+                    {formatEnum(effectiveRecordStatus)}
+                  </span>
+                )}
 
               </div>
 
@@ -227,7 +255,7 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
 
                 <EmployeeDetailItem
                   label="Birth Date"
-                  value={new Date(activeEmployee.birth_date).toLocaleDateString()}
+                  value={formatDateOrNA(activeEmployee.birth_date)}
                 />
 
                 <EmployeeDetailItem
@@ -237,12 +265,12 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
 
                 <EmployeeDetailItem
                   label="Date Hired"
-                  value={new Date(activeEmployee.date_hired).toLocaleDateString()}
+                  value={formatDateOrNA(activeEmployee.date_hired)}
                 />
 
                 <EmployeeDetailItem
                   label="Regularization Date"
-                  value={new Date(activeEmployee.regularization_date).toLocaleDateString()}
+                  value={formatDateOrNA(activeEmployee.regularization_date)}
                 />
 
               </div>
@@ -263,16 +291,22 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
                 }
               }}
               options={[
-                { value: "REGULAR", label: "Regular" },
-                { value: "PROBATIONARY", label: "Probationary" },
-                { value: "CONTRACTUAL", label: "Contractual" },
-                { value: "RESIGNED", label: "Resigned" }
+                { value: STATUSES.REGULAR, label: "Regular" },
+                { value: STATUSES.PROBATIONARY, label: "Probationary" },
+                { value: STATUSES.CONTRACTUAL, label: "Contractual" },
+                { value: STATUSES.RESIGNED, label: "Resigned" }
               ]}
-              disabled={loading}
+              disabled={loading || !canChangeEmploymentStatus}
             />
 
+              {!canChangeEmploymentStatus && (
+                <p className="text-xs text-muted">
+                  Complete employment details first before changing employment status.
+                </p>
+              )}
+
               {/* Apply Button appears only if changed */}
-              {pendingStatus && (
+              {pendingStatus && canChangeEmploymentStatus && (
                 <Button
                   size="small"
                   onClick={() => setShowStatusModal(true)}

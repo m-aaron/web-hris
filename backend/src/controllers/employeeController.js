@@ -174,6 +174,7 @@ export const getEmployees = asyncHandler(async (req, res) => {
         limit = 10,
         type,
         status,
+        record_status,
         basis,
         sex,
         regularization_filter,
@@ -188,9 +189,23 @@ export const getEmployees = asyncHandler(async (req, res) => {
 
     const normalizedSearch = search.toUpperCase().replace("-", "_");
 
-    whereClauses.push(`e.status = $${index}`);
-    values.push("SUBMITTED");
-    index++;
+    const allowedRecordStatuses = ["DRAFT", "SUBMITTED", "ARCHIVED"];
+    const normalizedRecordStatus = record_status
+        ? String(record_status).toUpperCase().trim()
+        : "";
+
+    if (normalizedRecordStatus === "ALL") {
+        // No status clause: include all record statuses.
+    } else if (normalizedRecordStatus && allowedRecordStatuses.includes(normalizedRecordStatus)) {
+        whereClauses.push(`e.status = $${index}`);
+        values.push(normalizedRecordStatus);
+        index++;
+    } else {
+        // Keep existing behavior when no record status filter is provided.
+        whereClauses.push(`e.status = $${index}`);
+        values.push("SUBMITTED");
+        index++;
+    }
 
     // Global Search
     if (normalizedSearch) {
@@ -270,16 +285,16 @@ export const getEmployees = asyncHandler(async (req, res) => {
         : "";
 
     const sortOptions = {
-        name_asc: "pd.last_name ASC, pd.first_name ASC",
-        name_desc: "pd.last_name DESC, pd.first_name DESC",
-        date_hired_asc: "ed.date_hired ASC",
-        date_hired_desc: "ed.date_hired DESC",
-        status_asc: "ed.employment_status ASC",
-        status_desc: "ed.employment_status DESC",
-        type_asc: "e.employment_type ASC",
-        type_desc: "e.employment_type DESC",
-        employee_no_asc: "e.employee_no ASC",
-        employee_no_desc: "e.employee_no DESC"
+        name_asc: "pd.last_name ASC NULLS LAST, pd.first_name ASC NULLS LAST",
+        name_desc: "pd.last_name DESC NULLS LAST, pd.first_name DESC NULLS LAST",
+        date_hired_asc: "ed.date_hired ASC NULLS LAST",
+        date_hired_desc: "ed.date_hired DESC NULLS LAST",
+        status_asc: "ed.employment_status ASC NULLS LAST",
+        status_desc: "ed.employment_status DESC NULLS LAST",
+        type_asc: "e.employment_type ASC NULLS LAST",
+        type_desc: "e.employment_type DESC NULLS LAST",
+        employee_no_asc: "e.employee_no ASC NULLS LAST",
+        employee_no_desc: "e.employee_no DESC NULLS LAST"
     };
 
     const orderBy = sortOptions[sort] || "ed.date_hired DESC";
@@ -289,6 +304,7 @@ export const getEmployees = asyncHandler(async (req, res) => {
             e.id,
             e.employee_no,
             e.employment_type,
+            e.status AS record_status,
             e.photo_url,
             ed.employment_status,
             ed.employment_basis,
@@ -544,7 +560,8 @@ export const exportSelectedEmployeesExcel = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: "No employee IDs provided.", success: false });
     }
 
-    const { dataQuery, values } = buildFilterQuery({ ids });
+    // Explicit ID export should include selected rows regardless of record status.
+    const { dataQuery, values } = buildFilterQuery({ ids, record_status: "ALL" });
 
     const result = await pool.query(dataQuery, values);
 

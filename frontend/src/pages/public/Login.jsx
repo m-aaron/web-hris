@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
-import { ROLES } from "../../constants/roleConstant"
+import { ROLES } from "../../constants/employeeConstant"
 import { useAuth } from "../../hooks/useAuth"
 import AuthCard from "../../components/auth/AuthCard"
 import Button from "../../components/Button"

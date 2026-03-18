@@ -9,7 +9,7 @@ import {
   getAllDesignations,
 } from "../../../services/employeeService";
 import { employmentSchema } from "../../../schemas/employmentSchema";
-import { STATUSES, BASIS } from "../../../constants/roleConstant";
+import { STATUSES, BASIS } from "../../../constants/employeeConstant";
 import { formatPHDate } from "../../../helpers/dateHelper";
 
 import InputForm from "../../InputForm";

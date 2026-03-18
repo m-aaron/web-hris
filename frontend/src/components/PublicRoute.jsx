@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { ROLES } from "../constants/roleConstant";
+import { ROLES } from "../constants/employeeConstant";
 import Spinner from "./Spinner";
 
 const PublicRoute = () => {

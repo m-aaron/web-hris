@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Card } from "../ui/Card";
 import SelectField from "../ui/SelectField";
+import { STATUSES, BASIS, RECORD_STATUSES } from "../../../constants/employeeConstant";
 
 const SearchAndFilters = ({ query, setQuery }) => {
 
@@ -10,6 +11,7 @@ const SearchAndFilters = ({ query, setQuery }) => {
     const filterValues = [
       query.type,
       query.status,
+      query.record_status && query.record_status !== RECORD_STATUSES.SUBMITTED ? query.record_status : "",
       query.basis,
       query.sex,
       query.regularization_filter,
@@ -19,6 +21,7 @@ const SearchAndFilters = ({ query, setQuery }) => {
   }, [
     query.type,
     query.status,
+    query.record_status,
     query.basis,
     query.sex,
     query.regularization_filter,
@@ -70,7 +73,7 @@ const SearchAndFilters = ({ query, setQuery }) => {
           </div>
 
           <div
-            className={`col-span-10 md:col-span-7 ${showMobileFilters ? "grid" : "hidden"} md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3`}
+            className={`col-span-10 md:col-span-7 ${showMobileFilters ? "grid" : "hidden"} md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3`}
           >
             <SelectField
               label="Employee Type"
@@ -90,9 +93,9 @@ const SearchAndFilters = ({ query, setQuery }) => {
               onChange={(value) => handleChange("status", value)}
               options={[
                 { value: "", label: "All" },
-                { value: "REGULAR", label: "Regular" },
-                { value: "PROBATIONARY", label: "Probationary" },
-                { value: "CONTRACTUAL", label: "Contractual" }
+                { value: STATUSES.REGULAR, label: "Regular" },
+                { value: STATUSES.PROBATIONARY, label: "Probationary" },
+                { value: STATUSES.CONTRACTUAL, label: "Contractual" }
               ]}
               className="px-3 py-2 text-sm"
             />
@@ -103,8 +106,8 @@ const SearchAndFilters = ({ query, setQuery }) => {
               onChange={(value) => handleChange("basis", value)}
               options={[
                 { value: "", label: "All" },
-                { value: "FULL_TIME", label: "Full Time" },
-                { value: "PART_TIME", label: "Part Time" }
+                { value: BASIS.FULL_TIME, label: "Full Time" },
+                { value: BASIS.PART_TIME, label: "Part Time" }
               ]}
               className="px-3 py-2 text-sm"
             />
@@ -129,6 +132,19 @@ const SearchAndFilters = ({ query, setQuery }) => {
                 { value: "", label: "All" },
                 { value: "near_30_days", label: "Near 30 Days" },
                 { value: "overdue", label: "Overdue" }
+              ]}
+              className="px-3 py-2 text-sm"
+            />
+
+            <SelectField
+              label="Record Status "
+              value={query.record_status}
+              onChange={(value) => handleChange("record_status", value)}
+              options={[
+                { value: "ALL", label: "All" },
+                { value: RECORD_STATUSES.SUBMITTED, label: "Submitted" },
+                { value: RECORD_STATUSES.DRAFT, label: "Draft" },
+                { value: RECORD_STATUSES.ARCHIVED, label: "Archived" }
               ]}
               className="px-3 py-2 text-sm"
             />

@@ -3,7 +3,7 @@ import { Toaster } from "sonner"
 import PublicRoute from "./components/PublicRoute";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleGuard from "./components/RoleGuard";
-import { ROLES } from "./constants/roleConstant";
+import { ROLES } from "./constants/employeeConstant";
 import { useAuth } from "./hooks/useAuth";
 import AuthLayout from "./layouts/AuthLayout";
 import MainLayout from "./layouts/MainLayout";
