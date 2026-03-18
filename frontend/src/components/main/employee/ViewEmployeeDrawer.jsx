@@ -279,7 +279,7 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
             <Button
               size="small"
               variant="secondary"
-              onClick={() => toast.info("View feature not implemented yet")}
+              onClick={() => navigate(`/employees/${employee.id}/view`)}
               disabled={loading}
             >
               View

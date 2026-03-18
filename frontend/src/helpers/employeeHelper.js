@@ -45,3 +45,37 @@ export const createEmployeeTemplate = () => ({
     other_information: {},
     reference: []
 })
+
+export const formatFullName = (name) => {
+    if (!name) return null
+
+        const lastName = name.last_name?.trim()
+        const firstName = name.first_name?.trim()
+        const middleName = name.middle_name?.trim()
+        const extension = name.name_extension?.trim()
+
+        const left = lastName || ""
+        const rightParts = [firstName, middleName, extension].filter(
+            (part) => part !== null && part !== undefined && String(part).trim() !== ""
+        )
+        const right = rightParts.join(" ")
+
+        if (left && right) return `${left}, ${right}`
+        if (left) return left
+        return right || null
+    }
+
+export const formatAddress = (address) => {
+    if (!address) return null
+
+    const parts = [
+        address.house_no,
+        address.street,
+        address.barangay,
+        address.city,
+        address.province,
+        address.zip,
+    ].filter((part) => part !== null && part !== undefined && String(part).trim() !== "")
+
+    return parts.length > 0 ? parts.join(", ") : null
+}

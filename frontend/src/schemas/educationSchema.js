@@ -2,13 +2,15 @@ import { z } from "zod"
 
 const currentYear = new Date().getFullYear();
 
-const yearSchema = z.string().trim().optional().refine(val => {
+const yearSchema = z.preprocess((val) => {
+    if (val === null || val === undefined) return "";
+    return String(val).trim();
+}, z.string().refine(val => {
     if (!val) return true; // optional, allow empty string
-    // Check if it's a 4-digit number
     if (!/^\d{4}$/.test(val)) return false;
     const year = parseInt(val, 10);
     return year >= 1900 && year <= currentYear;
-}, { message: `Year must be between 1900 and ${currentYear}` });
+}, { message: `Year must be between 1900 and ${currentYear}` }));
 
 const educSchema = z
     .object({

@@ -14,6 +14,7 @@ import Dashboard from "./pages/private/Dashboard";
 import Employee from "./pages/private/Employee";
 import EmployeeEdit from "./pages/private/EmployeeEdit";
 import EmployeeCreate from "./pages/private/EmployeeCreate";
+import EmployeeView from "./pages/private/EmployeeView";
 
 
 const App = () => {
@@ -43,6 +44,7 @@ const App = () => {
             </Route>
             <Route path="/employees/:id/edit" element={<EmployeeEdit />} />
             <Route path="/employees/create" element={<EmployeeCreate />} />
+            <Route path="/employees/:id/view" element={<EmployeeView />} />
           </Route>
 
         </Route>

@@ -10,3 +10,12 @@ export const formatPHDate = (dateString) => {
         year: "numeric",
     }).format(date);
 };
+
+export const formatDateRange = (from, to) => {
+    if (!from && !to) return "—"
+
+    const formattedFrom = from ? formatPHDate(from) : ""
+    const formattedTo = to ? formatPHDate(to) : "Present"
+
+    return `${formattedFrom} - ${formattedTo}`
+}
