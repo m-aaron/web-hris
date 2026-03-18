@@ -14,14 +14,15 @@ import {
   calculateAge,
 } from "../../../helpers/employeeHelper";
 import { formatPHDate } from "../../../helpers/dateHelper";
-import { archiveEmployee, changeEmployeeStatus } from "../../../services/employeeService";
-import { STATUSES } from "../../../constants/employeeConstant";
+import { archiveEmployee, changeEmployeeStatus, restoreEmployee } from "../../../services/employeeService";
+import { STATUSES, RECORD_STATUSES } from "../../../constants/employeeConstant";
 
 const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpdated }) => {
 
   const [displayEmployee, setDisplayEmployee] = useState(employee);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [status, setStatus] = useState(employee?.employment_status);
+  const [recordStatus, setRecordStatus] = useState(employee?.record_status || employee?.status);
   const [pendingStatus, setPendingStatus] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -45,6 +46,7 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
     if (!activeEmployee) return;
 
     setStatus(activeEmployee.employment_status);
+    setRecordStatus(activeEmployee.record_status || activeEmployee.status);
     setPendingStatus(null);
   }, [activeEmployee]);
 
@@ -80,7 +82,8 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
   const displayName = fullName === "," || fullName === ", " ? "N/A" : fullName;
   const canChangeEmploymentStatus = Boolean(activeEmployee.employment_status);
   const effectiveEmploymentStatus = status || activeEmployee.employment_status;
-  const effectiveRecordStatus = activeEmployee.record_status || activeEmployee.status;
+  const effectiveRecordStatus = recordStatus || activeEmployee.record_status || activeEmployee.status;
+  const isArchivedRecord = effectiveRecordStatus === "ARCHIVED";
 
   const statusColors = {
     REGULAR: "bg-light-green text-green border border-green",
@@ -100,15 +103,38 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
     try {
       setLoading(true);
       const res = await archiveEmployee(activeEmployee.id);
+      setRecordStatus(RECORD_STATUSES.ARCHIVED);
       
       if (onEmployeeArchived) {
         onEmployeeArchived(activeEmployee.id);
       };
 
-      toast.success(res.message || "Employee archived successfully.");
+      toast.success("Employee archived successfully.");
     } catch (error) {
       console.error("Archive failed:", error);
-      toast.error("Failed to archive employee. Please try again.");
+      toast.error(error.response?.data?.message || "Failed to archive employee. Please try again.");
+    } finally {
+      setShowArchiveModal(false);
+      setLoading(false);
+    }
+  };
+
+  const handleRestore = async () => {
+    try {
+      setLoading(true);
+      const res = await restoreEmployee(activeEmployee.id);
+      const nextRecordStatus = res?.recordStatus || RECORD_STATUSES.DRAFT;
+
+      setRecordStatus(nextRecordStatus);
+
+      if (onEmployeeArchived) {
+        onEmployeeArchived(activeEmployee.id);
+      }
+
+      toast.success(`Employee restored as ${nextRecordStatus}.`);
+    } catch (error) {
+      console.error("Restore failed:", error);
+      toast.error(error.response?.data?.message || "Failed to restore employee. Please try again.");
     } finally {
       setShowArchiveModal(false);
       setLoading(false);
@@ -127,10 +153,10 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
         onStatusUpdated({ ...activeEmployee, employment_status: pendingStatus });
       };
 
-      toast.success(res.message || "Employee status updated successfully.");
+      toast.success("Employee status updated successfully.");
     } catch (error) {
       console.error("Status update failed:", error);
-      toast.error("Failed to update employee status. Please try again.");
+      toast.error(error.response?.data?.message || "Failed to update employee status. Please try again.");
     } finally {
       setPendingStatus(null);
       setShowStatusModal(false);
@@ -343,11 +369,11 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
 
             <Button
               size="small"
-              variant="danger"
+              variant={isArchivedRecord ? "secondary" : "danger"}
               onClick={() => setShowArchiveModal(true)}
               disabled={loading}
             >
-              Archive
+              {isArchivedRecord ? "Restore" : "Archive"}
             </Button>
 
           </div>
@@ -356,12 +382,16 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
 
         {showArchiveModal && (
           <ConfirmModal
-            title="Archive Employee?"
-            description="This action will archive the employee record. You can restore it later."
-            primaryButtonVariant="solidDanger"
-            action="Archive"
+            title={isArchivedRecord ? "Restore Employee?" : "Archive Employee?"}
+            description={
+              isArchivedRecord
+                ? "This action will restore the employee to SUBMITTED if complete, otherwise to DRAFT."
+                : "This action will archive the employee record. You can restore it later."
+            }
+            primaryButtonVariant={isArchivedRecord ? "primary" : "solidDanger"}
+            action={isArchivedRecord ? "Restore" : "Archive"}
             onCancel={() => setShowArchiveModal(false)}
-            onConfirm={handleArchive}
+            onConfirm={isArchivedRecord ? handleRestore : handleArchive}
           />
         )}
 

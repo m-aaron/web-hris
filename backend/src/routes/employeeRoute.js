@@ -10,6 +10,7 @@ import {
     getEmployees, 
     getEmployeeById,
     archiveEmployee,
+    restoreEmployee,
     bulkArchiveEmployees,
     changeEmployeeStatus,
     exportEmployeesExcel,
@@ -45,6 +46,7 @@ router.get("/:id", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), getEmplo
 router.put("/:id", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), updateEmployee);
 
 router.put("/:id/archive", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), archiveEmployee);
+router.put("/:id/restore", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), restoreEmployee);
 
 router.put("/:id/status", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), changeEmployeeStatus); 
 

@@ -12,6 +12,14 @@ export const archiveEmployee = async (id) => {
     return response.data;
 };
 
+// Restore Employee (ARCHIVED -> SUBMITTED or DRAFT)
+export const restoreEmployee = async (id, targetStatus) => {
+    const payload = targetStatus ? { targetStatus } : {};
+    const response = await API.put(`/employees/${id}/restore`, payload);
+
+    return response.data;
+};
+
 // Bulk Archive Employees
 export const bulkArchiveEmployees = async (ids) => {
     const response = await API.put("/employees/bulk-archive", {

@@ -6,7 +6,7 @@ import fs from "fs";
 import crypto from "crypto";
 
 import { buildFilterQuery, generateExcelFile } from "../utils/excelExportUtil.js";
-import { updateEmployeeStatusIfComplete } from "../helpers/employeeStatusHelper.js";
+import { checkEmployeeCompletion, updateEmployeeStatusIfComplete } from "../helpers/employeeStatusHelper.js";
 import { STATUS } from "../constants/employmentConstant.js";
 
 
@@ -439,6 +439,80 @@ export const archiveEmployee = asyncHandler(async (req, res) => {
 
     res.status(200).json({ message: "Employee archived successfully", success: true });
 
+});
+
+// @desc    Restore archived employee to SUBMITTED or DRAFT
+// @route   PUT /api/employees/:id/restore
+// @access  Private
+export const restoreEmployee = asyncHandler(async (req, res) => {
+
+    const { id } = req.params;
+    const { targetStatus } = req.body || {};
+
+    if (!id) {
+        return res.status(400).json({ message: "Employee ID is required.", success: false });
+    }
+
+    const requestedStatus = targetStatus
+        ? String(targetStatus).toUpperCase().trim()
+        : null;
+
+    const allowedStatuses = ["SUBMITTED", "DRAFT"];
+    if (requestedStatus && !allowedStatuses.includes(requestedStatus)) {
+        return res.status(400).json({
+            message: "Invalid restore status. Allowed values are SUBMITTED or DRAFT.",
+            success: false,
+        });
+    }
+
+    const employeeResult = await pool.query(
+        `SELECT id, status FROM employees WHERE id = $1`,
+        [id]
+    );
+
+    if (employeeResult.rows.length === 0) {
+        return res.status(404).json({ message: "No employee found to restore.", success: false });
+    }
+
+    const currentStatus = employeeResult.rows[0].status;
+    if (currentStatus !== "ARCHIVED") {
+        return res.status(400).json({
+            message: "Only archived employees can be restored.",
+            success: false,
+        });
+    }
+
+    const isComplete = await checkEmployeeCompletion(id, pool);
+
+    let finalStatus = requestedStatus;
+    if (!finalStatus) {
+        finalStatus = isComplete ? "SUBMITTED" : "DRAFT";
+    }
+
+    if (finalStatus === "SUBMITTED" && !isComplete) {
+        return res.status(400).json({
+            message: "Cannot restore to SUBMITTED. Required sections are incomplete.",
+            success: false,
+        });
+    }
+
+    const restoreResult = await pool.query(
+        `UPDATE employees
+        SET status = $1
+        WHERE id = $2
+        RETURNING id, status`,
+        [finalStatus, id]
+    );
+
+    if (restoreResult.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to restore employee.", success: false });
+    }
+
+    res.status(200).json({
+        message: `Employee restored as ${finalStatus}.`,
+        success: true,
+        recordStatus: restoreResult.rows[0].status,
+    });
 });
 
 // @desc    Bulk archive employees
