@@ -6,6 +6,7 @@ import ConfirmModal from "../ui/ConfirmModal";
 
 import ProgressBar from "../ui/ProgressBar";
 import { calculateEmployeeProgress } from "../../../helpers/progressHelper";
+import { formatEmployeeDisplayName } from "../../../helpers/employeeHelper";
 
 export default function EmployeeHeader({ employee, mode = "edit" }) {
   const navigate = useNavigate();
@@ -34,11 +35,10 @@ export default function EmployeeHeader({ employee, mode = "edit" }) {
   const { last_name, first_name, middle_name, name_extension } = personalData;
   const { employment_status } = employmentData;
 
-  const fullName = last_name || first_name
-    ? `${last_name || ""}, ${first_name || ""} ${
-        middle_name ? middle_name[0] + "." : ""
-      }`.trim() + (name_extension ? ` ${name_extension}` : "")
-    : "New Employee";
+  const fullName = formatEmployeeDisplayName(
+    { last_name, first_name, middle_name, name_extension },
+    "New Employee",
+  );
 
   const initials =
     first_name || last_name

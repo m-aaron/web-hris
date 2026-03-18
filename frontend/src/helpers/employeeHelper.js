@@ -79,3 +79,19 @@ export const formatAddress = (address) => {
 
     return parts.length > 0 ? parts.join(", ") : null
 }
+
+export const formatEmployeeDisplayName = (name = {}, fallback = "N/A") => {
+    const lastName = name.last_name?.trim() || ""
+    const firstName = name.first_name?.trim() || ""
+    const middleName = name.middle_name?.trim() || ""
+    const extension = name.name_extension?.trim() || ""
+
+    const middleInitial = middleName ? `${middleName[0]}.` : ""
+    const right = [firstName, middleInitial, extension].filter(Boolean).join(" ")
+
+    if (lastName && right) return `${lastName}, ${right}`
+    if (lastName) return lastName
+    if (right) return right
+
+    return fallback
+}

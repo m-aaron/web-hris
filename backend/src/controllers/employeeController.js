@@ -312,6 +312,7 @@ export const getEmployees = asyncHandler(async (req, res) => {
             pd.first_name,
             pd.last_name,
             pd.middle_name,
+            pd.name_extension,
             pd.sex,
             pd.birth_date,
 

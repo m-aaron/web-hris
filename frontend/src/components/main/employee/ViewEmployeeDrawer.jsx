@@ -12,6 +12,7 @@ import SelectField from "../ui/SelectField";
 import {
   formatEnum,
   calculateAge,
+  formatEmployeeDisplayName,
 } from "../../../helpers/employeeHelper";
 import { formatPHDate } from "../../../helpers/dateHelper";
 import { archiveEmployee, changeEmployeeStatus, restoreEmployee } from "../../../services/employeeService";
@@ -71,15 +72,12 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
   };
 
 
-  const lastName = activeEmployee.last_name || "";
   const firstName = activeEmployee.first_name || "";
-  const middleName = activeEmployee.middle_name || "";
-  const nameExt = activeEmployee.name_extension || "";
+  const lastName = activeEmployee.last_name || "";
 
   const initials = (firstName?.[0] || "") + (lastName?.[0] || "");
 
-  const fullName = `${lastName}, ${firstName} ${middleName ? `${middleName[0]}.` : ""} ${nameExt}`.replace(/\s+/g, " ").trim();
-  const displayName = fullName === "," || fullName === ", " ? "N/A" : fullName;
+  const displayName = formatEmployeeDisplayName(activeEmployee, "N/A");
   const canChangeEmploymentStatus = Boolean(activeEmployee.employment_status);
   const effectiveEmploymentStatus = status || activeEmployee.employment_status;
   const effectiveRecordStatus = recordStatus || activeEmployee.record_status || activeEmployee.status;

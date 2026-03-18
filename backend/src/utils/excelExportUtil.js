@@ -151,6 +151,7 @@ export const buildFilterQuery = (filters = {}) => {
             pd.first_name,
             pd.last_name,
             pd.middle_name,
+            pd.name_extension,
             pd.sex,
             pd.birth_date,
 
@@ -262,9 +263,10 @@ export const generateExcelFile = async (rows, res) => {
 
     worksheet.columns = [
         { header: "Employee No", key: "employee_no", width: 15 },
-        { header: "Last Name", key: "last_name" },
-        { header: "First Name", key: "first_name" },
-        { header: "Middle Name", key: "middle_name" },
+        { header: "Last Name", key: "last_name", width: 24 },
+        { header: "First Name", key: "first_name", width: 24 },
+        { header: "Middle Name", key: "middle_name", width: 20 },
+        { header: "Name Extension", key: "name_extension", width: 18 },
         { header: "Sex", key: "sex", width: 12 },
 
         // Fixed width for dates
