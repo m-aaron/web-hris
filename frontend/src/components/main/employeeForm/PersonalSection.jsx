@@ -1,28 +1,38 @@
-import { useEffect, useState } from "react"
-import { useForm, FormProvider } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { toast } from "sonner"
+import { useEffect, useState } from "react";
+import { useForm, FormProvider } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 
-import { savePersonalData } from "../../../services/employeeService"
-import { personalSchema } from "../../../schemas/personalSchema"
-import { calculateAge } from "../../../helpers/employeeHelper"
-import { formatPHDate } from "../../../helpers/dateHelper"
+import { savePersonalData } from "../../../services/employeeService";
+import { personalSchema } from "../../../schemas/personalSchema";
+import { calculateAge } from "../../../helpers/employeeHelper";
+import { formatPHDate } from "../../../helpers/dateHelper";
 
-import InputForm from "../../InputForm"
-import SelectForm from "../../SelectForm"
-import Button from "../../Button"
-import ConfirmModal from "../ui/ConfirmModal"
+import InputForm from "../../InputForm";
+import SelectForm from "../../SelectForm";
+import Button from "../../Button";
+import ConfirmModal from "../ui/ConfirmModal";
 
-
-const PersonalSection = ({ employee, setEmployee, mode = "edit", onPrevious, onNext, isFirstSection }) => {
-
+const PersonalSection = ({
+  employee,
+  setEmployee,
+  mode = "edit",
+  onPrevious,
+  onNext,
+  isFirstSection,
+}) => {
   const methods = useForm({
     resolver: zodResolver(personalSchema),
-    defaultValues: employee?.personal || {}
-  })
+    defaultValues: employee?.personal || {},
+  });
 
-  const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting, isDirty  } } = methods;
-
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { errors, isSubmitting, isDirty },
+  } = methods;
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingData, setPendingData] = useState(null);
@@ -30,20 +40,16 @@ const PersonalSection = ({ employee, setEmployee, mode = "edit", onPrevious, onN
   const birthDate = watch("birth_date");
   const age = calculateAge(birthDate);
 
-
   useEffect(() => {
-    if (!employee) return
+    if (!employee) return;
 
     reset({
       ...employee.personal,
-      birth_date: formatPHDate(employee.personal?.birth_date)
-    })
-
+      birth_date: formatPHDate(employee.personal?.birth_date),
+    });
   }, [employee, reset]);
 
-
   const handleSaveChanges = async (data) => {
-
     try {
       const payload = {
         lastName: data.last_name,
@@ -65,64 +71,61 @@ const PersonalSection = ({ employee, setEmployee, mode = "edit", onPrevious, onN
         zip: data.address?.zip,
 
         email: data.email,
-        contactNumber: data.contact_number
+        contactNumber: data.contact_number,
       };
 
-      const res = await savePersonalData(employee.employee.id, payload)
+      const res = await savePersonalData(employee.employee.id, payload);
 
-      setEmployee(prev => ({
+      setEmployee((prev) => ({
         ...prev,
         personal: res.personalInfo,
         employee: res.employee
           ? { ...prev.employee, ...res.employee }
-          : prev.employee
+          : prev.employee,
       }));
 
       toast.success("Personal information updated successfully");
-
+      return true;
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to update personal information");
+      toast.error(
+        err?.response?.data?.message || "Failed to update personal information",
+      );
+      return false;
     }
-
-  }
-
+  };
 
   const openConfirmModal = (data) => {
     setPendingData(data);
     setShowConfirmModal(true);
   };
 
-
-  const confirmSave = () => {
+  const confirmSave = async () => {
     if (!pendingData) return;
 
     setShowConfirmModal(false);
-    handleSaveChanges(pendingData);
+    const success = await handleSaveChanges(pendingData);
     setPendingData(null);
+
+    if (success) {
+      onNext?.();
+    }
   };
 
-
   return (
-
     <FormProvider {...methods}>
-
       <form
         onSubmit={handleSubmit(openConfirmModal)}
         className="flex flex-col h-full"
       >
-
         {/* SCROLLABLE CONTENT */}
         <div className="flex-1 overflow-y-auto p-6 space-y-10 scrollbar">
-
           {/* BASIC IDENTITY */}
           <div className="space-y-4">
-
             <h3 className="text-sm font-semibold text-muted uppercase tracking-wide">
               Basic Identity
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
               <InputForm
                 label="Last Name"
                 required
@@ -137,10 +140,7 @@ const PersonalSection = ({ employee, setEmployee, mode = "edit", onPrevious, onN
                 {...register("first_name")}
               />
 
-              <InputForm
-                label="Middle Name"
-                {...register("middle_name")}
-              />
+              <InputForm label="Middle Name" {...register("middle_name")} />
 
               <SelectForm
                 label="Name Extension"
@@ -152,24 +152,19 @@ const PersonalSection = ({ employee, setEmployee, mode = "edit", onPrevious, onN
                   { value: "II", label: "II" },
                   { value: "III", label: "III" },
                   { value: "IV", label: "IV" },
-                  { value: "V", label: "V" }
+                  { value: "V", label: "V" },
                 ]}
               />
-
             </div>
-
           </div>
-
 
           {/* PERSONAL DETAILS */}
           <div className="space-y-4">
-
             <h3 className="text-sm font-semibold text-muted uppercase tracking-wide">
               Personal Details
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
               <SelectForm
                 label="Sex"
                 required
@@ -177,7 +172,7 @@ const PersonalSection = ({ employee, setEmployee, mode = "edit", onPrevious, onN
                 {...register("sex")}
                 options={[
                   { value: "MALE", label: "Male" },
-                  { value: "FEMALE", label: "Female" }
+                  { value: "FEMALE", label: "Female" },
                 ]}
               />
 
@@ -189,11 +184,7 @@ const PersonalSection = ({ employee, setEmployee, mode = "edit", onPrevious, onN
                 {...register("birth_date")}
               />
 
-              <InputForm
-                label="Age"
-                value={age || ""}
-                disabled
-              />
+              <InputForm label="Age" value={age || ""} disabled />
 
               <SelectForm
                 label="Civil Status"
@@ -203,7 +194,7 @@ const PersonalSection = ({ employee, setEmployee, mode = "edit", onPrevious, onN
                 options={[
                   { value: "SINGLE", label: "Single" },
                   { value: "MARRIED", label: "Married" },
-                  { value: "WIDOWED", label: "Widowed" }
+                  { value: "WIDOWED", label: "Widowed" },
                 ]}
               />
 
@@ -234,33 +225,22 @@ const PersonalSection = ({ employee, setEmployee, mode = "edit", onPrevious, onN
                   { value: "AB+", label: "AB+" },
                   { value: "AB-", label: "AB-" },
                   { value: "O+", label: "O+" },
-                  { value: "O-", label: "O-" }
+                  { value: "O-", label: "O-" },
                 ]}
               />
-
             </div>
-
           </div>
-
 
           {/* ADDRESS */}
           <div className="space-y-4">
-
             <h3 className="text-sm font-semibold text-muted uppercase tracking-wide">
               Address
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <InputForm label="House No" {...register("address.house_no")} />
 
-              <InputForm
-                label="House No"
-                {...register("address.house_no")}
-              />
-
-              <InputForm
-                label="Street"
-                {...register("address.street")}
-              />
+              <InputForm label="Street" {...register("address.street")} />
 
               <InputForm
                 label="Barangay"
@@ -290,21 +270,16 @@ const PersonalSection = ({ employee, setEmployee, mode = "edit", onPrevious, onN
                 message={errors.address?.zip?.message}
                 {...register("address.zip")}
               />
-
             </div>
-
           </div>
-
 
           {/* CONTACT */}
           <div className="space-y-4">
-
             <h3 className="text-sm font-semibold text-muted uppercase tracking-wide">
               Contact Information
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
               <InputForm
                 label="Email"
                 placeholder="e.g. juan.delacruz@example.com"
@@ -321,20 +296,14 @@ const PersonalSection = ({ employee, setEmployee, mode = "edit", onPrevious, onN
                 message={errors.contact_number?.message}
                 {...register("contact_number")}
               />
-
             </div>
-
           </div>
-
         </div>
-
 
         {/* STICKY ACTION BAR */}
         <div className="sticky bottom-0 bg-card border-t border-border px-4 sm:px-6 py-4 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
-
           {/* LEFT BUTTON GROUP */}
           <div className="flex w-full sm:w-auto flex-wrap gap-2">
-
             <Button
               type="button"
               size="medium"
@@ -355,7 +324,6 @@ const PersonalSection = ({ employee, setEmployee, mode = "edit", onPrevious, onN
             >
               Next
             </Button>
-
           </div>
 
           {/* SAVE BUTTON */}
@@ -367,13 +335,10 @@ const PersonalSection = ({ employee, setEmployee, mode = "edit", onPrevious, onN
           >
             {isSubmitting ? "Saving..." : "Save Changes"}
           </Button>
-
         </div>
-
       </form>
 
       {showConfirmModal && (
-
         <ConfirmModal
           title="Save Changes"
           description="Are you sure you want to update this employee's personal information?"
@@ -382,13 +347,9 @@ const PersonalSection = ({ employee, setEmployee, mode = "edit", onPrevious, onN
           onCancel={() => setShowConfirmModal(false)}
           onConfirm={confirmSave}
         />
-
       )}
-
     </FormProvider>
-  )
-
-}
-
+  );
+};
 
 export default PersonalSection;

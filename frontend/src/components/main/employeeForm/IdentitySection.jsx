@@ -121,7 +121,7 @@ const EmployeeIdentitySection = ({
   };
 
   const handleSaveChanges = async () => {
-    if (!employee || !hasChanges) return;
+    if (!employee || !hasChanges) return false;
 
     try {
       setUploading(true);
@@ -190,15 +190,22 @@ const EmployeeIdentitySection = ({
           ? "Employee identity created"
           : "Employee identity updated",
       );
+      return true;
     } catch (err) {
       toast.error(
         err?.response?.data?.message || "Failed to update employee identity",
       );
+      return false;
     } finally {
       setUploading(false);
       setShowConfirmModal(false);
     }
   };
+
+  const initials =
+    employee?.personal?.first_name || employee?.personal?.last_name
+      ? `${employee?.personal?.first_name?.[0] || ""}${employee?.personal?.last_name?.[0] || ""}`
+      : "NE";
 
   const photoUrl = employee?.employee?.photo_url;
 
@@ -261,8 +268,7 @@ const EmployeeIdentitySection = ({
                   className="w-30 h-30 rounded-xl bg-green flex items-center justify-center text-xl font-semibold text-card
                     transition-transform duration-200 group-hover:scale-[1.05]"
                 >
-                  {employee?.personal?.first_name?.[0]}
-                  {employee?.personal?.last_name?.[0]}
+                  {initials}
                 </div>
               )}
 
@@ -341,7 +347,12 @@ const EmployeeIdentitySection = ({
           action="Save"
           primaryButtonVariant="primary"
           onCancel={() => setShowConfirmModal(false)}
-          onConfirm={handleSaveChanges}
+          onConfirm={async () => {
+            const success = await handleSaveChanges();
+            if (success) {
+              onNext?.(true);
+            }
+          }}
         />
       )}
     </div>

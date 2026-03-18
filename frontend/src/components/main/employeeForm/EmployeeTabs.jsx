@@ -19,8 +19,8 @@ const EmployeeTabs = ({ employee, setEmployee, mode = "edit" }) => {
   }
 
 
-  const goNext = () => {
-    if (mode === "create" && !employee?.employee?.id) {
+  const goNext = (force = false) => {
+    if (mode === "create" && !employee?.employee?.id && !force) {
       toast.warning("Please create the employee identity first.");
       return;
     }
