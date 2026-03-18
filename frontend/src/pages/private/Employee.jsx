@@ -1,6 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useEmployeesQuery } from "../../hooks/useEmployeesQuery";
-import { bulkArchiveEmployees, exportEmployeesExcel, exportSelectedEmployeesExcel } from "../../services/employeeService";
+import {
+  bulkArchiveEmployees,
+  exportEmployeesExcel,
+  exportSelectedEmployeesExcel,
+} from "../../services/employeeService";
 import { downloadFile } from "../../utils/downloadFile";
 import { toast } from "sonner";
 
@@ -14,6 +19,7 @@ import ConfirmModal from "../../components/main/ui/ConfirmModal";
 import { Card } from "../../components/main/ui/Card";
 
 export default function EmployeesPage() {
+  const navigate = useNavigate();
 
   const [query, setQuery] = useState({
     search: "",
@@ -24,7 +30,7 @@ export default function EmployeesPage() {
     basis: "",
     sex: "",
     regularization_filter: "",
-    sort: "date_hired_desc"
+    sort: "date_hired_desc",
   });
 
   const [drawerEmployee, setDrawerEmployee] = useState(null);
@@ -33,14 +39,13 @@ export default function EmployeesPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
 
-  const { 
-    data, 
-    pagination, 
+  const {
+    data,
+    pagination,
     loading: queryLoading,
     refetch,
-    removeFromList
+    removeFromList,
   } = useEmployeesQuery(query);
-
 
   const handleBulkArchive = async () => {
     try {
@@ -71,7 +76,7 @@ export default function EmployeesPage() {
     try {
       console.log("Export query:", query);
       const response = await exportEmployeesExcel(query);
-      
+
       downloadFile(response, "employees.xlsx");
     } catch (err) {
       console.error(err);
@@ -103,7 +108,6 @@ export default function EmployeesPage() {
 
   return (
     <>
-
       <EmployeesHeader
         showReset={true}
         onCreate={() => navigate("/employees/create")}
@@ -118,19 +122,15 @@ export default function EmployeesPage() {
             basis: "",
             sex: "",
             regularization_filter: "",
-            sort: "date_hired_desc"
+            sort: "date_hired_desc",
           })
         }
       />
 
-      <SearchAndFilters
-        query={query}
-        setQuery={setQuery}
-      />
+      <SearchAndFilters query={query} setQuery={setQuery} />
 
       <Card className="rounded-2xl shadow-sm transition-all duration-300 hover:shadow-lg">
         <div className="p-4 flex-1 flex flex-col bg-card rounded-2xl overflow-hidden">
-
           <EmployeesTable
             employees={data || []}
             loading={queryLoading}
@@ -148,7 +148,6 @@ export default function EmployeesPage() {
             totalPages={pagination.total_pages || 1}
             setQuery={setQuery}
           />
-
         </div>
       </Card>
 
@@ -179,7 +178,6 @@ export default function EmployeesPage() {
           onConfirm={handleBulkArchive}
         />
       )}
-
     </>
   );
 }

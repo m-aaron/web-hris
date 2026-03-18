@@ -22,9 +22,10 @@ const BulkActionBar = ({
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 80, opacity: 0 }}
         transition={{ duration: 0.25 }}
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 
+        className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 
+        w-[calc(100%-1rem)] sm:w-auto max-w-[95vw]
         bg-card shadow-2xl 
-        rounded-2xl px-6 py-3 flex items-center gap-4 text-sm z-50"
+        rounded-2xl px-4 sm:px-6 py-3 flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-sm z-50"
       >
         <span className="font-medium text-heading">
           {selectedCount} selected

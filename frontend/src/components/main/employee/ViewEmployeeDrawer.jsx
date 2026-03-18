@@ -17,34 +17,55 @@ import { archiveEmployee, changeEmployeeStatus } from "../../../services/employe
 
 const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpdated }) => {
 
+  const [displayEmployee, setDisplayEmployee] = useState(employee);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [status, setStatus] = useState(employee?.employment_status);
   const [pendingStatus, setPendingStatus] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
+
   const navigate = useNavigate();
 
-  useEffect(() => {
-    setStatus(employee?.employment_status);
-    setPendingStatus(null);
-  }, [employee]);
+
+  const isOpen = !!employee;
+  const activeEmployee = employee || displayEmployee;
+
 
   useEffect(() => {
+    if (employee) {
+      setDisplayEmployee(employee);
+    }
+  }, [employee]);
+
+
+  useEffect(() => {
+    if (!activeEmployee) return;
+
+    setStatus(activeEmployee.employment_status);
+    setPendingStatus(null);
+  }, [activeEmployee]);
+
+
+  useEffect(() => {
+    if (!isOpen) return;
+
     const handleEsc = (e) => {
       if (e.key === "Escape") onClose();
     };
 
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
-  }, [onClose]);
+  }, [isOpen, onClose]);
 
-  if (!employee) return null;
 
-  const lastName = employee.last_name;
-  const firstName = employee.first_name;
-  const middleName = employee.middle_name;
-  const nameExt = employee.name_extension;
+  if (!activeEmployee) return null;
+
+
+  const lastName = activeEmployee.last_name;
+  const firstName = activeEmployee.first_name;
+  const middleName = activeEmployee.middle_name;
+  const nameExt = activeEmployee.name_extension;
 
   const initials = (firstName[0] || "") + (lastName[0] || "");
 
@@ -61,10 +82,10 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
   const handleArchive = async () => {
     try {
       setLoading(true);
-      const res = await archiveEmployee(employee.id);
+      const res = await archiveEmployee(activeEmployee.id);
       
       if (onEmployeeArchived) {
-        onEmployeeArchived(employee.id);
+        onEmployeeArchived(activeEmployee.id);
       };
 
       toast.success(res.message || "Employee archived successfully.");
@@ -77,15 +98,16 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
     }
   };
 
+  
   const handleConfirmStatusChange = async () => {
     try {
       setLoading(true);
-      const res = await changeEmployeeStatus(employee.id, pendingStatus);
+      const res = await changeEmployeeStatus(activeEmployee.id, pendingStatus);
 
       setStatus(pendingStatus);
 
       if (onStatusUpdated) {
-        onStatusUpdated({ ...employee, employment_status: pendingStatus });
+        onStatusUpdated({ ...activeEmployee, employment_status: pendingStatus });
       };
 
       toast.success(res.message || "Employee status updated successfully.");
@@ -103,7 +125,7 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
   return (
 
     <AnimatePresence>
-      
+      {isOpen && (
       <>
         {/* Backdrop */}
         <motion.div
@@ -116,7 +138,7 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
 
         {/* Drawer */}
         <motion.div
-          className="fixed top-0 right-0 h-full w-full sm:w-[420px] bg-card shadow-2xl z-50 flex flex-col"
+          className="fixed top-0 right-0 h-full w-full sm:w-105 bg-card shadow-2xl z-50 flex flex-col"
           initial={{ x: "100%" }}
           animate={{ x: 0 }}
           exit={{ x: "100%" }}
@@ -144,10 +166,10 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
             {/* Profile Section */}
             <div className="flex items-center gap-4">
 
-              {employee.photo_url ? (
+              {activeEmployee.photo_url ? (
 
                 <img
-                  src={`${import.meta.env.VITE_BASE_URL}${employee.photo_url}`}
+                  src={`${import.meta.env.VITE_BASE_URL}${activeEmployee.photo_url}`}
                   alt="Profile"
                   className="w-20 h-20 rounded-xl object-cover"
                 />
@@ -167,16 +189,16 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
                 </h3>
 
                 <p className="text-sm text-muted">
-                  {employee.employee_no}
+                  {activeEmployee.employee_no}
                 </p>
 
                 <span
                   className={`inline-flex items-center text-xs px-2.5 py-0.5 rounded-full font-medium ${
-                    statusColors[employee.employment_status] ||
+                    statusColors[activeEmployee.employment_status] ||
                     "bg-grey text-muted border border-muted"
                   }`}
                 >
-                  {formatEnum(employee.employment_status)}
+                  {formatEnum(activeEmployee.employment_status)}
                 </span>
 
               </div>
@@ -190,37 +212,37 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
 
                 <EmployeeDetailItem
                   label="Employment Type"
-                  value={formatEnum(employee.employment_type)}
+                  value={formatEnum(activeEmployee.employment_type)}
                 />
 
                 <EmployeeDetailItem
                   label="Employment Basis"
-                  value={formatEnum(employee.employment_basis)}
+                  value={formatEnum(activeEmployee.employment_basis)}
                 />
 
                 <EmployeeDetailItem
                   label="Gender"
-                  value={formatEnum(employee.sex)}
+                  value={formatEnum(activeEmployee.sex)}
                 />
 
                 <EmployeeDetailItem
                   label="Birth Date"
-                  value={new Date(employee.birth_date).toLocaleDateString()}
+                  value={new Date(activeEmployee.birth_date).toLocaleDateString()}
                 />
 
                 <EmployeeDetailItem
                   label="Age"
-                  value={`${calculateAge(employee.birth_date)} yrs old`}
+                  value={`${calculateAge(activeEmployee.birth_date)} yrs old`}
                 />
 
                 <EmployeeDetailItem
                   label="Date Hired"
-                  value={new Date(employee.date_hired).toLocaleDateString()}
+                  value={new Date(activeEmployee.date_hired).toLocaleDateString()}
                 />
 
                 <EmployeeDetailItem
                   label="Regularization Date"
-                  value={new Date(employee.regularization_date).toLocaleDateString()}
+                  value={new Date(activeEmployee.regularization_date).toLocaleDateString()}
                 />
 
               </div>
@@ -270,7 +292,7 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
 
             <Button
               size="small"
-              onClick={() => navigate(`/employees/${employee.id}/edit`)}
+              onClick={() => navigate(`/employees/${activeEmployee.id}/edit`)}
               disabled={loading}
             >
               Edit
@@ -279,7 +301,7 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
             <Button
               size="small"
               variant="secondary"
-              onClick={() => navigate(`/employees/${employee.id}/view`)}
+              onClick={() => navigate(`/employees/${activeEmployee.id}/view`)}
               disabled={loading}
             >
               View
@@ -321,6 +343,7 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
         )}
 
       </>
+      )}
 
     </AnimatePresence>
 

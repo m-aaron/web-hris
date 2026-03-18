@@ -1,7 +1,28 @@
+import { useMemo, useState } from "react";
 import { Card } from "../ui/Card";
 import SelectField from "../ui/SelectField";
 
 const SearchAndFilters = ({ query, setQuery }) => {
+
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  const activeFilterCount = useMemo(() => {
+    const filterValues = [
+      query.type,
+      query.status,
+      query.basis,
+      query.sex,
+      query.regularization_filter,
+    ];
+
+    return filterValues.filter(Boolean).length;
+  }, [
+    query.type,
+    query.status,
+    query.basis,
+    query.sex,
+    query.regularization_filter,
+  ]);
 
   const handleChange = (field, value) => {
     setQuery(prev => ({
@@ -17,7 +38,7 @@ const SearchAndFilters = ({ query, setQuery }) => {
 
       <Card className="p-4 space-y-4 pb-5">
         
-        <div className="grid grid-cols-2 md:grid-cols-10 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-10 gap-4">
 
           <input
             type="text"
@@ -36,7 +57,21 @@ const SearchAndFilters = ({ query, setQuery }) => {
               transition duration-200"
           />
 
-          <div className="col-span-10 md:col-span-7 grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="col-span-10 md:hidden">
+            <button
+              type="button"
+              onClick={() => setShowMobileFilters((prev) => !prev)}
+              aria-expanded={showMobileFilters}
+              className="w-full rounded-xl border border-border px-4 py-2 text-sm font-medium text-muted hover:bg-muted/20 transition"
+            >
+              {showMobileFilters ? "Hide Filters" : "Show Filters"}
+              {activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+            </button>
+          </div>
+
+          <div
+            className={`col-span-10 md:col-span-7 ${showMobileFilters ? "grid" : "hidden"} md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3`}
+          >
             <SelectField
               label="Employee Type"
               value={query.type}

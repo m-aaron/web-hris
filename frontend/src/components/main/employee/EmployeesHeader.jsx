@@ -32,6 +32,7 @@ const EmployeesHeader = ({
             <Button
               variant="secondary"
               size="small"
+              className="w-full"
               onClick={onResetFilters}
             >
               Reset Filters
@@ -41,6 +42,7 @@ const EmployeesHeader = ({
           <Button
             variant="secondary"
             size="small"
+            className="w-full"
             onClick={onExport}
           >
             Export
@@ -49,6 +51,7 @@ const EmployeesHeader = ({
           <Button
             variant="primary"
             size="small"
+            className="w-full"
             onClick={onCreate}
           >
             + Create Employee

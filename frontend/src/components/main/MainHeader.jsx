@@ -3,10 +3,17 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { Bell, Menu, X } from "lucide-react";
 import UserAvatar from "./UserAvatar";
+import { toast } from "sonner";
 
 const MainHeader = () => {
     const [open, setOpen] = useState(false);
     const { user } = useAuth();
+
+    const handleReportsClick = (e) => {
+        e.preventDefault();
+        setOpen(false);
+        toast.info("Reports is not implemented yet.");
+    };
 
     // Close mobile menu when screen resizes to desktop
     useEffect(() => {
@@ -61,14 +68,14 @@ const MainHeader = () => {
                         <NavLink to="/employees" className={navLinkClass}>
                         Employees
                         </NavLink>
-                        <NavLink to="/reports" className={navLinkClass}>
-                        Reports
+                        <NavLink to="/reports" className={navLinkClass} onClick={handleReportsClick}>
+                            Reports
                         </NavLink>
                     </nav>
 
                     {/* Right */}
                     <div className="flex items-center gap-4">
-                        <Bell className="w-5 h-5 text-muted hover:text-primary cursor-pointer transition" />
+                        <Bell className="w-5 h-5 text-muted hover:text-primary cursor-pointer transition hidden"/>
                         <UserAvatar user={user} size="sm" />
                     </div>
                 </div>
@@ -99,7 +106,7 @@ const MainHeader = () => {
                     <NavLink
                         to="/reports"
                         className={mobileLinkClass}
-                        onClick={() => setOpen(false)}
+                        onClick={handleReportsClick}
                     >
                     Reports
                     </NavLink>

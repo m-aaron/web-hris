@@ -20,7 +20,7 @@ const PaginationFooter = ({ total = 0, page = 1, totalPages = 1, setQuery }) => 
     ">
 
       {/* Page Info */}
-      <div className="flex items-center gap-3 text-sm text-muted">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-sm text-muted">
 
         <span>
           Page <span className="font-semibold text-heading">{page}</span> of{" "}
@@ -34,14 +34,14 @@ const PaginationFooter = ({ total = 0, page = 1, totalPages = 1, setQuery }) => 
       </div>
 
       {/* Buttons */}
-      <div className="flex items-center gap-3">
+      <div className="flex w-full md:w-auto items-center gap-2 sm:gap-3">
 
         <Button
           size="small"
           variant="secondary"
           disabled={page === 1}
           onClick={() => changePage(page - 1)}
-          className="w-auto px-4"
+          className="flex-1 md:flex-none px-4"
         >
           Prev
         </Button>
@@ -51,7 +51,7 @@ const PaginationFooter = ({ total = 0, page = 1, totalPages = 1, setQuery }) => 
           variant="primary"
           disabled={page === totalPages}
           onClick={() => changePage(page + 1)}
-          className="w-auto px-4"
+          className="flex-1 md:flex-none px-4"
         >
           Next
         </Button>
