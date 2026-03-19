@@ -95,7 +95,8 @@ const SearchAndFilters = ({ query, setQuery }) => {
                 { value: "", label: "All" },
                 { value: STATUSES.REGULAR, label: "Regular" },
                 { value: STATUSES.PROBATIONARY, label: "Probationary" },
-                { value: STATUSES.CONTRACTUAL, label: "Contractual" }
+                { value: STATUSES.CONTRACTUAL, label: "Contractual" },
+                { value: STATUSES.RESIGNED, label: "Resigned" }
               ]}
               className="px-3 py-2 text-sm"
             />
