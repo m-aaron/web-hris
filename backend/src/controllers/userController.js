@@ -4,6 +4,37 @@ import { hashPassword } from '../utils/authUtil.js';
 import { ROLES } from '../constants/roleConstant.js';
 
 
+// @desc    Get all users
+// @route   GET /api/users
+// @access  Private (Admin only)
+export const getAllUsers = asyncHandler(async (req, res) => {
+    const usersResult = await pool.query(
+        `SELECT
+            u.id,
+            u.email,
+            e.employee_no,
+            pd.first_name,
+            pd.middle_name,
+            pd.last_name,
+            pd.name_extension,
+            CASE WHEN u.is_active THEN 'active' ELSE 'inactive' END AS status,
+            u.role,
+            u.created_at,
+            u.updated_at
+        FROM users u
+        LEFT JOIN employees e ON e.user_id = u.id
+        LEFT JOIN personal_data pd ON pd.employee_id = e.id
+        ORDER BY u.created_at DESC`
+    );
+
+    return res.status(200).json({
+        message: 'Users fetched successfully.',
+        success: true,
+        users: usersResult.rows,
+    });
+});
+
+
 // @desc    Create new user
 // @route   POST /api/users
 // @access  Private (Admin only)

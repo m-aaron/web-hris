@@ -1,5 +1,6 @@
 import express from "express";
 import { 
+    getAllUsers,
     createUser, 
     linkUserToEmployee, 
     unlinkUserFromEmployee, 
@@ -14,6 +15,7 @@ import { ROLES } from "../constants/roleConstant.js";
 const router = express.Router();
 
 // Create new user (Admin only)
+router.get("/", authenticate, authorizeRoles(ROLES.ADMIN), getAllUsers);
 router.post("/", authenticate, authorizeRoles(ROLES.ADMIN), createUser);
 router.patch("/:userId/link-employee", authenticate, authorizeRoles(ROLES.ADMIN), linkUserToEmployee);
 router.patch("/:userId/unlink-employee", authenticate, authorizeRoles(ROLES.ADMIN), unlinkUserFromEmployee);
