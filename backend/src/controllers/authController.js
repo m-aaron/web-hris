@@ -2,7 +2,6 @@ import asyncHandler from 'express-async-handler';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import pool from '../configs/dbConfig.js';
-import { STATUS } from '../constants/statusConstant.js';
 import { comparePassword, hashPassword, hashToken } from '../utils/authUtil.js';
 import { generateAccessToken, generateRefreshToken } from '../utils/tokenUtil.js';
 import { sendEmail } from '../services/emailService.js';
@@ -30,10 +29,9 @@ export const loginUser = asyncHandler(async (req, res) => {
 
     // Check if user exists
     const userResult = await pool.query(
-        `SELECT u.id, u.password, u.status, r.role_name
-        FROM users u
-        JOIN roles r ON u.role_id = r.id
-        WHERE u.email = $1`,
+        `SELECT id, email, password, role, is_active
+        FROM users
+        WHERE email = $1`,
         [email]
     );
 
@@ -51,7 +49,7 @@ export const loginUser = asyncHandler(async (req, res) => {
     }
 
     // Check if user is active
-    if (user.status !== STATUS.ACTIVE) {
+    if (!user.is_active) {
         return res.status(403).json({ message: 'Account is inactive. Please contact administrator.', success: false });
     }
 
@@ -61,7 +59,16 @@ export const loginUser = asyncHandler(async (req, res) => {
     // Generate refresh token(long-lived) and set cookie
     generateRefreshToken(res, user.id)
 
-    res.status(200).json({ message: 'Login successful', success: true, role: user.role_name });
+    res.status(200).json({
+        message: 'Login successful',
+        success: true,
+        role: user.role,
+        user: {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+        },
+    });
 });
 
 
@@ -83,6 +90,19 @@ export const refreshToken = asyncHandler(async (req, res) => {
     // If token is invalid
     if (!decoded) {
         return res.status(401).json({ message: 'Invalid refresh token', success: false });
+    }
+
+    const userResult = await pool.query(
+        `SELECT id, is_active FROM users WHERE id = $1`,
+        [decoded.id]
+    );
+
+    if (userResult.rows.length === 0) {
+        return res.status(401).json({ message: 'Invalid refresh token', success: false });
+    }
+
+    if (!userResult.rows[0].is_active) {
+        return res.status(403).json({ message: 'Account is inactive. Please contact administrator.', success: false });
     }
 
     // Generate new access token and set cookie

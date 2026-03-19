@@ -26,10 +26,9 @@ export const authenticate = asyncHandler(async (req, res, next) => {
 
     // Fetch user from database
     const userResult = await pool.query(
-        `SELECT u.id, u.email, r.role_name
-        FROM users u
-        JOIN roles r ON u.role_id = r.id
-        WHERE u.id = $1`,
+        `SELECT id, email, role, is_active
+        FROM users
+        WHERE id = $1`,
         [decoded.id]
     );
 
@@ -38,11 +37,15 @@ export const authenticate = asyncHandler(async (req, res, next) => {
         return res.status(401).json({ message: 'Not authorized, user does not exist', success: false });
     }
 
+    if (!userResult.rows[0].is_active) {
+        return res.status(403).json({ message: 'Account is inactive. Please contact administrator.', success: false });
+    }
+
     // Attach user to request object
     req.user = {
         id: userResult.rows[0].id,
         email: userResult.rows[0].email,
-        role: userResult.rows[0].role_name,
+        role: userResult.rows[0].role
     };
 
     next();
