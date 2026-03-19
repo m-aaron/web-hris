@@ -18,22 +18,22 @@ export const createUser = asyncHandler(async (req, res) => {
 
     // Validate input
     if (!normalizedEmail || !password || !normalizedRole) {
-        return res.status(400).json({ message: 'Email, password, and role are required ', success: false });
+        return res.status(400).json({ message: 'Email, password, and role are required.', success: false });
     }
 
     // Validate email format
     if (!emailRegex.test(normalizedEmail)) {
-        return res.status(400).json({ message: 'Invalid email format', success: false });
+        return res.status(400).json({ message: 'Invalid email format.', success: false });
     }
 
     // Validate role
     if (!Object.values(ROLES).includes(normalizedRole)) {
-        return res.status(400).json({ message: 'Invalid role', success: false });
+        return res.status(400).json({ message: 'Invalid role.', success: false });
     }
 
     // Validate password length (basic safety check)
     if (String(password).length < 8) {
-        return res.status(400).json({ message: 'Password must be at least 8 characters long', success: false });
+        return res.status(400).json({ message: 'Password must be at least 8 characters long.', success: false });
     }
 
     const client = await pool.connect();
@@ -63,13 +63,13 @@ export const createUser = asyncHandler(async (req, res) => {
 
             if (employeeResult.rowCount === 0) {
                 await client.query('ROLLBACK');
-                return res.status(404).json({ message: 'Employee not found', success: false });
+                return res.status(404).json({ message: 'Employee not found.', success: false });
             }
 
             if (employeeResult.rows[0].user_id) {
                 await client.query('ROLLBACK');
                 return res.status(409).json({
-                    message: 'Employee already has a linked user account',
+                    message: 'Employee already has a linked user account.',
                     success: false,
                 });
             }
@@ -85,7 +85,7 @@ export const createUser = asyncHandler(async (req, res) => {
 
         if (userExists.rows.length > 0) {
             await client.query('ROLLBACK');
-            return res.status(409).json({ message: 'User already exists', success: false });
+            return res.status(409).json({ message: 'User already exists.', success: false });
         }
 
         // Hash password
@@ -100,7 +100,7 @@ export const createUser = asyncHandler(async (req, res) => {
         );
 
         if (newUser.rowCount === 0) {
-            throw new Error('Failed to create user');
+            throw new Error('Failed to create user.');
         }
 
         // Link user to employee if employeeId is provided
@@ -114,7 +114,7 @@ export const createUser = asyncHandler(async (req, res) => {
             );
 
             if (linkResult.rowCount === 0) {
-                throw new Error('Failed to link user to employee');
+                throw new Error('Failed to link user to employee.');
             }
 
             linkedEmployee = {
@@ -126,7 +126,7 @@ export const createUser = asyncHandler(async (req, res) => {
         await client.query('COMMIT');
 
         return res.status(201).json({
-            message: 'User created successfully',
+            message: 'User created successfully.',
             success: true,
             user: {
                 ...newUser.rows[0],
@@ -145,7 +145,7 @@ export const createUser = asyncHandler(async (req, res) => {
     } catch (error) {
         await client.query('ROLLBACK');
         return res.status(500).json({
-            message: error.message || 'Failed to create user',
+            message: error.message || 'Failed to create user.',
             success: false,
         });
     } finally {
@@ -164,7 +164,7 @@ export const linkUserToEmployee = asyncHandler(async (req, res) => {
 
     if (!userId || !employeeId) {
         return res.status(400).json({
-            message: 'userId and employeeId are required',
+            message: 'User ID and employee ID are required.',
             success: false,
         });
     }
@@ -184,7 +184,7 @@ export const linkUserToEmployee = asyncHandler(async (req, res) => {
 
         if (userResult.rowCount === 0) {
             await client.query('ROLLBACK');
-            return res.status(404).json({ message: 'User not found', success: false });
+            return res.status(404).json({ message: 'User not found.', success: false });
         }
 
         const employeeResult = await client.query(
@@ -205,7 +205,7 @@ export const linkUserToEmployee = asyncHandler(async (req, res) => {
 
         if (employeeResult.rowCount === 0) {
             await client.query('ROLLBACK');
-            return res.status(404).json({ message: 'Employee not found', success: false });
+            return res.status(404).json({ message: 'Employee not found.', success: false });
         }
 
         const employee = employeeResult.rows[0];
@@ -214,7 +214,7 @@ export const linkUserToEmployee = asyncHandler(async (req, res) => {
         if (employee.user_id === userId) {
             await client.query('COMMIT');
             return res.status(200).json({
-                message: 'Employee is already linked to this user',
+                message: 'Employee is already linked to this user.',
                 success: true,
                 user: userResult.rows[0],
                 employee: {
@@ -232,7 +232,7 @@ export const linkUserToEmployee = asyncHandler(async (req, res) => {
         if (employee.user_id) {
             await client.query('ROLLBACK');
             return res.status(409).json({
-                message: 'Employee already has a linked user account',
+                message: 'Employee already has a linked user account.',
                 success: false,
             });
         }
@@ -248,7 +248,7 @@ export const linkUserToEmployee = asyncHandler(async (req, res) => {
         if (userLinkedElsewhere.rowCount > 0) {
             await client.query('ROLLBACK');
             return res.status(409).json({
-                message: 'User is already linked to another employee',
+                message: 'User is already linked to another employee.',
                 success: false,
                 employee: {
                     id: userLinkedElsewhere.rows[0].id,
@@ -266,13 +266,13 @@ export const linkUserToEmployee = asyncHandler(async (req, res) => {
         );
 
         if (linkResult.rowCount === 0) {
-            throw new Error('Failed to link user to employee');
+            throw new Error('Failed to link user to employee.');
         }
 
         await client.query('COMMIT');
 
         return res.status(200).json({
-            message: 'User linked to employee successfully',
+            message: 'User linked to employee successfully.',
             success: true,
             user: userResult.rows[0],
             employee: {
@@ -288,7 +288,7 @@ export const linkUserToEmployee = asyncHandler(async (req, res) => {
     } catch (error) {
         await client.query('ROLLBACK');
         return res.status(500).json({
-            message: error.message || 'Failed to link user to employee',
+            message: error.message || 'Failed to link user to employee.',
             success: false,
         });
     } finally {
@@ -306,7 +306,7 @@ export const unlinkUserFromEmployee = asyncHandler(async (req, res) => {
 
     if (!userId) {
         return res.status(400).json({
-            message: 'userId is required',
+            message: 'User ID is required.',
             success: false,
         });
     }
@@ -326,7 +326,7 @@ export const unlinkUserFromEmployee = asyncHandler(async (req, res) => {
 
         if (userResult.rowCount === 0) {
             await client.query('ROLLBACK');
-            return res.status(404).json({ message: 'User not found', success: false });
+            return res.status(404).json({ message: 'User not found.', success: false });
         }
 
         const linkedEmployeeResult = await client.query(
@@ -348,7 +348,7 @@ export const unlinkUserFromEmployee = asyncHandler(async (req, res) => {
         if (linkedEmployeeResult.rowCount === 0) {
             await client.query('COMMIT');
             return res.status(200).json({
-                message: 'User is not linked to any employee',
+                message: 'User is not linked to any employee.',
                 success: true,
                 user: userResult.rows[0],
                 employee: null,
@@ -366,13 +366,13 @@ export const unlinkUserFromEmployee = asyncHandler(async (req, res) => {
         );
 
         if (unlinkResult.rowCount === 0) {
-            throw new Error('Failed to unlink user from employee');
+            throw new Error('Failed to unlink user from employee.');
         }
 
         await client.query('COMMIT');
 
         return res.status(200).json({
-            message: 'User unlinked from employee successfully',
+            message: 'User unlinked from employee successfully.',
             success: true,
             user: userResult.rows[0],
             employee: {
@@ -388,11 +388,82 @@ export const unlinkUserFromEmployee = asyncHandler(async (req, res) => {
     } catch (error) {
         await client.query('ROLLBACK');
         return res.status(500).json({
-            message: error.message || 'Failed to unlink user from employee',
+            message: error.message || 'Failed to unlink user from employee.',
             success: false,
         });
     } finally {
         client.release();
     }
 
+});
+
+// @desc    Deactivate user account
+// @route   PATCH /api/users/:userId/deactivate
+// @access  Private (Admin only)
+export const deactivateUser = asyncHandler(async (req, res) => {
+    
+    const { userId } = req.params;
+
+    if (!userId) {
+        return res.status(400).json({
+            message: 'User ID is required.',
+            success: false,
+        });
+    }
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const userResult = await client.query(
+            `SELECT id, email, role, is_active
+            FROM users
+            WHERE id = $1
+            FOR UPDATE`,
+            [userId]
+        );
+
+        if (userResult.rowCount === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ message: 'User not found.', success: false });
+        }
+
+        if (!userResult.rows[0].is_active) {
+            await client.query('COMMIT');
+            return res.status(200).json({
+                message: 'User is already deactivated.',
+                success: true,
+                user: userResult.rows[0],
+            });
+        }
+
+        const deactivateResult = await client.query(
+            `UPDATE users
+            SET is_active = FALSE
+            WHERE id = $1
+            RETURNING id, email, role, is_active, updated_at`,
+            [userId]
+        );
+
+        if (deactivateResult.rowCount === 0) {
+            throw new Error('Failed to deactivate user.');
+        }
+
+        await client.query('COMMIT');
+
+        return res.status(200).json({
+            message: 'User deactivated successfully.',
+            success: true,
+            user: deactivateResult.rows[0],
+        });
+    } catch (error) {
+        await client.query('ROLLBACK');
+        return res.status(500).json({
+            message: error.message || 'Failed to deactivate user.',
+            success: false,
+        });
+    } finally {
+        client.release();
+    }
 });

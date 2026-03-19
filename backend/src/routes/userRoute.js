@@ -1,5 +1,5 @@
 import express from "express";
-import { createUser, linkUserToEmployee, unlinkUserFromEmployee } from "../controllers/userController.js";
+import { createUser, linkUserToEmployee, unlinkUserFromEmployee, deactivateUser } from "../controllers/userController.js";
 import { authenticate } from "../middlewares/authenticateMiddleware.js";
 import { authorizeRoles } from "../middlewares/authorizeMiddleware.js";
 import { ROLES } from "../constants/roleConstant.js";
@@ -11,5 +11,6 @@ const router = express.Router();
 router.post("/", authenticate, authorizeRoles(ROLES.ADMIN), createUser);
 router.patch("/:userId/link-employee", authenticate, authorizeRoles(ROLES.ADMIN), linkUserToEmployee);
 router.patch("/:userId/unlink-employee", authenticate, authorizeRoles(ROLES.ADMIN), unlinkUserFromEmployee);
+router.patch("/:userId/deactivate", authenticate, authorizeRoles(ROLES.ADMIN), deactivateUser);
 
 export default router;
