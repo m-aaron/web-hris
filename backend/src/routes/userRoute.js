@@ -1,6 +1,7 @@
 import express from "express";
 import { 
     getAllUsers,
+    getLinkableEmployees,
     createUser, 
     linkUserToEmployee, 
     unlinkUserFromEmployee, 
@@ -16,6 +17,7 @@ const router = express.Router();
 
 // Create new user (Admin only)
 router.get("/", authenticate, authorizeRoles(ROLES.ADMIN), getAllUsers);
+router.get("/linkable-employees", authenticate, authorizeRoles(ROLES.ADMIN), getLinkableEmployees);
 router.post("/", authenticate, authorizeRoles(ROLES.ADMIN), createUser);
 router.patch("/:userId/link-employee", authenticate, authorizeRoles(ROLES.ADMIN), linkUserToEmployee);
 router.patch("/:userId/unlink-employee", authenticate, authorizeRoles(ROLES.ADMIN), unlinkUserFromEmployee);

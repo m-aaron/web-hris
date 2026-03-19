@@ -35,6 +35,34 @@ export const getAllUsers = asyncHandler(async (req, res) => {
 });
 
 
+// @desc    Get all employees eligible for user linking
+// @route   GET /api/users/linkable-employees
+// @access  Private (Admin only)
+export const getLinkableEmployees = asyncHandler(async (req, res) => {
+    const employeesResult = await pool.query(
+        `SELECT
+            e.id,
+            e.employee_no,
+            e.status,
+            pd.first_name,
+            pd.middle_name,
+            pd.last_name,
+            pd.name_extension
+        FROM employees e
+        LEFT JOIN personal_data pd ON pd.employee_id = e.id
+        WHERE e.status = 'SUBMITTED'
+            AND e.user_id IS NULL
+        ORDER BY e.created_at DESC`
+    );
+
+    return res.status(200).json({
+        message: 'Linkable employees fetched successfully.',
+        success: true,
+        employees: employeesResult.rows,
+    });
+});
+
+
 // @desc    Create new user
 // @route   POST /api/users
 // @access  Private (Admin only)
