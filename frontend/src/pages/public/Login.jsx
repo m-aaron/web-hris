@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
-import { ROLES } from "../../constants/employeeConstant"
 import { useAuth } from "../../hooks/useAuth"
 import AuthCard from "../../components/auth/AuthCard"
 import Button from "../../components/Button"
@@ -20,15 +19,10 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const res = await login({email, password});
+            await login({email, password});
 
-            if (lastRoute) {
-                navigate("/dashboard");
-                toast.success(res.message || "Login successful!");
-            } else {
-                if (res.role === ROLES.ADMIN || res.role === ROLES.HR) navigate("/dashboard");
-                else navigate("/employee/dashboard");
-            }
+            navigate("/dashboard");
+            toast.success("Login successful!");
 
         } catch (error) {
             toast.error(error.response?.data?.message || "Invalid credentials. Please try again.");
