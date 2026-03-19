@@ -128,15 +128,10 @@ export const getEmployeesBecomingRegularSoon = async () => {
         WITH base AS (
             SELECT 
                 e.id,
-                CONCAT(
-                    pd.last_name, ', ',
-                    pd.first_name,
-                    CASE 
-                        WHEN pd.middle_name IS NOT NULL AND pd.middle_name <> ''
-                        THEN CONCAT(' ', LEFT(pd.middle_name, 1), '.')
-                        ELSE ''
-                    END
-                ) AS full_name,
+                pd.last_name,
+                pd.first_name,
+                pd.middle_name,
+                pd.name_extension,
                 e.employment_type,
                 ed.employment_status,
 
@@ -154,7 +149,10 @@ export const getEmployeesBecomingRegularSoon = async () => {
         )
 
         SELECT
-            full_name,
+            last_name,
+            first_name,
+            middle_name,
+            name_extension,
             employment_type,
             regularization_date::date AS regularization_date,
             (regularization_date::date - CURRENT_DATE) AS days_remaining
@@ -242,16 +240,10 @@ export const getRegularizationForecast = async () => {
 export const getBirthdaysToday = async () => {
     const result = await pool.query(`
         SELECT
-            CONCAT(
-                pd.last_name, ', ',
-                pd.first_name,
-                CASE 
-                    WHEN pd.middle_name IS NOT NULL 
-                        AND pd.middle_name <> ''
-                    THEN CONCAT(' ', LEFT(pd.middle_name, 1), '.')
-                    ELSE ''
-                END
-            ) AS full_name,
+            pd.last_name,
+            pd.first_name,
+            pd.middle_name,
+            pd.name_extension,
 
             CASE
                 WHEN e.employment_type = $1

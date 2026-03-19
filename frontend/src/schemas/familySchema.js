@@ -1,41 +1,48 @@
 import { z } from "zod"
+import { normalizeNullToEmptyString } from "./schemaNormalizers"
 
 export const familySchema = z
     .object({
         spouse: z.object({
-            last_name: z.string().optional(),
-            first_name: z.string().optional(),
-            middle_name: z.string().optional(),
-            name_extension: z.string().optional()
+            last_name: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
+            first_name: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
+            middle_name: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
+            name_extension: z.preprocess(normalizeNullToEmptyString, z.string().optional())
         }),
 
-        spouse_occupation: z.string().optional(),
+        spouse_occupation: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
 
         nearest_kin_name: z.object({
-            last_name: z.string().optional(),
-            first_name: z.string().optional(),
-            middle_name: z.string().optional(),
-            name_extension: z.string().optional()
+            last_name: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
+            first_name: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
+            middle_name: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
+            name_extension: z.preprocess(normalizeNullToEmptyString, z.string().optional())
         }),
 
         nearest_kin_address: z.object({
-            house_no: z.string().optional(),
-            street: z.string().optional(),
-            barangay: z.string().optional(),
-            city: z.string().optional(),
-            province: z.string().optional(),
-            zip: z
-                .string()
-                .regex(/^\d{4}$/, "Invalid ZIP code")
-                .optional()
-                .or(z.literal(""))
+            house_no: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
+            street: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
+            barangay: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
+            city: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
+            province: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
+            zip: z.preprocess(
+                normalizeNullToEmptyString,
+                z
+                    .string()
+                    .regex(/^\d{4}$/, "Invalid ZIP code")
+                    .optional()
+                    .or(z.literal(""))
+            )
         }),
 
-        nearest_kin_contact_number: z
-            .string()
-            .regex(/^09\d{9}$/, "Invalid Philippine mobile number")
-            .optional()
-            .or(z.literal(""))
+        nearest_kin_contact_number: z.preprocess(
+            normalizeNullToEmptyString,
+            z
+                .string()
+                .regex(/^09\d{9}$/, "Invalid Philippine mobile number")
+                .optional()
+                .or(z.literal(""))
+        )
         })
 
         .superRefine((data, ctx) => {

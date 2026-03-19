@@ -1,16 +1,18 @@
 import { z } from "zod"
+import { normalizeNullToEmptyString } from "./schemaNormalizers"
 
 const childSchema = z
   .object({
     children_name: z.object({
-      last_name: z.string().optional(),
-      first_name: z.string().optional(),
-      middle_name: z.string().optional(),
-      name_extension: z.string().optional()
+      last_name: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
+      first_name: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
+      middle_name: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
+      name_extension: z.preprocess(normalizeNullToEmptyString, z.string().optional())
     }),
 
-    birth_date: z
-      .string()
+    birth_date: z.preprocess(
+      normalizeNullToEmptyString,
+      z.string()
       .optional()
       .refine((date) => {
         if (!date) return true
@@ -19,10 +21,11 @@ const childSchema = z
         return birth < today
       }, {
         message: "Birth date cannot be in the future"
-      }),
+      })
+    ),
 
-    office_school: z.string().optional(),
-    occupation: z.string().optional()
+    office_school: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
+    occupation: z.preprocess(normalizeNullToEmptyString, z.string().optional())
   })
 
   .superRefine((data, ctx) => {

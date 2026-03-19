@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { normalizeNullToEmptyString } from "./schemaNormalizers";
 
 const hoursSchema = z.any()
     .refine(val => {
@@ -27,9 +28,9 @@ const hoursSchema = z.any()
 export const trainingSchema = z.object({
     trainings: z.array(
         z.object({
-            title: z.string().min(1, "Title is required"),
-            place: z.string().min(1, "Place is required"),
-            date_from: z.string().min(1, "Start date is required").refine((date) => {
+            title: z.preprocess(normalizeNullToEmptyString, z.string().min(1, "Title is required")),
+            place: z.preprocess(normalizeNullToEmptyString, z.string().min(1, "Place is required")),
+            date_from: z.preprocess(normalizeNullToEmptyString, z.string().min(1, "Start date is required")).refine((date) => {
                 const today = new Date()
                 const dateFrom = new Date(date)
 
@@ -38,9 +39,9 @@ export const trainingSchema = z.object({
                 message: "Start date cannot be in the future"
                 }),
 
-            date_to: z.string().optional(),
+            date_to: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
             hours: hoursSchema,
-            conducted_by: z.string().optional(),
+            conducted_by: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
         })
         
         .superRefine((data, ctx) => {

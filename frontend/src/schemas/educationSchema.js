@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { normalizeNullToEmptyString } from "./schemaNormalizers"
 
 const currentYear = new Date().getFullYear();
 
@@ -15,15 +16,15 @@ const yearSchema = z.preprocess((val) => {
 const educSchema = z
     .object({
         id: z.any().optional(),
-        title: z.string().trim().optional(),
-        school: z.string().trim().optional(),
+        title: z.preprocess(normalizeNullToEmptyString, z.string().trim().optional()),
+        school: z.preprocess(normalizeNullToEmptyString, z.string().trim().optional()),
         year_started: yearSchema,
         year_finished: yearSchema,
 
-        majors: z.array(z.object({ id: z.any().optional(), name: z.string().trim().optional() })).optional(),
-        minors: z.array(z.object({ id: z.any().optional(), name: z.string().trim().optional() })).optional(),
-        honors: z.array(z.object({ id: z.any().optional(), name: z.string().trim().optional() })).optional(),
-        scholarships: z.array(z.object({ id: z.any().optional(), name: z.string().trim().optional() })).optional(),
+        majors: z.array(z.object({ id: z.any().optional(), name: z.preprocess(normalizeNullToEmptyString, z.string().trim().optional()) })).optional(),
+        minors: z.array(z.object({ id: z.any().optional(), name: z.preprocess(normalizeNullToEmptyString, z.string().trim().optional()) })).optional(),
+        honors: z.array(z.object({ id: z.any().optional(), name: z.preprocess(normalizeNullToEmptyString, z.string().trim().optional()) })).optional(),
+        scholarships: z.array(z.object({ id: z.any().optional(), name: z.preprocess(normalizeNullToEmptyString, z.string().trim().optional()) })).optional(),
     })
     .superRefine((data, ctx) => {
 

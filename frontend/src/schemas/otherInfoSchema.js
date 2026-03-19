@@ -1,16 +1,17 @@
 import { z } from "zod";
+import { normalizeNullToEmptyString } from "./schemaNormalizers";
 
 const stringToBoolean = z.preprocess((val) => val === "true" || val === true, z.boolean())
 
 export const otherInfoSchema = z.object({
     has_criminal_case: stringToBoolean,
-    criminal_case_details: z.string().optional(),
+    criminal_case_details: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
 
     has_admin_offense: stringToBoolean,
-    admin_offense_details: z.string().optional(),
+    admin_offense_details: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
 
     was_separated_employment: stringToBoolean,
-    separation_details: z.string().optional()
+    separation_details: z.preprocess(normalizeNullToEmptyString, z.string().optional())
 }).superRefine((data, ctx) => {
 
     if (data.has_criminal_case && !data.criminal_case_details) {

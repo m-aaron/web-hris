@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { normalizeNullToEmptyString, nullishToUndefined } from "./schemaNormalizers"
 
 const workingHoursSchema = z.any()
     .refine(val => {
@@ -27,7 +28,10 @@ const workingHoursSchema = z.any()
 
 export const employmentSchema = z
     .object({
-        date_hired: z.string().min(1, "Date hired is required").refine((date) => {
+        date_hired: z.preprocess(
+            normalizeNullToEmptyString,
+            z.string().min(1, "Date hired is required")
+        ).refine((date) => {
             const today = new Date()
             const dateHired = new Date(date)
 
@@ -37,19 +41,25 @@ export const employmentSchema = z
             }),
     
         position_id: z.coerce.number().min(1, "Position is required"),
-        designation_id: z.coerce.number().optional(),
+        designation_id: z.preprocess(nullishToUndefined, z.coerce.number().optional()),
     
-        sss: z.string().optional(),
-        pagibig: z.string().optional(),
-        tax: z.string().optional(),
-        philhealth: z.string().optional(),
-        peraa: z.string().optional(),
+        sss: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
+        pagibig: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
+        tax: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
+        philhealth: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
+        peraa: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
     
-        employment_status: z.string().min(1, "Employment status is required"),
-        employment_basis: z.string().min(1, "Employment basis is required"),
+        employment_status: z.preprocess(
+            normalizeNullToEmptyString,
+            z.string().min(1, "Employment status is required")
+        ),
+        employment_basis: z.preprocess(
+            normalizeNullToEmptyString,
+            z.string().min(1, "Employment basis is required")
+        ),
     
         official_working_hours: workingHoursSchema,
-        other_employment: z.string().optional(),
+        other_employment: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
         other_employment_working_hours: workingHoursSchema,
     })
     .superRefine((data, ctx) => {

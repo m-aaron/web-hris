@@ -1,3 +1,5 @@
+import { formatEmployeeDisplayName } from "../../../helpers/employeeHelper";
+
 export const BirthdayModal = ({ isOpen, onClose, data }) => {
     if (!isOpen) return null;
 
@@ -34,13 +36,27 @@ export const BirthdayModal = ({ isOpen, onClose, data }) => {
                         </p>
                     ) : (
                         data.map((employee, index) => (
+                            (() => {
+                                const normalizedName = {
+                                    last_name: employee.last_name ?? employee.lastName,
+                                    first_name: employee.first_name ?? employee.firstName,
+                                    middle_name: employee.middle_name ?? employee.middleName,
+                                    name_extension: employee.name_extension ?? employee.nameExtension,
+                                };
+                                const displayName =
+                                    formatEmployeeDisplayName(normalizedName, "") ||
+                                    employee.full_name ||
+                                    employee.fullName ||
+                                    "N/A";
+
+                                return (
                             <div
                                 key={index}
                                 className="p-3 rounded-xl border border-border bg-card hover:bg-grey transition flex justify-between items-center"
                             >
                                 <div>
                                     <p className="font-medium text-heading">
-                                        {employee.full_name}
+                                        {displayName}
                                     </p>
                                     <p className="text-sm text-muted">
                                         {employee.employment_type}
@@ -51,6 +67,8 @@ export const BirthdayModal = ({ isOpen, onClose, data }) => {
                                     {employee.birth_date}
                                 </span>
                             </div>
+                                );
+                            })()
                         ))
                     )}
                 </div>

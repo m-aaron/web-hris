@@ -32,7 +32,9 @@ export const RegularizationSection = ( { summary, becomingRegular } ) => {
         />
       </div>
 
-      <RegularizationPreviewTable becomingRegular={ becomingRegular } />
+      {Array.isArray( becomingRegular ) && becomingRegular.length > 0 ? (
+        <RegularizationPreviewTable becomingRegular={ becomingRegular } />
+      ) : null}
       
     </section>
   );

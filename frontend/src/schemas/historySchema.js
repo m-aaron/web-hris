@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { normalizeNullToEmptyString } from "./schemaNormalizers";
 
 const salarySchema = z
     .any()
@@ -20,24 +21,27 @@ export const historySchema = z.object({
     history: z.array(
         z
         .object({
-            start_date: z
+            start_date: z.preprocess(
+            normalizeNullToEmptyString,
+            z
             .string()
             .min(1, "Start date is required")
             .refine((date) => {
                 const today = new Date();
                 const start = new Date(date);
                 return start <= today;
-            }, { message: "Start date cannot be in the future" }),
+            }, { message: "Start date cannot be in the future" })
+            ),
 
-            end_date: z.string().optional(),
+            end_date: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
 
-            position: z.string().min(1, "Position is required"),
+            position: z.preprocess(normalizeNullToEmptyString, z.string().min(1, "Position is required")),
 
-            employer: z.string().min(1, "Employer is required"),
+            employer: z.preprocess(normalizeNullToEmptyString, z.string().min(1, "Employer is required")),
 
             salary: salarySchema,
 
-            reason_for_leaving: z.string().optional(),
+            reason_for_leaving: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
         })
         .superRefine((data, ctx) => {
             if (

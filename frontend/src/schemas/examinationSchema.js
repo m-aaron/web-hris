@@ -1,10 +1,11 @@
 import { z } from "zod";
+import { normalizeNullToEmptyString } from "./schemaNormalizers";
 
 export const examinationSchema = z.object({
     examinations: z.array(
         z.object({
-        title: z.string().min(1, "Title is required"),
-        date_taken: z.string().min(1, "Date taken is required").refine((date) => {
+        title: z.preprocess(normalizeNullToEmptyString, z.string().min(1, "Title is required")),
+        date_taken: z.preprocess(normalizeNullToEmptyString, z.string().min(1, "Date taken is required")).refine((date) => {
             const today = new Date()
             const dateTaken = new Date(date)
 
@@ -13,7 +14,7 @@ export const examinationSchema = z.object({
                 message: "Date taken cannot be in the future"
             }),
 
-        rating: z.string().optional(),
+        rating: z.preprocess(normalizeNullToEmptyString, z.string().optional()),
         })
     )
-});;
+});
