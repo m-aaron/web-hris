@@ -467,3 +467,73 @@ export const deactivateUser = asyncHandler(async (req, res) => {
         client.release();
     }
 });
+
+// @desc    Activate user account
+// @route   PATCH /api/users/:userId/activate
+// @access  Private (Admin only)
+export const activateUser = asyncHandler(async (req, res) => {
+    const { userId } = req.params;
+
+    if (!userId) {
+        return res.status(400).json({
+            message: 'User ID is required.',
+            success: false,
+        });
+    }
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const userResult = await client.query(
+            `SELECT id, email, role, is_active
+            FROM users
+            WHERE id = $1
+            FOR UPDATE`,
+            [userId]
+        );
+
+        if (userResult.rowCount === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ message: 'User not found.', success: false });
+        }
+
+        if (userResult.rows[0].is_active) {
+            await client.query('COMMIT');
+            return res.status(200).json({
+                message: 'User is already active.',
+                success: true,
+                user: userResult.rows[0],
+            });
+        }
+
+        const activateResult = await client.query(
+            `UPDATE users
+            SET is_active = TRUE
+            WHERE id = $1
+            RETURNING id, email, role, is_active, updated_at`,
+            [userId]
+        );
+
+        if (activateResult.rowCount === 0) {
+            throw new Error('Failed to activate user.');
+        }
+
+        await client.query('COMMIT');
+
+        return res.status(200).json({
+            message: 'User activated successfully.',
+            success: true,
+            user: activateResult.rows[0],
+        });
+    } catch (error) {
+        await client.query('ROLLBACK');
+        return res.status(500).json({
+            message: error.message || 'Failed to activate user.',
+            success: false,
+        });
+    } finally {
+        client.release();
+    }
+});
