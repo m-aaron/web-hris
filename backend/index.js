@@ -16,6 +16,7 @@ import historyRoutes from './src/routes/historyRoute.js';
 import otherInfoRoutes from './src/routes/otherInfoRoute.js';
 import referenceRoutes from './src/routes/referenceRoute.js';
 import dashboardRoutes from './src/routes/dashboardRoute.js';
+import userRoutes from './src/routes/userRoute.js';
 
 
 dotenv.config();
@@ -38,6 +39,7 @@ app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/employees', personalRoutes);
 app.use('/api/employees', familyRoutes);
