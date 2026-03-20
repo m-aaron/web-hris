@@ -12,6 +12,7 @@ export const getAllUsers = asyncHandler(async (req, res) => {
         `SELECT
             u.id,
             u.email,
+            e.id AS employee_id,
             e.employee_no,
             pd.first_name,
             pd.middle_name,
@@ -211,6 +212,241 @@ export const createUser = asyncHandler(async (req, res) => {
         client.release();
     }
 
+});
+
+// @desc    Update user account details
+// @route   PATCH /api/users/:userId
+// @access  Private (Admin only)
+export const updateUser = asyncHandler(async (req, res) => {
+    const { userId } = req.params;
+    const { email, role } = req.body;
+
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    const normalizedRole = String(role || "").trim().toUpperCase();
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!userId) {
+        return res.status(400).json({
+            message: 'User ID is required.',
+            success: false,
+        });
+    }
+
+    if (!normalizedEmail || !normalizedRole) {
+        return res.status(400).json({
+            message: 'Email and role are required.',
+            success: false,
+        });
+    }
+
+    if (!emailRegex.test(normalizedEmail)) {
+        return res.status(400).json({ message: 'Invalid email format.', success: false });
+    }
+
+    if (!Object.values(ROLES).includes(normalizedRole)) {
+        return res.status(400).json({ message: 'Invalid role.', success: false });
+    }
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const userResult = await client.query(
+            `SELECT id, email, role, is_active
+            FROM users
+            WHERE id = $1
+            FOR UPDATE`,
+            [userId]
+        );
+
+        if (userResult.rowCount === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ message: 'User not found.', success: false });
+        }
+
+        const targetUser = userResult.rows[0];
+        const isSelfUpdate = String(req.user?.id) === String(userId);
+
+        // Prevent users from changing their own role to avoid accidental lockout/escalation issues.
+        if (isSelfUpdate && targetUser.role !== normalizedRole) {
+            await client.query('ROLLBACK');
+            return res.status(403).json({
+                message: 'You cannot change your own role.',
+                success: false,
+            });
+        }
+
+        // Prevent removing the last active admin role.
+        if (
+            targetUser.role === ROLES.ADMIN &&
+            normalizedRole !== ROLES.ADMIN &&
+            targetUser.is_active
+        ) {
+            const remainingAdminsResult = await client.query(
+                `SELECT COUNT(*)::int AS count
+                FROM users
+                WHERE role = $1
+                    AND is_active = TRUE
+                    AND id <> $2`,
+                [ROLES.ADMIN, userId]
+            );
+
+            if (remainingAdminsResult.rows[0].count === 0) {
+                await client.query('ROLLBACK');
+                return res.status(409).json({
+                    message: 'Cannot remove role from the last active admin.',
+                    success: false,
+                });
+            }
+        }
+
+        const emailConflict = await client.query(
+            `SELECT id
+            FROM users
+            WHERE LOWER(email) = LOWER($1)
+                AND id <> $2
+            LIMIT 1`,
+            [normalizedEmail, userId]
+        );
+
+        if (emailConflict.rowCount > 0) {
+            await client.query('ROLLBACK');
+            return res.status(409).json({
+                message: 'Email is already in use by another user.',
+                success: false,
+            });
+        }
+
+        const updateResult = await client.query(
+            `UPDATE users
+            SET email = $1,
+                role = $2
+            WHERE id = $3
+            RETURNING id, email, role, is_active, updated_at`,
+            [normalizedEmail, normalizedRole, userId]
+        );
+
+        if (updateResult.rowCount === 0) {
+            throw new Error('Failed to update user.');
+        }
+
+        await client.query('COMMIT');
+
+        return res.status(200).json({
+            message: 'User updated successfully.',
+            success: true,
+            user: updateResult.rows[0],
+        });
+    } catch (error) {
+        await client.query('ROLLBACK');
+        return res.status(500).json({
+            message: error.message || 'Failed to update user.',
+            success: false,
+        });
+    } finally {
+        client.release();
+    }
+});
+
+// @desc    Delete user account
+// @route   DELETE /api/users/:userId
+// @access  Private (Admin only)
+export const deleteUser = asyncHandler(async (req, res) => {
+    const { userId } = req.params;
+
+    if (!userId) {
+        return res.status(400).json({
+            message: 'User ID is required.',
+            success: false,
+        });
+    }
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const userResult = await client.query(
+            `SELECT id, email, role, is_active
+            FROM users
+            WHERE id = $1
+            FOR UPDATE`,
+            [userId]
+        );
+
+        if (userResult.rowCount === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ message: 'User not found.', success: false });
+        }
+
+        const targetUser = userResult.rows[0];
+        const isSelfDelete = String(req.user?.id) === String(userId);
+
+        if (isSelfDelete) {
+            await client.query('ROLLBACK');
+            return res.status(403).json({
+                message: 'You cannot delete your own account.',
+                success: false,
+            });
+        }
+
+        // Prevent deleting the last active admin account.
+        if (targetUser.role === ROLES.ADMIN && targetUser.is_active) {
+            const remainingAdminsResult = await client.query(
+                `SELECT COUNT(*)::int AS count
+                FROM users
+                WHERE role = $1
+                    AND is_active = TRUE
+                    AND id <> $2`,
+                [ROLES.ADMIN, userId]
+            );
+
+            if (remainingAdminsResult.rows[0].count === 0) {
+                await client.query('ROLLBACK');
+                return res.status(409).json({
+                    message: 'Cannot delete the last active admin.',
+                    success: false,
+                });
+            }
+        }
+
+        // Ensure references are cleaned before deleting user.
+        await client.query(
+            `UPDATE employees
+            SET user_id = NULL
+            WHERE user_id = $1`,
+            [userId]
+        );
+
+        const deleteResult = await client.query(
+            `DELETE FROM users
+            WHERE id = $1
+            RETURNING id, email, role`,
+            [userId]
+        );
+
+        if (deleteResult.rowCount === 0) {
+            throw new Error('Failed to delete user.');
+        }
+
+        await client.query('COMMIT');
+
+        return res.status(200).json({
+            message: 'User deleted successfully.',
+            success: true,
+            user: deleteResult.rows[0],
+        });
+    } catch (error) {
+        await client.query('ROLLBACK');
+        return res.status(500).json({
+            message: error.message || 'Failed to delete user.',
+            success: false,
+        });
+    } finally {
+        client.release();
+    }
 });
 
 // @desc    Link existing user to employee
@@ -488,12 +724,43 @@ export const deactivateUser = asyncHandler(async (req, res) => {
             return res.status(404).json({ message: 'User not found.', success: false });
         }
 
-        if (!userResult.rows[0].is_active) {
+        const targetUser = userResult.rows[0];
+        const isSelfDeactivate = String(req.user?.id) === String(userId);
+
+        if (isSelfDeactivate) {
+            await client.query('ROLLBACK');
+            return res.status(403).json({
+                message: 'You cannot deactivate your own account.',
+                success: false,
+            });
+        }
+
+        // Prevent deactivating the last active admin account.
+        if (targetUser.role === ROLES.ADMIN && targetUser.is_active) {
+            const remainingAdminsResult = await client.query(
+                `SELECT COUNT(*)::int AS count
+                FROM users
+                WHERE role = $1
+                    AND is_active = TRUE
+                    AND id <> $2`,
+                [ROLES.ADMIN, userId]
+            );
+
+            if (remainingAdminsResult.rows[0].count === 0) {
+                await client.query('ROLLBACK');
+                return res.status(409).json({
+                    message: 'Cannot deactivate the last active admin.',
+                    success: false,
+                });
+            }
+        }
+
+        if (!targetUser.is_active) {
             await client.query('COMMIT');
             return res.status(200).json({
                 message: 'User is already deactivated.',
                 success: true,
-                user: userResult.rows[0],
+                user: targetUser,
             });
         }
 

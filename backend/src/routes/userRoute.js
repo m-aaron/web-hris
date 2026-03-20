@@ -3,6 +3,8 @@ import {
     getAllUsers,
     getLinkableEmployees,
     createUser, 
+    updateUser,
+    deleteUser,
     linkUserToEmployee, 
     unlinkUserFromEmployee, 
     deactivateUser, 
@@ -19,6 +21,8 @@ const router = express.Router();
 router.get("/", authenticate, authorizeRoles(ROLES.ADMIN), getAllUsers);
 router.get("/linkable-employees", authenticate, authorizeRoles(ROLES.ADMIN), getLinkableEmployees);
 router.post("/", authenticate, authorizeRoles(ROLES.ADMIN), createUser);
+router.patch("/:userId", authenticate, authorizeRoles(ROLES.ADMIN), updateUser);
+router.delete("/:userId", authenticate, authorizeRoles(ROLES.ADMIN), deleteUser);
 router.patch("/:userId/link-employee", authenticate, authorizeRoles(ROLES.ADMIN), linkUserToEmployee);
 router.patch("/:userId/unlink-employee", authenticate, authorizeRoles(ROLES.ADMIN), unlinkUserFromEmployee);
 router.patch("/:userId/deactivate", authenticate, authorizeRoles(ROLES.ADMIN), deactivateUser);

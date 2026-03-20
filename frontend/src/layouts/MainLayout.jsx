@@ -6,7 +6,7 @@ const MainLayout = () => {
         <div className='flex flex-col min-h-screen'>
             <MainHeader />
             
-            <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-16 pb-15">
+            <main className="flex-1 px-4 sm:px-6 lg:px-8 pt-20 pb-15">
                 <Outlet />
             </main>
         </div>

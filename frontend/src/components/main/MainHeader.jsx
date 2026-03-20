@@ -8,6 +8,7 @@ import { toast } from "sonner";
 const MainHeader = () => {
     const [open, setOpen] = useState(false);
     const { user } = useAuth();
+    const isAdmin = user?.role === "ADMIN";
 
     const handleReportsClick = (e) => {
         e.preventDefault();
@@ -68,6 +69,11 @@ const MainHeader = () => {
                         <NavLink to="/employees" className={navLinkClass}>
                         Employees
                         </NavLink>
+                        {isAdmin && (
+                            <NavLink to="/users" className={navLinkClass}>
+                                User Management
+                            </NavLink>
+                        )}
                         <NavLink to="/reports" className={navLinkClass} onClick={handleReportsClick}>
                             Reports
                         </NavLink>
@@ -103,6 +109,15 @@ const MainHeader = () => {
                     >
                     Employees
                     </NavLink>
+                    {isAdmin && (
+                        <NavLink
+                            to="/users"
+                            className={mobileLinkClass}
+                            onClick={() => setOpen(false)}
+                        >
+                            User Management
+                        </NavLink>
+                    )}
                     <NavLink
                         to="/reports"
                         className={mobileLinkClass}

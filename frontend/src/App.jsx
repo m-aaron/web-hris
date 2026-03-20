@@ -15,6 +15,7 @@ import Employee from "./pages/private/Employee";
 import EmployeeEdit from "./pages/private/EmployeeEdit";
 import EmployeeCreate from "./pages/private/EmployeeCreate";
 import EmployeeView from "./pages/private/EmployeeView";
+import UserManagement from "./pages/private/UserManagement";
 
 
 const App = () => {
@@ -45,6 +46,13 @@ const App = () => {
             <Route path="/employees/:id/edit" element={<EmployeeEdit />} />
             <Route path="/employees/create" element={<EmployeeCreate />} />
             <Route path="/employees/:id/view" element={<EmployeeView />} />
+          </Route>
+
+          { /* ADMIN ONLY */ }
+          <Route element={<RoleGuard allowedRoles={ [ROLES.ADMIN] } userRole={ user?.role } />}>
+            <Route element={ <MainLayout /> }>
+              <Route path="/users" element={ <UserManagement /> } />
+            </Route>
           </Route>
 
         </Route>
