@@ -56,7 +56,8 @@ const getCurrentUserProfile = async (userId) => {
 // @access  Public
 export const loginUser = asyncHandler(async (req, res) => {
 
-    const { email, password } = req.body;
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const password = String(req.body.password || '');
 
     // Simple email regex for validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -75,7 +76,7 @@ export const loginUser = asyncHandler(async (req, res) => {
     const userResult = await pool.query(
         `SELECT id, email, password, role, is_active
         FROM users
-        WHERE email = $1`,
+        WHERE LOWER(email) = $1`,
         [email]
     );
 
@@ -191,6 +192,13 @@ export const updateMyEmail = asyncHandler(async (req, res) => {
         });
     }
 
+    if (enteredCurrentPassword.length < 8) {
+        return res.status(400).json({
+            message: 'Current password must be at least 8 characters long.',
+            success: false,
+        });
+    }
+
     if (!emailRegex.test(normalizedEmail)) {
         return res.status(400).json({ message: 'Invalid email format.', success: false });
     }
@@ -287,6 +295,13 @@ export const updateMyPassword = asyncHandler(async (req, res) => {
         });
     }
 
+    if (enteredCurrentPassword.length < 8) {
+        return res.status(400).json({
+            message: 'Current password must be at least 8 characters long.',
+            success: false,
+        });
+    }
+
     if (enteredNewPassword.length < 8) {
         return res.status(400).json({
             message: 'New password must be at least 8 characters long.',
@@ -366,7 +381,7 @@ export const updateMyPassword = asyncHandler(async (req, res) => {
 // @access  Public
 export const forgotPassword = asyncHandler(async (req, res) => {
     
-    const { email } = req.body;
+    const email = String(req.body.email || '').trim().toLowerCase();
 
     // Simple email regex for validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -383,7 +398,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 
     // Check if user exists
     const userResult = await pool.query(
-        `SELECT id FROM users WHERE email = $1`,
+        `SELECT id FROM users WHERE LOWER(email) = $1`,
         [email]
     );
 
@@ -446,6 +461,10 @@ export const resetPassword = asyncHandler(async (req, res) => {
     // Validate input
     if (!newPassword) {
         return res.status(400).json({ message: 'New password is required', success: false });
+    }
+
+    if (String(newPassword).length < 8) {
+        return res.status(400).json({ message: 'New password must be at least 8 characters long', success: false });
     }
 
     // Hash the received token

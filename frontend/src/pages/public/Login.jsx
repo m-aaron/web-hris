@@ -19,13 +19,30 @@ const Login = () => {
         setLoading(true);
 
         try {
-            await login({email, password});
+            const normalizedEmail = String(email || "").trim().toLowerCase();
+            const enteredPassword = String(password || "");
+
+            if (!normalizedEmail || !enteredPassword) {
+                toast.error("Email and password are required.");
+                return;
+            }
+
+            await login({
+                email: normalizedEmail,
+                password: enteredPassword,
+            });
 
             navigate("/dashboard");
             toast.success("Login successful!");
 
         } catch (error) {
-            toast.error(error.response?.data?.message || "Invalid credentials. Please try again.");
+            if (error.code === "ECONNABORTED") {
+                toast.error("Request timed out. Please try again.");
+            } else if (!error.response) {
+                toast.error("Cannot reach server. Please check backend server and CORS config.");
+            } else {
+                toast.error(error.response?.data?.message || "Invalid credentials. Please try again.");
+            }
         } finally {
             setLoading(false);
         }

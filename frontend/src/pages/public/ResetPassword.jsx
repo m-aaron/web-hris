@@ -20,10 +20,26 @@ const ResetPassword = () => {
         setLoading(true);
 
         try {
-            if (!newPassword || !confirmPassword) return toast.error("Please fill in all fields.");
-            if (newPassword !== confirmPassword) return toast.error("Passwords do not match.");
+            const trimmedPassword = newPassword.trim();
+            const trimmedConfirmPassword = confirmPassword.trim();
 
-            const res = await API.post(`/auth/reset-password/${ token }`, { newPassword });
+            if (!trimmedPassword || !trimmedConfirmPassword) {
+                return toast.error("Please fill in all fields.");
+            }
+
+            if (trimmedPassword.length < 8 || trimmedConfirmPassword.length < 8) {
+                return toast.error("Password must be at least 8 characters.");
+            }
+
+            if (trimmedPassword !== trimmedConfirmPassword) {
+                return toast.error("Passwords do not match.");
+            }
+
+            if (!token?.trim()) {
+                return toast.error("Invalid or missing reset token.");
+            }
+
+            const res = await API.post(`/auth/reset-password/${token.trim()}`, { newPassword: trimmedPassword });
 
             toast.success(res.data.message || "Password has been reset successfully."); 
 
@@ -31,8 +47,14 @@ const ResetPassword = () => {
             setConfirmPassword("");
 
             navigate("/login");
-        } catch (error) { 
-            toast.error(error.response?.data?.message || "An error occurred. Please try again.");
+        } catch (error) {
+            if (error.code === "ECONNABORTED") {
+                toast.error("Request timed out. Please try again.");
+            } else if (!error.response) {
+                toast.error("Cannot reach server. Please check backend server and CORS config.");
+            } else {
+                toast.error(error.response?.data?.message || "An error occurred. Please try again.");
+            }
         } finally {
             setLoading(false)
         }
@@ -42,18 +64,20 @@ const ResetPassword = () => {
             <form className="mt-10 space-y-4" onSubmit={ handleSubmit }>
                 <Input 
                     type="password" 
+                    className="p-3"
                     placeholder="Enter your new password" 
                     value={ newPassword }
                     onChange={ (e) => setNewPassword(e.target.value) }
                 />
                 <Input 
                     type="password" 
+                    className="p-3"
                     placeholder="Re-enter your new password" 
                     value={ confirmPassword }
                     onChange={ (e) => setConfirmPassword(e.target.value) }
                 />
-                <Button>{ loading ? "Saving..." : "Set New Password" }</Button>
-                <p className="text-center text-lg text-primary">Remember your password?<Link to="/login" className="font-semibold">Sign in</Link></p>
+                <Button className="w-full" disabled={loading}>{ loading ? "Saving..." : "Set New Password" }</Button>
+                <p className="text-center text-lg text-primary">Remember your password? <Link to="/login" className="font-semibold">Sign in</Link></p>
             </form>
         </AuthCard>
     )

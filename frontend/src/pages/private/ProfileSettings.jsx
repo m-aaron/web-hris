@@ -42,6 +42,7 @@ const ProfileSettings = () => {
     const [loadingProfile, setLoadingProfile] = useState(true);
     const [showEmailConfirmModal, setShowEmailConfirmModal] = useState(false);
     const [showPasswordConfirmModal, setShowPasswordConfirmModal] = useState(false);
+    const [showLogoutConfirmModal, setShowLogoutConfirmModal] = useState(false);
     const [pendingEmailData, setPendingEmailData] = useState(null);
     const [pendingPasswordData, setPendingPasswordData] = useState(null);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -188,6 +189,15 @@ const ProfileSettings = () => {
         }
     };
 
+    const openLogoutConfirmModal = () => {
+        setShowLogoutConfirmModal(true);
+    };
+
+    const confirmLogout = async () => {
+        setShowLogoutConfirmModal(false);
+        await handleLogout();
+    };
+
     return (
         <div className="space-y-4">
             <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -205,7 +215,7 @@ const ProfileSettings = () => {
                     variant="danger"
                     className="w-full sm:w-auto"
                     disabled={isLoggingOut}
-                    onClick={handleLogout}
+                    onClick={openLogoutConfirmModal}
                 >
                     {isLoggingOut ? "Logging out..." : "Logout"}
                 </Button>
@@ -365,6 +375,17 @@ const ProfileSettings = () => {
                         setPendingPasswordData(null);
                     }}
                     onConfirm={confirmSavePassword}
+                />
+            )}
+
+            {showLogoutConfirmModal && (
+                <ConfirmModal
+                    title="Logout"
+                    description="Are you sure you want to logout from your account?"
+                    action="Logout"
+                    primaryButtonVariant="solidDanger"
+                    onCancel={() => setShowLogoutConfirmModal(false)}
+                    onConfirm={confirmLogout}
                 />
             )}
         </div>
