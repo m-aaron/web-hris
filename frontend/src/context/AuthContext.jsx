@@ -54,8 +54,12 @@ export const AuthProvider = ({ children }) => {
 
     // Logout function
     const logout = async () => {
-        await API.post("/auth/logout");
-        setUser(null);
+        try {
+            await API.post("/auth/logout");
+        } finally {
+            // Always clear client auth state so guarded routes redirect immediately.
+            setUser(null);
+        }
     };
 
     return (

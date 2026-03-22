@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import { Card } from "../../components/main/ui/Card";
@@ -33,8 +34,9 @@ const PASSWORD_DEFAULTS = {
 };
 
 const ProfileSettings = () => {
+    const navigate = useNavigate();
 
-    const { user: authUser, refreshUser } = useAuth();
+    const { user: authUser, refreshUser, logout } = useAuth();
 
     const [profile, setProfile] = useState(null);
     const [loadingProfile, setLoadingProfile] = useState(true);
@@ -42,6 +44,7 @@ const ProfileSettings = () => {
     const [showPasswordConfirmModal, setShowPasswordConfirmModal] = useState(false);
     const [pendingEmailData, setPendingEmailData] = useState(null);
     const [pendingPasswordData, setPendingPasswordData] = useState(null);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     const emailForm = useForm({
         resolver: zodResolver(changeEmailSchema),
@@ -170,15 +173,42 @@ const ProfileSettings = () => {
         setPendingPasswordData(null);
     };
 
+    const handleLogout = async () => {
+        if (isLoggingOut) return;
+
+        try {
+            setIsLoggingOut(true);
+            await logout();
+            toast.success("Logged out successfully.");
+            navigate("/login", { replace: true });
+        } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to log out.");
+        } finally {
+            setIsLoggingOut(false);
+        }
+    };
+
     return (
         <div className="space-y-4">
-            <div>
-                <h1 className="text-xl font-semibold text-heading">
-                    Profile & Settings
-                </h1>
-                <p className="text-sm text-muted">
-                    Manage your account details and security settings.
-                </p>
+            <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <h1 className="text-xl font-semibold text-heading">
+                        Profile & Settings
+                    </h1>
+                    <p className="text-sm text-muted">
+                        Manage your account details and security settings.
+                    </p>
+                </div>
+                <Button
+                    type="button"
+                    size="small"
+                    variant="danger"
+                    className="w-full sm:w-auto"
+                    disabled={isLoggingOut}
+                    onClick={handleLogout}
+                >
+                    {isLoggingOut ? "Logging out..." : "Logout"}
+                </Button>
             </div>
 
             <Card className="p-4 rounded-2xl shadow-sm transition-all duration-300 hover:shadow-lg space-y-4">
