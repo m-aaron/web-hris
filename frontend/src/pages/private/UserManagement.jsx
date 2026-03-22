@@ -356,7 +356,7 @@ const UserManagement = () => {
 
 
     return (
-        <div className="space-y-4 pb-2">
+        <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-xl font-semibold text-heading">User Management</h1>
@@ -407,6 +407,7 @@ const UserManagement = () => {
                         <Button
                             type="submit"
                             size="small"
+                            className="w-full sm:w-auto"
                             disabled={!isCreateValid || isCreateSubmitting || actionLoading}
                         >
                             {isCreateSubmitting || actionLoading ? "Creating..." : "Create User"}
@@ -551,13 +552,20 @@ const UserManagement = () => {
                                     </div>
                                 </div>
 
-                                <div className="pt-4 border-t border-border flex items-center justify-end gap-2">
-                                    <Button type="button" size="small" variant="secondary" onClick={closeEditModal}>
+                                <div className="pt-4 border-t border-border flex gap-2">
+                                    <Button
+                                        type="button"
+                                        size="small"
+                                        variant="secondary"
+                                        className="flex-1 sm:flex-none"
+                                        onClick={closeEditModal}
+                                    >
                                         Cancel
                                     </Button>
                                     <Button
                                         type="submit"
                                         size="small"
+                                        className="flex-1 sm:flex-none"
                                         disabled={isEditSubmitting || actionLoading}
                                     >
                                         {isEditSubmitting || actionLoading ? "Saving..." : "Save"}

@@ -18,6 +18,7 @@ const MainHeader = () => {
 
     // Close mobile menu when screen resizes to desktop
     useEffect(() => {
+        console.log("User", user);
         const handleResize = () => {
         if (window.innerWidth >= 768) {
             setOpen(false);
@@ -82,7 +83,14 @@ const MainHeader = () => {
                     {/* Right */}
                     <div className="flex items-center gap-4">
                         <Bell className="w-5 h-5 text-muted hover:text-primary cursor-pointer transition hidden"/>
-                        <UserAvatar user={user} size="sm" />
+                        <Link
+                            to="/settings"
+                            className="rounded-full focus:outline-none focus:ring-2 focus:ring-primary"
+                            title="Profile & Settings"
+                            aria-label="Open Profile & Settings"
+                        >
+                            <UserAvatar user={user} size="sm" />
+                        </Link>
                     </div>
                 </div>
 
@@ -109,6 +117,13 @@ const MainHeader = () => {
                     >
                     Employees
                     </NavLink>
+                    <NavLink
+                        to="/settings"
+                        className={mobileLinkClass}
+                        onClick={() => setOpen(false)}
+                    >
+                        Profile & Settings
+                    </NavLink>
                     {isAdmin && (
                         <NavLink
                             to="/users"
@@ -125,12 +140,6 @@ const MainHeader = () => {
                     >
                     Reports
                     </NavLink>
-                    <button
-                        className="text-left text-sm text-gray-700 hover:text-red-500"
-                        onClick={() => setOpen(false)}
-                    >
-                    Logout
-                    </button>
                 </nav>
                 </div>
             </header>

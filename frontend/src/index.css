@@ -71,3 +71,14 @@ body {
     scrollbar-width: thin;
     scrollbar-color: var(--color-grey) var(--color-card);
 }
+
+input.hide-native-password-toggle::-ms-reveal,
+input.hide-native-password-toggle::-ms-clear {
+    display: none;
+}
+
+input.hide-native-password-toggle::-webkit-credentials-auto-fill-button {
+    visibility: hidden;
+    display: none !important;
+    pointer-events: none;
+}

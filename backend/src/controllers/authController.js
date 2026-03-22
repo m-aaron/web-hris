@@ -7,6 +7,50 @@ import { generateAccessToken, generateRefreshToken } from '../utils/tokenUtil.js
 import { sendEmail } from '../services/emailService.js';
 
 
+const getCurrentUserProfile = async (userId) => {
+    const result = await pool.query(
+        `SELECT
+            u.id,
+            u.email,
+            u.role,
+            u.updated_at,
+            e.id AS employee_id,
+            e.employee_no,
+            e.photo_url,
+            pd.first_name,
+            pd.middle_name,
+            pd.last_name,
+            pd.name_extension
+        FROM users u
+        LEFT JOIN employees e ON e.user_id = u.id
+        LEFT JOIN personal_data pd ON pd.employee_id = e.id
+        WHERE u.id = $1
+        LIMIT 1`,
+        [userId]
+    );
+
+    if (result.rowCount === 0) {
+        return null;
+    }
+
+    const user = result.rows[0];
+
+    return {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        employee_id: user.employee_id,
+        employee_no: user.employee_no,
+        photo_url: user.photo_url,
+        first_name: user.first_name,
+        middle_name: user.middle_name,
+        last_name: user.last_name,
+        name_extension: user.name_extension,
+        security_updated_at: user.updated_at,
+    };
+};
+
+
 // @desc    User login
 // @route   POST /api/auth/login
 // @access  Public
@@ -118,10 +162,202 @@ export const refreshToken = asyncHandler(async (req, res) => {
 // @access  Private
 export const getMe = asyncHandler(async (req, res) => {
 
-    // Retrieve user from request object set by authenticate middleware
-    const user = req.user;
+    const user = await getCurrentUserProfile(req.user.id);
+
+    if (!user) {
+        return res.status(404).json({ message: 'User not found', success: false });
+    }
+
     res.status(200).json({ message: 'User fetched successfully', success: true, user });
 
+});
+
+
+// @desc    Update authenticated user's email
+// @route   PATCH /api/auth/me/email
+// @access  Private
+export const updateMyEmail = asyncHandler(async (req, res) => {
+    const { newEmail, currentPassword } = req.body;
+
+    const normalizedEmail = String(newEmail || '').trim().toLowerCase();
+    const enteredCurrentPassword = String(currentPassword || '');
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!normalizedEmail || !enteredCurrentPassword) {
+        return res.status(400).json({
+            message: 'New email and current password are required.',
+            success: false,
+        });
+    }
+
+    if (!emailRegex.test(normalizedEmail)) {
+        return res.status(400).json({ message: 'Invalid email format.', success: false });
+    }
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const userResult = await client.query(
+            `SELECT id, email, password
+            FROM users
+            WHERE id = $1
+            FOR UPDATE`,
+            [req.user.id]
+        );
+
+        if (userResult.rowCount === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ message: 'User not found.', success: false });
+        }
+
+        const currentUser = userResult.rows[0];
+        const isPasswordValid = await comparePassword(enteredCurrentPassword, currentUser.password);
+
+        if (!isPasswordValid) {
+            await client.query('ROLLBACK');
+            return res.status(401).json({ message: 'Current password is incorrect.', success: false });
+        }
+
+        if (currentUser.email === normalizedEmail) {
+            await client.query('ROLLBACK');
+            return res.status(409).json({ message: 'New email must be different from current email.', success: false });
+        }
+
+        const emailConflict = await client.query(
+            `SELECT id
+            FROM users
+            WHERE LOWER(email) = LOWER($1)
+                AND id <> $2
+            LIMIT 1`,
+            [normalizedEmail, req.user.id]
+        );
+
+        if (emailConflict.rowCount > 0) {
+            await client.query('ROLLBACK');
+            return res.status(409).json({
+                message: 'Email is already in use by another user.',
+                success: false,
+            });
+        }
+
+        await client.query(
+            `UPDATE users
+            SET email = $1
+            WHERE id = $2`,
+            [normalizedEmail, req.user.id]
+        );
+
+        await client.query('COMMIT');
+
+        const user = await getCurrentUserProfile(req.user.id);
+
+        return res.status(200).json({
+            message: 'Email updated successfully.',
+            success: true,
+            user,
+        });
+    } catch (error) {
+        await client.query('ROLLBACK');
+        return res.status(500).json({
+            message: error.message || 'Failed to update email.',
+            success: false,
+        });
+    } finally {
+        client.release();
+    }
+});
+
+
+// @desc    Update authenticated user's password
+// @route   PATCH /api/auth/me/password
+// @access  Private
+export const updateMyPassword = asyncHandler(async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+
+    const enteredCurrentPassword = String(currentPassword || '');
+    const enteredNewPassword = String(newPassword || '');
+
+    if (!enteredCurrentPassword || !enteredNewPassword) {
+        return res.status(400).json({
+            message: 'Current password and new password are required.',
+            success: false,
+        });
+    }
+
+    if (enteredNewPassword.length < 8) {
+        return res.status(400).json({
+            message: 'New password must be at least 8 characters long.',
+            success: false,
+        });
+    }
+
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        const userResult = await client.query(
+            `SELECT id, password
+            FROM users
+            WHERE id = $1
+            FOR UPDATE`,
+            [req.user.id]
+        );
+
+        if (userResult.rowCount === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ message: 'User not found.', success: false });
+        }
+
+        const currentUser = userResult.rows[0];
+        const isCurrentPasswordValid = await comparePassword(enteredCurrentPassword, currentUser.password);
+
+        if (!isCurrentPasswordValid) {
+            await client.query('ROLLBACK');
+            return res.status(401).json({ message: 'Current password is incorrect.', success: false });
+        }
+
+        const isSameAsCurrent = await comparePassword(enteredNewPassword, currentUser.password);
+
+        if (isSameAsCurrent) {
+            await client.query('ROLLBACK');
+            return res.status(409).json({
+                message: 'New password must be different from current password.',
+                success: false,
+            });
+        }
+
+        const hashedPassword = await hashPassword(enteredNewPassword);
+
+        await client.query(
+            `UPDATE users
+            SET password = $1,
+                updated_at = NOW()
+            WHERE id = $2`,
+            [hashedPassword, req.user.id]
+        );
+
+        await client.query('COMMIT');
+
+        const user = await getCurrentUserProfile(req.user.id);
+
+        return res.status(200).json({
+            message: 'Password updated successfully.',
+            success: true,
+            user,
+        });
+    } catch (error) {
+        await client.query('ROLLBACK');
+        return res.status(500).json({
+            message: error.message || 'Failed to update password.',
+            success: false,
+        });
+    } finally {
+        client.release();
+    }
 });
 
 

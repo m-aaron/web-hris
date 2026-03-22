@@ -12,6 +12,7 @@ import {
   updateEmployeeType,
   updateEmployeePhoto,
 } from "../../../services/employeeService";
+import { useAuth } from "../../../hooks/useAuth";
 
 const EmployeeIdentitySection = ({
   employee,
@@ -21,6 +22,7 @@ const EmployeeIdentitySection = ({
   isFirstSection,
   mode,
 }) => {
+  const { user, refreshUser } = useAuth();
   const fileInputRef = useRef(null);
 
   const [employeeNo, setEmployeeNo] = useState("");
@@ -155,7 +157,6 @@ const EmployeeIdentitySection = ({
 
       // Sequentially update employment type and then the photo
       if (id && hasEmploymentTypeChanged) {
-        console.log("Updating employment type to:", employmentType);
         const res = await updateEmployeeType(id, { employmentType });
         setEmployee((prev) => ({
           ...prev,
@@ -173,7 +174,6 @@ const EmployeeIdentitySection = ({
 
         const res = await updateEmployeePhoto(id, formData);
         setLastSuccessfulPhotoUrl(res.photoUrl);
-        console.log("Photo updated successfully, new URL:", res.photoUrl);
         setEmployee((prev) => ({
           ...prev,
           employee: {
@@ -183,6 +183,10 @@ const EmployeeIdentitySection = ({
         }));
         setSelectedPhoto(null);
         setPreview(null);
+      }
+
+      if (user?.employee_id && String(user.employee_id) === String(id)) {
+        await refreshUser();
       }
 
       toast.success(

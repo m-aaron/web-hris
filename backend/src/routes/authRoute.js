@@ -3,6 +3,8 @@ import {
     loginUser, 
     refreshToken,
     getMe,
+    updateMyEmail,
+    updateMyPassword,
     forgotPassword,
     resetPassword,
     logoutUser
@@ -20,5 +22,7 @@ router.post('/logout', logoutUser); // Logout route
 
 // Protected route:
 router.get('/me', authenticate, getMe); // Get current logged in user route
+router.patch('/me/email', authenticate, updateMyEmail);
+router.patch('/me/password', authenticate, updateMyPassword);
 
 export default router;
