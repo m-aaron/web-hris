@@ -12,9 +12,9 @@
 - Check status: docker compose ps
 
 ## 3. Verify health
-- Backend health: http://localhost:5000/health
+- Backend health: http://localhost:5001/health
 - Frontend: http://localhost:3000
-- API base test: http://localhost:5000/api
+- API base test: http://localhost:5001/api
 
 ## 4. Verify database
 - Readiness check:
