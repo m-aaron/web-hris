@@ -61,7 +61,7 @@ const ResetPassword = () => {
     }
     return (
         <AuthCard title="Reset your password" description="Create a new password for your account">
-            <form className="mt-10 space-y-4" onSubmit={ handleSubmit }>
+            <form className="mt-8 space-y-4" onSubmit={ handleSubmit }>
                 <Input 
                     type="password" 
                     className="p-3"
@@ -77,7 +77,7 @@ const ResetPassword = () => {
                     onChange={ (e) => setConfirmPassword(e.target.value) }
                 />
                 <Button className="w-full" loading={loading} loadingText="Saving...">Set New Password</Button>
-                <p className="text-center text-lg text-primary">Remember your password? <Link to="/login" className="font-semibold">Sign in</Link></p>
+                <p className="text-center text-sm text-muted">Remember your password? <Link to="/login" className="font-semibold text-primary">Sign in</Link></p>
             </form>
         </AuthCard>
     )

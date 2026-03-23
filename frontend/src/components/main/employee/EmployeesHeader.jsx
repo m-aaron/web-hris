@@ -8,25 +8,25 @@ const EmployeesHeader = ({
 }) => {
 
   return (
-    <section className="py-5">
+    <section className="pb-6 pt-2">
 
-      <div className="grid grid-cols-1 md:grid-cols-2 md:items-center gap-8">
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2 md:items-start">
 
         {/* LEFT SIDE */}
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl md:text-3xl font-semibold text-heading tracking-tight">
+            <h1 className="text-2xl font-semibold tracking-tight text-heading sm:text-3xl">
               Employees
             </h1>
           </div>
 
-          <p className="text-sm text-muted max-w-md">
-            Manage and monitor all employee records
+          <p className="max-w-2xl text-sm leading-6 text-muted">
+            Manage employee records, updates, and status visibility across the organization.
           </p>
         </div>
 
         {/* RIGHT SIDE */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 md:self-start">
 
           {showReset && (
             <Button

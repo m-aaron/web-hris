@@ -21,7 +21,7 @@ const TrainingView = ({ employee }) => {
 
             <div
             key={training.id || index}
-            className="border border-border rounded-lg p-5 space-y-4"
+            className="border border-border rounded-lg p-4 sm:p-5 space-y-4"
             >
 
             <h4 className="text-sm font-semibold text-muted uppercase tracking-wide">

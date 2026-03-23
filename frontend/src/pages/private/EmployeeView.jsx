@@ -16,6 +16,9 @@ import TrainingView from "../../components/main/employeeView/TrainingView";
 import HistoryView from "../../components/main/employeeView/HistoryView";
 import OtherInfoView from "../../components/main/employeeView/OtherInfoView";
 import ReferenceView from "../../components/main/employeeView/ReferenceView";
+import LoadingState from "../../components/LoadingState";
+import EmptyState from "../../components/main/ui/EmptyState";
+import PageHeader from "../../components/main/ui/PageHeader";
 
 import { getEmployeeById } from "../../services/employeeService";
 
@@ -40,18 +43,31 @@ const EmployeeView = () => {
     fetchEmployee();
   }, [id]);
 
-  if (loading) return <div>Loading...</div>;
-  if (!employee) return <div>Employee not found</div>;
+  if (loading) return <LoadingState label="Loading employee details..." className="min-h-[60vh]" />;
+  if (!employee) {
+    return (
+      <EmptyState
+        title="Employee not found"
+        description="The employee record may have been removed or is no longer available."
+        className="mt-8"
+      />
+    );
+  }
 
   return (
-    <div className="bg-background sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:p-6">
-      <div className="w-full max-w-7xl">
+    <div className="bg-background sm:min-h-screen sm:p-6">
+      <div className="mx-auto w-full max-w-[1400px] space-y-6 pt-2">
+        <PageHeader
+          title="Employee Details"
+          description="Review complete employee records across identity, employment, and supporting sections."
+        />
+
         <Card className="shadow-xl">
           <div className="sticky top-0 z-20 bg-card border-b border-border rounded-t-xl overflow-hidden">
             <EmployeeHeader employee={employee} mode="view" />
           </div>
 
-          <div className="p-6 space-y-6">
+          <div className="p-4 space-y-6 sm:p-6">
             <SectionDrawer title="Identity" hasData={!!employee?.employee}>
               <IdentityView employee={employee} />
             </SectionDrawer>

@@ -48,7 +48,7 @@ const ForgotPassword = () => {
 
     return (
         <AuthCard title="Forgot your password?" description="Enter your registered email address and we'll send you a link to reset your password.">
-            <form className="mt-10 space-y-4" onSubmit={ handleSubmit }>
+            <form className="mt-8 space-y-4" onSubmit={ handleSubmit }>
                 <Input 
                     type="email" 
                     className="p-3"
@@ -57,7 +57,7 @@ const ForgotPassword = () => {
                     onChange={ e => setEmail(e.target.value) }
                 />
                 <Button className="w-full" loading={loading} loadingText="Sending...">Send Reset Link</Button>
-                <p className="text-center text-lg text-primary">Remember your password? <Link to="/login" className="font-semibold">Sign in</Link></p>
+                <p className="text-center text-sm text-muted">Remember your password? <Link to="/login" className="font-semibold text-primary">Sign in</Link></p>
             </form>
         </AuthCard>
     )

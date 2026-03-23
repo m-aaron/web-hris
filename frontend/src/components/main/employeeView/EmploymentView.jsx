@@ -58,7 +58,7 @@ const EmploymentView = ({ employee }) => {
 
   return (
     
-    <div className="space-y-10">
+    <div className="space-y-8">
 
       {/* EMPLOYMENT DETAILS */}
       <div className="space-y-4">

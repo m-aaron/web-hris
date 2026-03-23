@@ -51,7 +51,7 @@ const Login = () => {
     
     return (
         <AuthCard title="Welcome back!" description="Access your account to manage your work and records.">
-            <form className="mt-10 space-y-4" onSubmit={ handleSubmit }>
+            <form className="mt-8 space-y-4" onSubmit={ handleSubmit }>
                 <Input 
                     type="email" 
                     className="p-3"
@@ -73,6 +73,7 @@ const Login = () => {
                 </div>
                 
                 <Button className="w-full" loading={loading} loadingText="Signing in...">Sign in</Button>
+                <p className="text-center text-sm text-muted">Secure access for employee management.</p>
             </form>
         </AuthCard>
     )

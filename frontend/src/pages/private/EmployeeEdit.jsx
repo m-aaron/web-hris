@@ -3,6 +3,8 @@ import { useParams } from "react-router-dom";
 import { Card } from "../../components/main/ui/Card";
 import EmployeeHeader from "../../components/main/employeeForm/EmployeeHeader";
 import EmployeeTabs from "../../components/main/employeeForm/EmployeeTabs";
+import LoadingState from "../../components/LoadingState";
+import EmptyState from "../../components/main/ui/EmptyState";
 import { getEmployeeById } from "../../services/employeeService";
 
 const EmployeeEdit = () => {
@@ -26,8 +28,16 @@ const EmployeeEdit = () => {
     fetchEmployee();
   }, [id]);
 
-  if (loading) return <div>Loading...</div>;
-  if (!employee) return <div>Employee not found</div>;
+  if (loading) return <LoadingState label="Loading employee record..." className="min-h-[60vh]" />;
+  if (!employee) {
+    return (
+      <EmptyState
+        title="Employee not found"
+        description="We could not load this employee record for editing."
+        className="mt-8"
+      />
+    );
+  }
 
   return (
     <div className="bg-background sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:p-6">

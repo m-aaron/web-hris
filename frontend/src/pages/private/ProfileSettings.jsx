@@ -9,6 +9,7 @@ import Button from "../../components/Button";
 import InputForm from "../../components/InputForm";
 import UserAvatar from "../../components/main/UserAvatar";
 import ConfirmModal from "../../components/main/ui/ConfirmModal";
+import PageHeader from "../../components/main/ui/PageHeader";
 import { useAuth } from "../../hooks/useAuth";
 import { formatEmployeeDisplayName } from "../../helpers/employeeHelper";
 import { formatPHDate } from "../../helpers/dateHelper";
@@ -199,27 +200,23 @@ const ProfileSettings = () => {
     };
 
     return (
-        <div className="space-y-4">
-            <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                    <h1 className="text-xl font-semibold text-heading">
-                        Profile & Settings
-                    </h1>
-                    <p className="text-sm text-muted">
-                        Manage your account details and security settings.
-                    </p>
-                </div>
-                <Button
-                    type="button"
-                    size="small"
-                    variant="danger"
-                    className="w-full sm:w-auto"
-                    disabled={isLoggingOut}
-                    onClick={openLogoutConfirmModal}
-                >
-                    {isLoggingOut ? "Logging out..." : "Logout"}
-                </Button>
-            </div>
+        <div className="space-y-6 pt-2">
+            <PageHeader
+                title="Profile & Settings"
+                description="Manage your account identity and security settings."
+                actions={(
+                    <Button
+                        type="button"
+                        size="small"
+                        variant="danger"
+                        className="w-full sm:w-auto"
+                        disabled={isLoggingOut}
+                        onClick={openLogoutConfirmModal}
+                    >
+                        {isLoggingOut ? "Logging out..." : "Logout"}
+                    </Button>
+                )}
+            />
 
             <Card className="p-4 rounded-2xl shadow-sm transition-all duration-300 hover:shadow-lg space-y-4">
                 <h2 className="text-base font-semibold text-heading">Account</h2>

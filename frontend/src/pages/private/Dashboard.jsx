@@ -8,6 +8,7 @@ import { BirthdaySection } from "../../components/main/dashboard/BirthdaySection
 import { AnalyticsSection } from "../../components/main/dashboard/AnalyticsSection";
 import Button from "../../components/Button";
 import EmptyState from "../../components/main/ui/EmptyState";
+import PageHeader from "../../components/main/ui/PageHeader";
 
 const Dashboard = () => {
     const [dashboardSummary, setDashboardSummary] = useState(null);
@@ -50,25 +51,21 @@ const Dashboard = () => {
     }
 
     return (
-        <>  
-            {/* Header */}
-            <div className="grid gap-4 py-8 md:grid-cols-2 md:items-center">
-
-                <h1 className="text-2xl text-heading sm:text-3xl font-semibold tracking-tight">
-                    Dashboard
-                </h1>
-
-                <div className="md:justify-self-end md:max-w-xs">
-                    <Button size="medium">
+        <>
+            <PageHeader
+                title="Dashboard"
+                description="View workforce trends, regularization status, and key employee insights."
+                actions={(
+                    <Button size="medium" className="w-full md:w-auto">
                         + Create Employee
                     </Button>
-                </div>
-
-            </div>
+                )}
+                className="mb-6 pt-2"
+            />
 
 
             {/* Separator */}
-            <div className="border-t border-border pb-5" />
+            <div className="border-t border-border pb-6" />
 
             <WorkforceSection summary={ dashboardSummary.summary } />
             <RegularizationSection 

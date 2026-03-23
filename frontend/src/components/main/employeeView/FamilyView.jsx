@@ -20,7 +20,7 @@ const FamilyView = ({ employee }) => {
 
     return (
 
-        <div className="space-y-10">
+        <div className="space-y-8">
 
             {/* SPOUSE */}
             <div className="space-y-4">

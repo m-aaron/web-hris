@@ -57,7 +57,7 @@ const EducationView = ({ employee }) => {
 
                     <div
                         key={edu.id}
-                        className="border border-border rounded-lg p-5 space-y-6"
+                        className="border border-border rounded-lg p-4 sm:p-5 space-y-5"
                     >
 
                         <h4 className="text-sm font-semibold text-muted uppercase tracking-wide">

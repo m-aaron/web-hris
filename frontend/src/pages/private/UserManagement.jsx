@@ -9,6 +9,7 @@ import SelectForm from "../../components/SelectForm";
 import ConfirmModal from "../../components/main/ui/ConfirmModal";
 import { Card } from "../../components/main/ui/Card";
 import UsersTable from "../../components/main/user/UsersTable";
+import PageHeader from "../../components/main/ui/PageHeader";
 
 import { ROLES } from "../../constants/employeeConstant";
 import { formatEmployeeDisplayName } from "../../helpers/employeeHelper";
@@ -354,13 +355,11 @@ const UserManagement = () => {
 
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-xl font-semibold text-heading">User Management</h1>
-                    <p className="text-sm text-muted">Manage user accounts and account status for admin access.</p>
-                </div>
-            </div>
+        <div className="space-y-6 pt-2">
+            <PageHeader
+                title="User Management"
+                description="Manage account access, role assignment, and employee linking for internal users."
+            />
 
             <Card className="p-4 rounded-2xl shadow-sm transition-all duration-300 hover:shadow-lg">
                 <h2 className="text-base font-semibold text-heading mb-3">Create User</h2>

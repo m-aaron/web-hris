@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { useParams } from "react-router-dom"
 import { Card } from "../../components/main/ui/Card"
 import EmployeeHeader from "../../components/main/employeeForm/EmployeeHeader"
 import EmployeeTabs from "../../components/main/employeeForm/EmployeeTabs"
@@ -13,7 +12,7 @@ const EmployeeCreate = () => {
 return (
     <div className="bg-background sm:min-h-screen sm:flex sm:items-center sm:justify-center sm:p-6">
         
-        <div className="w-full sm:max-w-7xl">
+        <div className="w-full max-w-[1400px]">
         
             <Card className="w-full flex flex-col shadow-xl h-screen sm:h-[90vh] rounded-none sm:rounded-xl">
                 
