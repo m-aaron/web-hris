@@ -8,6 +8,8 @@
         --heading: #0d0d0d;
         --muted: #42494d;
         --border: #6a6e6f;
+        --soft-surface: #eef4fb;
+        --overlay-soft: rgba(15, 23, 42, 0.2);
         --red: #DA5C53;
         --blue: #4AA3BA;
         --green: #91d09a;
@@ -17,7 +19,29 @@
         --light-yellow: #ffedc3;
         --grey: #d7d7d7;
         --male: #6366f1;
-        --female: #ec4899
+        --female: #ec4899;
+    }
+
+    :root.theme-dark,
+    :root[data-theme="dark"] {
+        --background: #0f172a;
+        --primary: #60a5fa;
+        --card: #111c32;
+        --heading: #f1f5f9;
+        --muted: #b9c4d5;
+        --border: #31415c;
+        --soft-surface: #1b2942;
+        --overlay-soft: rgba(2, 6, 23, 0.6);
+        --red: #f87171;
+        --blue: #7dd3fc;
+        --green: #4ade80;
+        --yellow: #fbbf24;
+        --light-red: rgba(239, 68, 68, 0.2);
+        --light-green: rgba(74, 222, 128, 0.2);
+        --light-yellow: rgba(251, 191, 36, 0.2);
+        --grey: #253550;
+        --male: #818cf8;
+        --female: #f472b6;
     }
 }
 
@@ -33,6 +57,8 @@
     --color-heading: var(--heading);
     --color-muted: var(--muted);
     --color-border: var(--border);
+        --color-soft-surface: var(--soft-surface);
+        --color-overlay-soft: var(--overlay-soft);
         --color-red: var(--red);
         --color-blue: var(--blue);
         --color-green: var(--green);
@@ -46,7 +72,9 @@
 }
 
 body {
-    background-color: #f1f7fe;
+    background-color: var(--background);
+    color: var(--heading);
+    transition: background-color 180ms ease, color 180ms ease;
 }
 
 .spinner {
