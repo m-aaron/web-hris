@@ -17,13 +17,16 @@ import EmployeeCreate from "./pages/private/EmployeeCreate";
 import EmployeeView from "./pages/private/EmployeeView";
 import UserManagement from "./pages/private/UserManagement";
 import ProfileSettings from "./pages/private/ProfileSettings";
+import { useTheme } from "./hooks/useTheme";
 
 
 const App = () => {
   const { user } = useAuth();
+  const { theme } = useTheme();
+
   return (
     <>
-      <Toaster richColors position="top-right" />
+      <Toaster richColors position="top-right" theme={theme} />
       <Routes>
         
         { /* Auth/Public */ }

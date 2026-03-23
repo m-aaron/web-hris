@@ -4,6 +4,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { Bell, Menu, X } from "lucide-react";
 import UserAvatar from "./UserAvatar";
 import { toast } from "sonner";
+import ThemeToggle from "../ThemeToggle";
 
 const MainHeader = () => {
     const [open, setOpen] = useState(false);
@@ -18,7 +19,6 @@ const MainHeader = () => {
 
     // Close mobile menu when screen resizes to desktop
     useEffect(() => {
-        console.log("User", user);
         const handleResize = () => {
         if (window.innerWidth >= 768) {
             setOpen(false);
@@ -45,13 +45,13 @@ const MainHeader = () => {
 
     return (
         <>
-            <header className="fixed top-0 left-0 w-full z-50 backdrop-blur-lg bg-[rgba(241,247,254,0.8)] shadow-sm">
+            <header className="fixed top-0 left-0 w-full z-50 border-b border-border bg-card/90 backdrop-blur-lg shadow-sm">
                 <div className="mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                 
                     {/* Left */}
                     <div className="flex items-center gap-3">
                         <button
-                        className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition"
+                        className="md:hidden p-2 rounded-lg hover:bg-soft-surface transition"
                         onClick={() => setOpen(prev => !prev)}
                         >
                         {open ? <X size={20} /> : <Menu size={20} />}
@@ -82,6 +82,7 @@ const MainHeader = () => {
 
                     {/* Right */}
                     <div className="flex items-center gap-4">
+                        <ThemeToggle className="hidden md:inline-flex" />
                         <Bell className="w-5 h-5 text-muted hover:text-primary cursor-pointer transition hidden"/>
                         <Link
                             to="/settings"
@@ -96,13 +97,16 @@ const MainHeader = () => {
 
                 {/* Mobile Dropdown */}
                 <div
-                className={`md:hidden absolute top-16 left-0 w-full bg-white shadow-md border-t border-gray-200 transform transition-all duration-300 ${
+                className={`md:hidden absolute top-16 left-0 w-full bg-card shadow-md border-t border-border transform transition-all duration-300 ${
                     open
                     ? "opacity-100 translate-y-0"
                     : "opacity-0 -translate-y-2 pointer-events-none"
                 }`}
                 >
                 <nav className="flex flex-col p-4 space-y-3">
+                    <div className="flex items-center justify-end">
+                        <ThemeToggle />
+                    </div>
                     <NavLink
                         to="/dashboard"
                         className={mobileLinkClass}

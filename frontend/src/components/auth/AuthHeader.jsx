@@ -1,9 +1,10 @@
 import Logo from "../../assets/img/Logo.png";
+import ThemeToggle from "../ThemeToggle";
 
 const AuthHeader = () => {
     return (
         <>
-            <header className="flex 
+            <header className="relative flex 
                 items-center justify-center 
                 gap-3 px-4 py-3
                 bg-background
@@ -19,6 +20,9 @@ const AuthHeader = () => {
                 leading-none">
                     MC HRIS
                 </span>
+                <div className="absolute right-4">
+                    <ThemeToggle />
+                </div>
             </header>
         </>
     );
