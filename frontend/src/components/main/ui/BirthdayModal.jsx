@@ -8,7 +8,7 @@ export const BirthdayModal = ({ isOpen, onClose, data }) => {
         
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-[rgba(241,247,254,0.1)] backdrop-blur-sm"
+                className="absolute inset-0 bg-overlay-soft backdrop-blur-sm"
                 onClick={onClose}
             />
 

@@ -35,7 +35,7 @@ export const RegularizationPreviewTable = ({ becomingRegular }) => {
                 {becomingRegular.map((row, index) => (
                 <TableRow
                     key={index}
-                    className="text-muted hover:bg-[rgba(66,73,77,0.1)] transition"
+                    className="text-muted hover:bg-soft-surface/80 transition"
                 >
                     {(() => {
                     const normalizedName = {
@@ -56,7 +56,7 @@ export const RegularizationPreviewTable = ({ becomingRegular }) => {
                     <TableCell>{displayName}</TableCell>
                     <TableCell>{row.employment_type.replace("_", "-")}</TableCell>
                     <TableCell>{formatPHDate(row.regularization_date)}</TableCell>
-                    <TableCell className="text-amber-600 font-medium">
+                    <TableCell className="text-yellow font-medium">
                     {row.days_remaining}
                     </TableCell>
                     </>

@@ -297,7 +297,7 @@ const EmployeeIdentitySection = ({
                 variant="outline"
                 size="small"
                 onClick={handleCancelPhoto}
-                className="flex items-center gap-1 text-xs text-muted hover:text-red-500 transition"
+                className="flex items-center gap-1 text-xs text-muted hover:text-red transition"
               >
                 <X size={18} />
                 Cancel new photo
