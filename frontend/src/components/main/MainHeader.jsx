@@ -75,9 +75,6 @@ const MainHeader = () => {
                                 User Management
                             </NavLink>
                         )}
-                        <NavLink to="/reports" className={navLinkClass} onClick={handleReportsClick}>
-                            Reports
-                        </NavLink>
                     </nav>
 
                     {/* Right */}
@@ -107,6 +104,7 @@ const MainHeader = () => {
                     <div className="flex items-center justify-end">
                         <ThemeToggle />
                     </div>
+                    
                     <NavLink
                         to="/dashboard"
                         className={mobileLinkClass}
@@ -114,6 +112,7 @@ const MainHeader = () => {
                     >
                     Dashboard
                     </NavLink>
+
                     <NavLink
                         to="/employees"
                         className={mobileLinkClass}
@@ -121,13 +120,7 @@ const MainHeader = () => {
                     >
                     Employees
                     </NavLink>
-                    <NavLink
-                        to="/settings"
-                        className={mobileLinkClass}
-                        onClick={() => setOpen(false)}
-                    >
-                        Profile & Settings
-                    </NavLink>
+
                     {isAdmin && (
                         <NavLink
                             to="/users"
@@ -137,12 +130,13 @@ const MainHeader = () => {
                             User Management
                         </NavLink>
                     )}
+
                     <NavLink
-                        to="/reports"
+                        to="/settings"
                         className={mobileLinkClass}
-                        onClick={handleReportsClick}
+                        onClick={() => setOpen(false)}
                     >
-                    Reports
+                        Profile & Settings
                     </NavLink>
                 </nav>
                 </div>
