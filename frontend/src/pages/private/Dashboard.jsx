@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import API from "../../api/axios";
 import { toast } from "sonner";
-import Spinner from "../../components/Spinner";
+import LoadingState from "../../components/LoadingState";
 import { getDashboardSummary } from "../../services/dashboardService";
 import { WorkforceSection } from "../../components/main/dashboard/WorkforceSection";
 import { RegularizationSection } from "../../components/main/dashboard/RegularizationSection";
 import { BirthdaySection } from "../../components/main/dashboard/BirthdaySection";
 import { AnalyticsSection } from "../../components/main/dashboard/AnalyticsSection";
 import Button from "../../components/Button";
+import EmptyState from "../../components/main/ui/EmptyState";
 
 const Dashboard = () => {
     const [dashboardSummary, setDashboardSummary] = useState(null);
@@ -36,12 +36,18 @@ const Dashboard = () => {
     }, []);
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <Spinner />
-            </div>
-        );
+        return <LoadingState label="Loading dashboard..." className="min-h-[60vh]" />;
     };
+
+    if (!dashboardSummary) {
+        return (
+            <EmptyState
+                title="Dashboard data unavailable"
+                description="We could not load the dashboard right now. Please refresh and try again."
+                className="mt-10"
+            />
+        );
+    }
 
     return (
         <>  

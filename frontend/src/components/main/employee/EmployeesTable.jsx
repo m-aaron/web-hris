@@ -23,6 +23,8 @@ import { formatEmployeeDisplayName } from "../../../helpers/employeeHelper";
 import { RECORD_STATUSES } from "../../../constants/employeeConstant";
 import Badge from "../ui/Badge";
 import Tooltip from "../ui/Tooltip";
+import Skeleton from "../../Skeleton";
+import EmptyState from "../ui/EmptyState";
 
 const EmployeesTable = ({
   employees,
@@ -31,6 +33,7 @@ const EmployeesTable = ({
   setDrawerEmployee,
   query,
   setQuery,
+  loading = false,
   disableSelection = false,
 }) => {
   const [hoveredRowId, setHoveredRowId] = useState(null);
@@ -145,7 +148,58 @@ const EmployeesTable = ({
 
         {/* TABLE BODY */}
         <TableBody className="divide-y">
-          {employees.map((row, index) => {
+          {loading &&
+            Array.from({ length: 8 }).map((_, rowIndex) => (
+              <TableRow key={`skeleton-row-${rowIndex}`} className="text-muted">
+                <TableCell>
+                  <Skeleton className="h-4 w-4 rounded-sm" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-8" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-20" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-40" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-16" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-20" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-16" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-24" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-10" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-24" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-28" />
+                </TableCell>
+              </TableRow>
+            ))}
+
+          {!loading && employees.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={11} className="py-8">
+                <EmptyState
+                  title="No employees found"
+                  description="Try adjusting your filters, status, or search keyword."
+                  className="max-w-none"
+                />
+              </TableCell>
+            </TableRow>
+          )}
+
+          {!loading && employees.map((row, index) => {
             const rowTooltip = getRecordStatusTooltip(row.record_status);
 
             return (
@@ -153,7 +207,7 @@ const EmployeesTable = ({
                 key={row.id}
                 onMouseEnter={() => setHoveredRowId(row.id)}
                 onMouseLeave={() => setHoveredRowId(null)}
-                className={`text-muted hover:bg-[rgba(66,73,77,0.1)] transition group
+                className={`text-muted hover:bg-soft-surface/80 transition group
                   ${row.record_status === RECORD_STATUSES.DRAFT ? "border-l-4 border-yellow bg-yellow/10 hover:bg-yellow/20" : ""}
                   ${row.record_status === RECORD_STATUSES.ARCHIVED ? "border-l-4 border-red bg-red/10 hover:bg-red/20" : ""}
                 `}

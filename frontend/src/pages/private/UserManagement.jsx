@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 
 import Button from "../../components/Button";
 import InputForm from "../../components/InputForm";
 import SelectForm from "../../components/SelectForm";
-import Spinner from "../../components/Spinner";
 import ConfirmModal from "../../components/main/ui/ConfirmModal";
 import { Card } from "../../components/main/ui/Card";
 import UsersTable from "../../components/main/user/UsersTable";
@@ -408,9 +406,11 @@ const UserManagement = () => {
                             type="submit"
                             size="small"
                             className="w-full sm:w-auto"
+                            loading={isCreateSubmitting || actionLoading}
+                            loadingText="Creating..."
                             disabled={!isCreateValid || isCreateSubmitting || actionLoading}
                         >
-                            {isCreateSubmitting || actionLoading ? "Creating..." : "Create User"}
+                            Create User
                         </Button>
                     </div>
                 </form>
@@ -418,33 +418,17 @@ const UserManagement = () => {
 
             <Card className="rounded-2xl shadow-sm transition-all duration-300 hover:shadow-lg">
                 <div className="p-4 flex-1 flex flex-col bg-card rounded-2xl overflow-hidden">
-                    {loading ? (
-                        <div className="h-52 flex items-center justify-center">
-                            <Spinner size={48} />
-                        </div>
-                    ) : (
-                        <UsersTable
-                            users={users}
-                            onEdit={openEditModal}
-                        />
-                    )}
+                    <UsersTable
+                        users={users}
+                        onEdit={openEditModal}
+                        loading={loading}
+                    />
                 </div>
             </Card>
 
-            <AnimatePresence>
-                {editingUser && (
-                    <motion.div
-                        className="fixed inset-0 flex items-center justify-center bg-grey/40 backdrop-blur-sm z-60 px-4"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                    >
-                        <motion.div
-                            className="bg-card w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden"
-                            initial={{ scale: 0.96, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.96, opacity: 0 }}
-                        >
+            {editingUser && (
+                <div className="fixed inset-0 flex items-center justify-center bg-grey/40 backdrop-blur-sm z-60 px-4">
+                    <div className="bg-card w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden">
                             <div className="px-6 py-4 border-b border-border">
                                 <h3 className="text-lg font-semibold text-heading">Edit User</h3>
                             </div>
@@ -566,16 +550,17 @@ const UserManagement = () => {
                                         type="submit"
                                         size="small"
                                         className="flex-1 sm:flex-none"
+                                        loading={isEditSubmitting || actionLoading}
+                                        loadingText="Saving..."
                                         disabled={isEditSubmitting || actionLoading}
                                     >
-                                        {isEditSubmitting || actionLoading ? "Saving..." : "Save"}
+                                        Save
                                     </Button>
                                 </div>
                             </form>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    </div>
+                </div>
+            )}
 
             {showCreateConfirm && (
                 <ConfirmModal

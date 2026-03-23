@@ -72,7 +72,7 @@ const Login = () => {
                     </div>
                 </div>
                 
-                <Button className="w-full" disabled={loading}>{loading ? "Signing in..." : "Sign in"}</Button>
+                <Button className="w-full" loading={loading} loadingText="Signing in...">Sign in</Button>
             </form>
         </AuthCard>
     )

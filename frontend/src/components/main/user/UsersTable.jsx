@@ -8,8 +8,10 @@ import {
     TableRow,
 } from "../ui/Table";
 import { formatEmployeeDisplayName } from "../../../helpers/employeeHelper";
+import Skeleton from "../../Skeleton";
+import EmptyState from "../ui/EmptyState";
 
-const UsersTable = ({ users, onEdit }) => {
+const UsersTable = ({ users, onEdit, loading = false }) => {
 
     const formatName = (row) => {
         return formatEmployeeDisplayName(row, "N/A");
@@ -34,15 +36,31 @@ const UsersTable = ({ users, onEdit }) => {
                 </TableHead>
 
                 <TableBody className="divide-y">
-                    {users.length === 0 ? (
+                    {loading && Array.from({ length: 6 }).map((_, rowIndex) => (
+                        <TableRow key={`users-skeleton-${rowIndex}`}>
+                            <TableCell><Skeleton className="h-4 w-6" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                            <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                            <TableCell><Skeleton className="h-8 w-16 rounded-xl" /></TableCell>
+                        </TableRow>
+                    ))}
+
+                    {!loading && users.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={7} className="text-center py-8 text-muted">
-                                No users found.
+                            <TableCell colSpan={7} className="py-8">
+                                <EmptyState
+                                    title="No users found"
+                                    description="Create a new user or adjust account filters."
+                                    className="max-w-none"
+                                />
                             </TableCell>
                         </TableRow>
                     ) : (
-                        users.map((user, index) => (
-                            <TableRow key={user.id} className="text-muted hover:bg-[rgba(66,73,77,0.1)] transition">
+                        !loading && users.map((user, index) => (
+                            <TableRow key={user.id} className="text-muted hover:bg-soft-surface/80 transition">
                                 <TableCell>{index + 1}</TableCell>
                                 <TableCell>{formatName(user)}</TableCell>
                                 <TableCell>{user.email || "-"}</TableCell>

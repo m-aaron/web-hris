@@ -76,7 +76,7 @@ const ResetPassword = () => {
                     value={ confirmPassword }
                     onChange={ (e) => setConfirmPassword(e.target.value) }
                 />
-                <Button className="w-full" disabled={loading}>{ loading ? "Saving..." : "Set New Password" }</Button>
+                <Button className="w-full" loading={loading} loadingText="Saving...">Set New Password</Button>
                 <p className="text-center text-lg text-primary">Remember your password? <Link to="/login" className="font-semibold">Sign in</Link></p>
             </form>
         </AuthCard>

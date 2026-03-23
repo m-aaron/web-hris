@@ -1,6 +1,7 @@
 import { Calendar, CalendarClock, AlertTriangle } from "lucide-react";
 import { RegularizationPreviewTable } from "./RegularizationTable";
 import { KpiCard } from "./KpiCard";
+import EmptyState from "../ui/EmptyState";
 
 export const RegularizationSection = ( { summary, becomingRegular } ) => {
   return (
@@ -34,7 +35,13 @@ export const RegularizationSection = ( { summary, becomingRegular } ) => {
 
       {Array.isArray( becomingRegular ) && becomingRegular.length > 0 ? (
         <RegularizationPreviewTable becomingRegular={ becomingRegular } />
-      ) : null}
+      ) : (
+        <EmptyState
+          title="No upcoming regularizations"
+          description="No employees are currently approaching regularization dates."
+          className="max-w-none"
+        />
+      )}
       
     </section>
   );

@@ -56,7 +56,7 @@ const ForgotPassword = () => {
                     value={ email }
                     onChange={ e => setEmail(e.target.value) }
                 />
-                <Button className="w-full" disabled={loading}>{loading ? "Sending..." : "Send Reset Link"}</Button>
+                <Button className="w-full" loading={loading} loadingText="Sending...">Send Reset Link</Button>
                 <p className="text-center text-lg text-primary">Remember your password? <Link to="/login" className="font-semibold">Sign in</Link></p>
             </form>
         </AuthCard>

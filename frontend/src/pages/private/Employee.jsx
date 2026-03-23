@@ -145,12 +145,14 @@ export default function EmployeesPage() {
             disableSelection={actionLoading}
           />
 
-          <PaginationFooter
-            total={pagination.total || 0}
-            page={pagination.page || 1}
-            totalPages={pagination.total_pages || 1}
-            setQuery={setQuery}
-          />
+          {!queryLoading && (data?.length || 0) > 0 && (
+            <PaginationFooter
+              total={pagination.total || 0}
+              page={pagination.page || 1}
+              totalPages={pagination.total_pages || 1}
+              setQuery={setQuery}
+            />
+          )}
         </div>
       </Card>
 
