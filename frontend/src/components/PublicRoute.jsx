@@ -1,11 +1,11 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import Spinner from "./Spinner";
+import LoadingState from "./LoadingState";
 
 const PublicRoute = () => {
     const { user, loading } = useAuth();
 
-    if (loading) return <Spinner />;
+    if (loading) return <LoadingState fullScreen label="Checking your session..." />;
 
     if (user) {
         // Default dashboard

@@ -2,7 +2,10 @@ const Button = ({
     children,
     variant = "primary",
     size = "large",
+    loading = false,
+    loadingText = "Loading...",
     className = "",
+    disabled = false,
     ...props
 }) => {
 
@@ -35,9 +38,13 @@ const Button = ({
         large: "py-3 px-6 text-lg",
     };
 
+    const isDisabled = disabled || loading;
+
     return (
         <button
         {...props}
+        disabled={isDisabled}
+        aria-busy={loading}
         className={`
             ${baseStyles}
             ${variants[variant]}
@@ -45,7 +52,14 @@ const Button = ({
             ${className}
         `}
         >
-        {children}
+        {loading ? (
+            <span className="inline-flex items-center gap-2">
+                <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                <span>{loadingText}</span>
+            </span>
+        ) : (
+            children
+        )}
         </button>
     );
 };

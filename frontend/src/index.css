@@ -85,6 +85,32 @@ body {
     animation: spinner-c7wet2 1s infinite linear;
 }
 
+.skeleton {
+    position: relative;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--muted) 18%, transparent);
+}
+
+.skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in srgb, var(--card) 55%, transparent),
+        transparent
+    );
+    animation: skeleton-shimmer 1.2s infinite;
+}
+
+@keyframes skeleton-shimmer {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
 @keyframes spinner-c7wet2 {
     100% {
         transform: rotate(1turn);
