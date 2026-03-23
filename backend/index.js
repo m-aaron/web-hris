@@ -22,9 +22,10 @@ import userRoutes from './src/routes/userRoute.js';
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin: FRONTEND_URL,
     credentials: true, // allow cookies
 }));
 app.use(
@@ -52,6 +53,10 @@ app.use('/api/employees', historyRoutes);
 app.use('/api/employees', otherInfoRoutes);
 app.use('/api/employees', referenceRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+
+app.get('/health', (_req, res) => {
+    res.status(200).json({ status: 'ok' });
+});
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
