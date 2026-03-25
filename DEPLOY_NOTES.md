@@ -15,6 +15,13 @@ This checklist validates the Docker deployment for:
 - Backend health: http://localhost:5001/health
 - Postgres host port: 5433
 
+## Windows Quick Start
+
+1. Double-click start.bat from project root.
+2. Wait about 30 seconds on first run.
+3. Open http://localhost:3000 and begin UAT.
+4. After testing, double-click stop.bat.
+
 ## Pre-check
 
 1. Ensure containers are running:

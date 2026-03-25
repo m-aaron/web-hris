@@ -24,8 +24,36 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 
+const allowedOrigins = new Set([FRONTEND_URL]);
+
+try {
+    const configuredUrl = new URL(FRONTEND_URL);
+
+    // Allow localhost and 127.0.0.1 variants on the same protocol/port.
+    if (configuredUrl.hostname === "localhost") {
+        configuredUrl.hostname = "127.0.0.1";
+        allowedOrigins.add(configuredUrl.toString().replace(/\/$/, ""));
+    } else if (configuredUrl.hostname === "127.0.0.1") {
+        configuredUrl.hostname = "localhost";
+        allowedOrigins.add(configuredUrl.toString().replace(/\/$/, ""));
+    }
+} catch {
+    // Keep only FRONTEND_URL if it is not a valid URL.
+}
+
 app.use(cors({
-    origin: FRONTEND_URL,
+    origin(origin, callback) {
+        // Allow server-to-server or non-browser requests without Origin.
+        if (!origin) {
+            return callback(null, true);
+        }
+
+        if (allowedOrigins.has(origin)) {
+            return callback(null, true);
+        }
+
+        return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true, // allow cookies
 }));
 app.use(
