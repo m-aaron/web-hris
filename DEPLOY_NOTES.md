@@ -10,7 +10,8 @@ This checklist validates the Docker deployment for:
 
 ## Environment
 
-- Frontend URL: http://localhost:3000
+- Frontend URL (Docker): http://localhost:3002
+- Frontend URL (Local Vite dev): http://localhost:3000
 - Backend URL: http://localhost:5001
 - Backend health: http://localhost:5001/health
 - Postgres host port: 5433
@@ -19,7 +20,7 @@ This checklist validates the Docker deployment for:
 
 1. Double-click start.bat from project root.
 2. Wait about 30 seconds on first run.
-3. Open http://localhost:3000 and begin UAT.
+3. Open http://localhost:3002 and begin UAT.
 4. After testing, double-click stop.bat.
 
 ## Pre-check

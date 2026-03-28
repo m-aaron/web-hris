@@ -13,7 +13,7 @@
 
 ## 3. Verify health
 - Backend health: http://localhost:5001/health
-- Frontend: http://localhost:3000
+- Frontend: http://localhost:3002
 - API base test: http://localhost:5001/api
 
 ## 4. Verify database

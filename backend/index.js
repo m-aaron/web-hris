@@ -22,24 +22,43 @@ import userRoutes from './src/routes/userRoute.js';
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+const frontendOriginsRaw = process.env.FRONTEND_URLS || process.env.FRONTEND_URL || "http://localhost:3000";
 
-const allowedOrigins = new Set([FRONTEND_URL]);
+const allowedOrigins = new Set();
 
-try {
-    const configuredUrl = new URL(FRONTEND_URL);
-
-    // Allow localhost and 127.0.0.1 variants on the same protocol/port.
-    if (configuredUrl.hostname === "localhost") {
-        configuredUrl.hostname = "127.0.0.1";
-        allowedOrigins.add(configuredUrl.toString().replace(/\/$/, ""));
-    } else if (configuredUrl.hostname === "127.0.0.1") {
-        configuredUrl.hostname = "localhost";
-        allowedOrigins.add(configuredUrl.toString().replace(/\/$/, ""));
+const addAllowedOriginVariants = (originValue) => {
+    if (!originValue) {
+        return;
     }
-} catch {
-    // Keep only FRONTEND_URL if it is not a valid URL.
-}
+
+    const normalized = String(originValue).trim().replace(/\/$/, "");
+    if (!normalized) {
+        return;
+    }
+
+    allowedOrigins.add(normalized);
+
+    try {
+        const parsed = new URL(normalized);
+
+        // Allow localhost and 127.0.0.1 variants on the same protocol/port.
+        if (parsed.hostname === "localhost") {
+            parsed.hostname = "127.0.0.1";
+            allowedOrigins.add(parsed.toString().replace(/\/$/, ""));
+        } else if (parsed.hostname === "127.0.0.1") {
+            parsed.hostname = "localhost";
+            allowedOrigins.add(parsed.toString().replace(/\/$/, ""));
+        }
+    } catch {
+        // Ignore malformed origin value.
+    }
+};
+
+frontendOriginsRaw
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+    .forEach(addAllowedOriginVariants);
 
 app.use(cors({
     origin(origin, callback) {

@@ -42,7 +42,7 @@ if errorlevel 1 (
 
 echo.
 echo [OK] MC HRIS started successfully.
-echo Frontend URL: http://localhost:3000
+echo Frontend URL: http://localhost:3002
 echo Backend URL:  http://localhost:5001
 echo.
 echo Note: On first run, please wait about 30 seconds before using the system.
