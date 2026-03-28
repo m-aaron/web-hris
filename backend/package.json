@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "db:reset-seed": "node scripts/seed.js",
+    "db:reset-seed:50": "set SEED_EMPLOYEE_COUNT=50&& node scripts/seed.js"
   },
   "keywords": [],
   "author": "",
