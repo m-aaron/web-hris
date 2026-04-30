@@ -95,6 +95,7 @@ const EmploymentSection = ({
     reset({
       date_hired: formatPHDate(emp.date_hired) || "",
       position_id: emp.position_id || positionOptions[0]?.value || "",
+      salary: emp.salary || "",
       designation_id: emp.designation_id || "",
       sss: emp.sss || "",
       pagibig: emp.pagibig || "",
@@ -115,6 +116,7 @@ const EmploymentSection = ({
       const payload = {
         dateHired: data.date_hired,
         position: data.position_id,
+        salary: data.salary,
         designation: data.designation_id,
         sss: data.sss,
         pagibig: data.pagibig,
@@ -195,6 +197,12 @@ const EmploymentSection = ({
                 message={errors.position_id?.message}
                 {...register("position_id")}
                 options={positionOptions}
+              />
+
+              <InputForm
+                label="Salary"
+                message={errors.salary?.message}
+                {...register("salary")}
               />
 
               <SelectForm

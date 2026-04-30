@@ -1,6 +1,22 @@
 import { z } from "zod"
 import { normalizeNullToEmptyString, nullishToUndefined } from "./schemaNormalizers"
 
+const salarySchema = z
+    .any()
+    .refine((val) => {
+        if (val === null || val === undefined || val === "") return true;
+        return !isNaN(Number(val));
+    }, { message: "Salary must be a number." })
+    .refine((val) => {
+        if (val === null || val === undefined || val === "") return true;
+        return Number(val) >= 0;
+    }, { message: "Salary must be positive." })
+    .transform((val) =>
+        val === null || val === undefined || val === ""
+        ? undefined
+        : Number(val)
+);
+
 const workingHoursSchema = z.any()
     .refine(val => {
         // Allow empty/nullish values to pass, as it's optional.
@@ -41,6 +57,7 @@ export const employmentSchema = z
             }),
     
         position_id: z.coerce.number().min(1, "Position is required"),
+        salary: salarySchema,
         designation_id: z.preprocess(nullishToUndefined, z.coerce.number().optional()),
     
         sss: z.preprocess(normalizeNullToEmptyString, z.string().optional()),

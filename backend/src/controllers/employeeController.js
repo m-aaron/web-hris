@@ -718,6 +718,7 @@ export const getEmployeeById = asyncHandler(async (req, res) => {
         `SELECT 
             date_hired,
             position_id,
+            salary,
             designation_id,
             sss,
             pagibig,

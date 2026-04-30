@@ -67,10 +67,11 @@ const EmploymentView = ({ employee }) => {
           Employment Details
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
           <ViewField label="Date Hired" value={formatPHDate(e.date_hired)} />
           <ViewField label="Position" value={positionName || e.position_id} />
+          <ViewField label="Salary" value={e.salary} />
           <ViewField label="Designation" value={designationName || e.designation_id} />
 
         </div>

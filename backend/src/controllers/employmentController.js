@@ -11,7 +11,8 @@ export const saveEmploymentData = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { 
         dateHired, 
-        position, 
+        position,
+        salary, 
         designation, 
         sss,
         pagibig,
@@ -78,6 +79,7 @@ export const saveEmploymentData = asyncHandler(async (req, res) => {
             employee_id,
             date_hired,
             position_id,
+            salary,
             designation_id,
             sss,
             pagibig,
@@ -89,11 +91,12 @@ export const saveEmploymentData = asyncHandler(async (req, res) => {
             official_working_hours,
             other_employment,
             other_employment_working_hours
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
         ON CONFLICT (employee_id) 
         DO UPDATE SET
             date_hired = EXCLUDED.date_hired,
             position_id = EXCLUDED.position_id,
+            salary = EXCLUDED.salary,
             designation_id = EXCLUDED.designation_id,
             sss = EXCLUDED.sss,
             pagibig = EXCLUDED.pagibig,
@@ -112,6 +115,7 @@ export const saveEmploymentData = asyncHandler(async (req, res) => {
         id,
         dateHired,
         checkPositionResult.rows[0].id,
+        salary || null,
         checkDesignationResult ? checkDesignationResult.rows[0].id : null,
         sss || '',
         pagibig || '',
