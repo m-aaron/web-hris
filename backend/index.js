@@ -17,6 +17,7 @@ import otherInfoRoutes from './src/routes/otherInfoRoute.js';
 import referenceRoutes from './src/routes/referenceRoute.js';
 import dashboardRoutes from './src/routes/dashboardRoute.js';
 import userRoutes from './src/routes/userRoute.js';
+import leaveRoutes from './src/routes/leaveRoutes.js';
 
 
 dotenv.config();
@@ -99,6 +100,7 @@ app.use('/api/employees', trainingRoutes);
 app.use('/api/employees', historyRoutes);
 app.use('/api/employees', otherInfoRoutes);
 app.use('/api/employees', referenceRoutes);
+app.use('/api/leave', leaveRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
 app.get('/health', (_req, res) => {
