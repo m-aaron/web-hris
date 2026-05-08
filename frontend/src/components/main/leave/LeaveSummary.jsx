@@ -74,7 +74,8 @@ const LeaveSummary = ({ employeeId }) => {
                 )}
             </div>
 
-            <div className="rounded-xl border border-border bg-card/60 p-4 space-y-2">
+            <div className="rounded-xl border border-border bg-card/60 p-4">
+                <div className="max-h-35 overflow-y-auto space-y-2 pr-1 scrollbar">
                 {loading && (
                     <>
                         <Skeleton className="h-4 w-full" />
@@ -88,6 +89,7 @@ const LeaveSummary = ({ employeeId }) => {
                 )}
 
                 {!loading && hasBalances && renderedBalances}
+                </div>
             </div>
 
             <div className="space-y-2">
