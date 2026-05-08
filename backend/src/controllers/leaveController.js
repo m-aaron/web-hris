@@ -338,6 +338,17 @@ export const getLeaveBalances = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: "Invalid year filter.", success: false });
     }
 
+    if (employee_id) {
+        await pool.query(
+            `INSERT INTO leave_balances (employee_id, leave_type_id, year, total_entitlement, used_days)
+            SELECT $1, lt.id, $2, 0, 0
+            FROM leave_types lt
+            WHERE lt.is_active = TRUE
+            ON CONFLICT (employee_id, leave_type_id, year) DO NOTHING`,
+            [employee_id, targetYear]
+        );
+    }
+
     const whereClauses = [`lb.year = $1`];
     const values = [targetYear];
     let index = 2;
@@ -425,6 +436,10 @@ export const updateLeaveBalance = asyncHandler(async (req, res) => {
         usedDaysValue < 0
     ) {
         return res.status(400).json({ message: "Total entitlement and used days must be 0 or greater.", success: false });
+    }
+
+    if (usedDaysValue > totalEntitlementValue) {
+        return res.status(400).json({ message: "Used days cannot exceed total entitlement.", success: false });
     }
 
     const updateResult = await pool.query(

@@ -87,7 +87,9 @@ const LeaveBalanceTable = ({ balances, loading = false, onSave }) => {
 
                     {!loading && balances.map((row, index) => {
                         const isEditing = editingId === row.id;
-                        const remaining = Number(row.total_entitlement || 0) - Number(row.used_days || 0);
+                        const totalValue = Number(isEditing ? editValues.total_entitlement : row.total_entitlement);
+                        const usedValue = Number(isEditing ? editValues.used_days : row.used_days);
+                        const remaining = (Number.isFinite(totalValue) ? totalValue : 0) - (Number.isFinite(usedValue) ? usedValue : 0);
 
                         return (
                             <TableRow key={row.id} className="text-muted hover:bg-soft-surface/80 transition">
@@ -106,6 +108,8 @@ const LeaveBalanceTable = ({ balances, loading = false, onSave }) => {
                                     {isEditing ? (
                                         <input
                                             type="number"
+                                            min="0"
+                                            step="1"
                                             className="w-24 rounded-xl border border-border bg-card px-2 py-1 text-sm text-heading focus:outline-none focus:ring-2 focus:ring-primary"
                                             value={editValues.total_entitlement}
                                             onChange={(event) =>
@@ -123,6 +127,8 @@ const LeaveBalanceTable = ({ balances, loading = false, onSave }) => {
                                     {isEditing ? (
                                         <input
                                             type="number"
+                                            min="0"
+                                            step="1"
                                             className="w-24 rounded-xl border border-border bg-card px-2 py-1 text-sm text-heading focus:outline-none focus:ring-2 focus:ring-primary"
                                             value={editValues.used_days}
                                             onChange={(event) =>
