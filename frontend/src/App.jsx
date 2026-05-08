@@ -17,6 +17,7 @@ import EmployeeCreate from "./pages/private/EmployeeCreate";
 import EmployeeView from "./pages/private/EmployeeView";
 import UserManagement from "./pages/private/UserManagement";
 import ProfileSettings from "./pages/private/ProfileSettings";
+import LeaveManagement from "./pages/private/LeaveManagement";
 import { useTheme } from "./hooks/useTheme";
 
 
@@ -46,6 +47,7 @@ const App = () => {
             <Route element={ <MainLayout /> }>
               <Route path="/dashboard" element={ <Dashboard /> } />
               <Route path="/employees" element={ <Employee /> } />
+              <Route path="/leave" element={ <LeaveManagement /> } />
               <Route path="/settings" element={ <ProfileSettings /> } />
             </Route>
             <Route path="/employees/:id/edit" element={<EmployeeEdit />} />

@@ -70,6 +70,9 @@ const MainHeader = () => {
                         <NavLink to="/employees" className={navLinkClass}>
                         Employees
                         </NavLink>
+                        <NavLink to="/leave" className={navLinkClass}>
+                        Leave Management
+                        </NavLink>
                         {isAdmin && (
                             <NavLink to="/users" className={navLinkClass}>
                                 User Management
@@ -119,6 +122,14 @@ const MainHeader = () => {
                         onClick={() => setOpen(false)}
                     >
                     Employees
+                    </NavLink>
+
+                    <NavLink
+                        to="/leave"
+                        className={mobileLinkClass}
+                        onClick={() => setOpen(false)}
+                    >
+                    Leave Management
                     </NavLink>
 
                     {isAdmin && (

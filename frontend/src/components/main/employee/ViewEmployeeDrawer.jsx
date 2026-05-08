@@ -8,6 +8,7 @@ import EmployeeDetailItem from "./EmployeeDetailItem";
 import ConfirmModal from "../ui/ConfirmModal";
 import Button from "../../Button";
 import SelectField from "../ui/SelectField";
+import LeaveSummary from "../leave/LeaveSummary";
 
 import {
   formatEnum,
@@ -300,6 +301,8 @@ const ViewEmployeeDrawer = ({ employee, onClose, onEmployeeArchived, onStatusUpd
               </div>
 
             </div>
+
+            <LeaveSummary employeeId={activeEmployee.id} />
 
             {/* Status Section */}
             <div className="space-y-3">
