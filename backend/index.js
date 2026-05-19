@@ -20,6 +20,7 @@ import userRoutes from './src/routes/userRoute.js';
 import leaveRoutes from './src/routes/leaveRoutes.js';
 import positionRoutes from './src/routes/positionRoutes.js';
 import designationRoutes from './src/routes/designationRoutes.js';
+import departmentRoutes from './src/routes/departmentRoute.js';
 
 
 dotenv.config();
@@ -106,6 +107,7 @@ app.use('/api/leave', leaveRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/positions', positionRoutes);
 app.use('/api/designations', designationRoutes);
+app.use('/api/departments', departmentRoutes);
 
 app.get('/health', (_req, res) => {
     res.status(200).json({ status: 'ok' });

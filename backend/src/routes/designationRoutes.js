@@ -11,7 +11,7 @@ import {
 
 const router = express.Router();
 
-router.get("/", authenticate, authorizeRoles(ROLES.ADMIN), getDesignations);
+router.get("/", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), getDesignations);
 router.post("/", authenticate, authorizeRoles(ROLES.ADMIN), createDesignation);
 router.patch("/:id", authenticate, authorizeRoles(ROLES.ADMIN), updateDesignation);
 router.delete("/:id", authenticate, authorizeRoles(ROLES.ADMIN), deleteDesignation);
