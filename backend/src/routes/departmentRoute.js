@@ -4,12 +4,14 @@ import { authenticate } from "../middlewares/authenticateMiddleware.js";
 import { authorizeRoles } from "../middlewares/authorizeMiddleware.js";
 import {
     getDepartments,
-    createDepartment
+    createDepartment,
+    updateDepartment
 } from "../controllers/departmentController.js";
 
 const router = express.Router();
 
 router.get("/", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), getDepartments);
 router.post("/", authenticate, authorizeRoles(ROLES.ADMIN), createDepartment);
+router.patch("/:id", authenticate, authorizeRoles(ROLES.ADMIN), updateDepartment);
 
 export default router;

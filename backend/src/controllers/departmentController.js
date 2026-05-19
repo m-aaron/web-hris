@@ -64,3 +64,55 @@ export const createDepartment = asyncHandler(async (req, res) => {
     });
 
 });
+
+// @desc    Update department
+// @route   PATCH /api/departments/:id
+// @access  Private
+export const updateDepartment = asyncHandler(async (req, res) => {
+
+    const { id } = req.params;
+    const { name, description } = req.body;
+
+    const normalizedName = String(name || "").trim();
+    const normalizedDescription = String(description || "").trim();
+
+    if (!normalizedName) {
+        return res.status(400).json({ message: "Department name is required.", success: false });
+    }
+
+    const departmentResult = await pool.query(
+        `SELECT id FROM departments WHERE id = $1`,
+        [id]
+    );
+
+    if (departmentResult.rowCount === 0) {
+        return res.status(404).json({ message: "Department not found.", success: false });
+    }
+
+    const duplicateResult = await pool.query(
+        `SELECT id FROM departments WHERE LOWER(name) = LOWER($1) AND id <> $2`,
+        [normalizedName, id]
+    );
+
+    if (duplicateResult.rowCount > 0) {
+        return res.status(409).json({ message: "Department name already exists.", success: false });
+    }
+
+    const updateResult = await pool.query(
+        `UPDATE departments SET name = $1, description = $2
+        WHERE id = $3
+        RETURNING *`,
+        [normalizedName, normalizedDescription, id]
+    );      
+
+    if (updateResult.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to update department.", success: false });
+    }
+
+    res.status(200).json({
+        message: "Department updated successfully.",
+        success: true,
+        department: updateResult.rows[0],
+    });
+
+});
