@@ -116,3 +116,52 @@ export const updateDepartment = asyncHandler(async (req, res) => {
     });
 
 });
+
+// @desc    Soft delete department
+// @route   DELETE /api/departments/:id
+// @access  Private
+export const deleteDepartment = asyncHandler(async (req, res) => {
+
+    const { id } = req.params;
+
+    const departmentResult = await pool.query(
+        `SELECT id FROM departments WHERE id = $1`,
+        [id]
+    );
+
+    if (departmentResult.rowCount === 0) {
+        return res.status(404).json({ message: "Department not found.", success: false });
+    }
+
+    const linkedResult = await pool.query(
+        `SELECT COUNT(*) FROM faculty WHERE department_id = $1`,
+        [id]
+    );
+
+    const linkedCount = Number(linkedResult.rows[0]?.count || 0);
+
+    if (linkedCount > 0) {
+        return res.status(400).json({
+            message: "Cannot delete - employees are linked to this department",
+            success: false,
+        });
+    }
+
+    const deleteResult = await pool.query(
+        `UPDATE departments
+            SET is_active = FALSE
+        WHERE id = $1
+        RETURNING *`,
+        [id]
+    );
+
+    if (deleteResult.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to delete department.", success: false });
+    }
+
+    res.status(200).json({
+        message: "Department deleted successfully.",
+        success: true,
+    });
+
+});
