@@ -13,100 +13,32 @@ import {
 const statusStyles = {
   PENDING: "bg-light-yellow text-yellow border border-yellow",
   APPROVED: "bg-light-green text-green border border-green",
-  REJECTED: "bg-light-red text-red border border-red",
+  DISAPPROVED: "bg-light-red text-red border border-red",
 };
 
-const LeaveDetailModal = ({
-  isOpen,
-  onClose,
-  application,
-  onApprove,
-  onReject,
-  defaultAction = null,
-}) => {
-  const [remarks, setRemarks] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [actionType, setActionType] = useState(defaultAction);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [confirmAction, setConfirmAction] = useState(null);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    setRemarks(application?.remarks || "");
-    setError("");
-    setLoading(false);
-    setActionType(defaultAction);
-    setShowConfirm(false);
-    setConfirmAction(null);
-  }, [isOpen, application, defaultAction]);
+const LeaveDetailModal = ({ isOpen, onClose, application }) => {
+  useEffect(() => {}, [isOpen, application]);
 
   if (!isOpen || !application) return null;
 
+  const app = application.application || application;
+  const leaveTypes = application.leave_types || application.leaveTypes || [];
+
   const statusClass =
-    statusStyles[application.status] ||
-    "bg-grey text-muted border border-muted";
-  const fullName = formatEmployeeDisplayName(
-    application,
-    application.employee_name || "N/A",
+    statusStyles[app.status] || "bg-grey text-muted border border-muted";
+  const fullName = formatEmployeeDisplayName(app, "N/A");
+
+  const subjects = app.subjects_covered || [];
+
+  const totalDays = leaveTypes.reduce(
+    (sum, lt) => sum + Number(lt.number_of_days || 0),
+    0,
   );
 
-  const executeApprove = async () => {
-    setLoading(true);
-    setActionType("approve");
-    setError("");
-
-    const success = await onApprove?.(remarks);
-    setLoading(false);
-
-    if (success) onClose();
-  };
-
-  const executeReject = async () => {
-    setLoading(true);
-    setActionType("reject");
-    setError("");
-
-    const success = await onReject?.(remarks.trim());
-    setLoading(false);
-
-    if (success) onClose();
-  };
-
-  const requestApprove = () => {
-    setError("");
-    setConfirmAction("approve");
-    setShowConfirm(true);
-  };
-
-  const requestReject = () => {
-    if (!remarks.trim()) {
-      setError("Remarks are required for rejection.");
-      return;
-    }
-
-    setError("");
-    setConfirmAction("reject");
-    setShowConfirm(true);
-  };
-
-  const handleConfirmAction = async () => {
-    if (confirmAction === "approve") {
-      await executeApprove();
-    }
-
-    if (confirmAction === "reject") {
-      await executeReject();
-    }
-
-    setShowConfirm(false);
-    setConfirmAction(null);
-  };
-
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-grey/40 backdrop-blur-sm z-60 px-4">
+    <div className="fixed inset-0 z-60 px-0 sm:px-4 flex items-start sm:items-center justify-center bg-grey/40 backdrop-blur-sm">
       <motion.div
-        className="bg-card w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden"
+        className="bg-card w-full sm:max-w-2xl md:max-w-4xl lg:max-w-5xl rounded-none sm:rounded-2xl shadow-xl overflow-hidden flex flex-col h-full sm:h-auto sm:max-h-[90vh]"
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.96 }}
@@ -121,150 +53,133 @@ const LeaveDetailModal = ({
           </button>
         </div>
 
-        <div className="px-6 py-5 space-y-5 max-h-[75vh] overflow-y-auto scrollbar">
+        <div className="flex-1 min-h-0 px-6 py-5 space-y-5 overflow-y-auto scrollbar">
           <div className="border border-border rounded-xl p-4 space-y-4">
-            <h4 className="text-sm uppercase tracking-wide font-semibold text-muted">
-              Application Details
-            </h4>
+            <h3 className="text-sm font-semibold text-muted uppercase tracking-wide">
+              Personal Details
+            </h3>
+            
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <ViewField label="Employee No" value={app.employee_no || "-"} />
               <ViewField label="Employee" value={fullName} />
-              <ViewField
-                label="Employee No"
-                value={application.employee_no || "-"}
-              />
-              <ViewField
-                label="Leave Type"
-                value={application.leave_type || "-"}
-              />
-              <ViewField
-                label="Date Filed"
-                value={formatPHDate(application.date_filed)}
-              />
-              <ViewField
-                label="Date From"
-                value={formatPHDate(application.date_from)}
-              />
-              <ViewField
-                label="Date To"
-                value={formatPHDate(application.date_to)}
-              />
-              <ViewField
-                label="Number of Days"
-                value={application.number_of_days}
-              />
-              <ViewField
-                label="Status"
-                value={formatEnum(application.status)}
+              <ViewField label="Position" value={app.position || app.job_title || "-"} />
+              <ViewField label="Employment Type" value={app.employment_type || "-"} />
+              <ViewField label="Department Unit" value={app.department_unit || "-"} />
+            </div>
+
+          </div>
+
+          <div className="border border-border rounded-xl p-4 space-y-4">
+            <h3 className="text-sm font-semibold text-muted uppercase tracking-wide">
+              Application Details
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <ViewField label="Date Filed" value={formatPHDate(app.date_filed)} />
+              {String(app.employment_type || "").toUpperCase() !== "TEACHING" && (
+                <ViewField label="Substitute" value={app.substitute_name || "-"} />
+              )}
+
+              <ViewField label="Status" 
+                value={
+                  <div className="flex items-start gap-3">
+                    <span
+                      className={`inline-flex items-center text-xs px-3 py-1 rounded-full font-medium border ${statusClass}`}
+                    >
+                      {app.status}
+                    </span>
+                  </div> } 
               />
             </div>
 
-            <div>
-              <span
-                className={`inline-flex items-center text-xs px-3 py-1 rounded-full font-medium border ${statusClass}`}
-              >
-                {formatEnum(application.status)}
-              </span>
-            </div>
-          </div>
+            <ViewField className="col-span-1 md:col-span-3" label="Reason" value={app.reason || "-"} />
 
-          <div className="border border-border rounded-xl p-4 space-y-3">
-            <h4 className="text-sm uppercase tracking-wide font-semibold text-muted">
-              Reason
-            </h4>
-            <p className="text-sm text-heading">{application.reason || "—"}</p>
-          </div>
+                      <div className="mt-10 space-y-3">
+            <h3 className="text-sm font-semibold text-muted uppercase tracking-wide">
+              Leave Types
+            </h3>
 
-          {application.status === "PENDING" ? (
-            <div className="border border-border rounded-xl p-4 space-y-3">
-              <h4 className="text-sm uppercase tracking-wide font-semibold text-muted">
-                Remarks
-              </h4>
-              <div>
-                <label className="text-sm text-muted">Remarks</label>
-                <textarea
-                  className="mt-1 w-full rounded-xl border border-border bg-card p-2 text-sm text-heading focus:outline-none focus:ring-2 focus:ring-primary"
-                  rows={3}
-                  value={remarks}
-                  onChange={(event) => setRemarks(event.target.value)}
-                  placeholder="Add optional remarks for approval or required remarks for rejection"
-                />
-                {error && <p className="text-xs text-red mt-1">{error}</p>}
+            <div className="space-y-3">
+              {leaveTypes.map((lt, i) => (
+                <div key={i} className="border border-border rounded-xl p-3 grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                  <div className="sm:col-span-5 lg:col-span-4">
+                    <ViewField label="Leave Type" value={lt.leave_type_name || lt.name} />
+                  </div>
+                  <div className="sm:col-span-2 lg:col-span-3">
+                    <ViewField label="From" value={formatPHDate(lt.date_from)} />
+                  </div>
+                  <div className="sm:col-span-2 lg:col-span-3">
+                    <ViewField label="To" value={formatPHDate(lt.date_to)} />
+                  </div>
+                  <div className="sm:col-span-2 lg:col-span-1">
+                    <ViewField label="Days" value={String(lt.number_of_days || 0)} />
+                  </div>
+                  <div className="sm:col-span-12">
+                    <ViewField label="Details" value={lt.other_leave_details || "-"} />
+                  </div>
+                </div>
+              ))}
+
+              <div className="text-sm">
+                <strong>Total Days:</strong> {totalDays}
               </div>
+
+              {app.status_history && app.status_history.length > 0 && (
+                <div className="border border-border rounded-xl p-4 space-y-3">
+                  <h3 className="text-sm font-semibold text-muted uppercase tracking-wide">Approval History</h3>
+                  <div className="space-y-2">
+                    {app.status_history.map((h, idx) => (
+                      <div key={idx} className="text-sm grid grid-cols-1 md:grid-cols-3 gap-2">
+                        <div>{formatPHDate(h.date) || h.date || '-'}</div>
+                        <div>{h.status || '-'}</div>
+                        <div className="text-muted">{h.by || h.approved_by || '-'}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="border border-border rounded-xl p-4 space-y-3">
-              <h4 className="text-sm uppercase tracking-wide font-semibold text-muted">
-                Remarks
-              </h4>
-              <p className="text-sm text-heading">
-                {application.remarks || "—"}
-              </p>
+          </div>
+          </div>
+
+          {subjects && subjects.length > 0 && (
+            <div className="space-y-3">
+              <div className="border border-border rounded-xl p-4 space-y-3">
+                <h3 className="text-sm font-semibold text-muted uppercase tracking-wide">
+                Subjects Covered
+              </h3>
+                {subjects.map((s, idx) => (
+                  <div
+                    key={idx}
+                    className="border border-border rounded-xl p-3 grid grid-cols-1 sm:grid-cols-12 gap-3 items-end"
+                  >
+                    <div className="sm:col-span-5">
+                      <ViewField label="Subject" value={s.subject} />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <ViewField label="Day" value={s.day} />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <ViewField label="Time" value={s.time} />
+                    </div>
+                    <div className="sm:col-span-3">
+                      <ViewField label="Substitute" value={s.substitute_name || '-'} />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
-          <div className="pt-4 border-t border-border flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-            {application.status === "PENDING" ? (
-              <>
-                <Button
-                  type="button"
-                  variant="danger"
-                  size="small"
-                  className="flex-1 sm:flex-none"
-                  onClick={requestReject}
-                  loading={loading && actionType === "reject"}
-                  loadingText="Rejecting..."
-                >
-                  Reject
-                </Button>
-                <Button
-                  type="button"
-                  size="small"
-                  className="flex-1 sm:flex-none"
-                  onClick={requestApprove}
-                  loading={loading && actionType === "approve"}
-                  loadingText="Approving..."
-                >
-                  Approve
-                </Button>
-              </>
-            ) : (
-              <Button
-                type="button"
-                size="small"
-                className="flex-1 sm:flex-none"
-                onClick={onClose}
-              >
-                Close
-              </Button>
-            )}
+          <div className="border border-border rounded-xl p-4 space-y-3">
+            <h3 className="text-sm font-semibold text-muted uppercase tracking-wide">
+              Remarks
+            </h3>
+            <p className="text-sm text-heading">{app.remarks || "—"}</p>
           </div>
         </div>
       </motion.div>
-
-      {showConfirm && (
-        <ConfirmModal
-          title={
-            confirmAction === "reject"
-              ? "Reject leave application?"
-              : "Approve leave application?"
-          }
-          description={
-            confirmAction === "reject"
-              ? "This action will reject the leave application."
-              : "This action will approve the leave application."
-          }
-          action={confirmAction === "reject" ? "Reject" : "Approve"}
-          primaryButtonVariant={
-            confirmAction === "reject" ? "solidDanger" : "primary"
-          }
-          onCancel={() => {
-            setShowConfirm(false);
-            setConfirmAction(null);
-          }}
-          onConfirm={handleConfirmAction}
-        />
-      )}
     </div>
   );
 };

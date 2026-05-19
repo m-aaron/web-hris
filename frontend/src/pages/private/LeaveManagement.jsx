@@ -12,36 +12,34 @@ import LeaveOverviewCards from "../../components/main/leave/LeaveOverviewCards";
 import LeaveTable from "../../components/main/leave/LeaveTable";
 import LeaveFormModal from "../../components/main/leave/LeaveFormModal";
 import LeaveDetailModal from "../../components/main/leave/LeaveDetailModal";
-import LeaveBalanceTable from "../../components/main/leave/LeaveBalanceTable";
+import LeaveStatusModal from "../../components/main/leave/LeaveStatusModal";
+import ConfirmModal from "../../components/main/ui/ConfirmModal";
 
 import { getEmployees } from "../../services/employeeService";
 import {
-    getLeaveTypes,
-    getLeaveApplications,
-    createLeaveApplication,
-    approveLeaveApplication,
-    rejectLeaveApplication,
-    getLeaveBalances,
-    updateLeaveBalance
+  getLeaveTypes,
+  getLeaveApplications,
+  createLeaveApplication,
+  getLeaveApplication,
+  getLeaveOverview,
+  updateLeaveStatus,
+  updateLeaveApplication,
+  deleteLeaveApplication,
+  getLeaveSummary,
 } from "../../services/leaveService";
 import { formatEmployeeDisplayName } from "../../helpers/employeeHelper";
 
 const DEFAULT_APPLICATIONS_QUERY = {
-    status: "",
-    leave_type_id: "",
-    employee_id: "",
-    date_from: "",
-    date_to: "",
-    page: 1,
-    limit: 10,
+  status: "",
+  leave_type_id: "",
+  employee_id: "",
+  date_from: "",
+  date_to: "",
+  page: 1,
+  limit: 10,
 };
 
-const DEFAULT_BALANCES_QUERY = {
-    employee_id: "",
-    year: new Date().getFullYear(),
-    page: 1,
-    limit: 10,
-};
+// balances removed
 
 const LeaveManagement = () => {
     const [searchParams] = useSearchParams();
@@ -56,34 +54,24 @@ const LeaveManagement = () => {
     const [applicationsPagination, setApplicationsPagination] = useState({});
     const [applicationsLoading, setApplicationsLoading] = useState(true);
 
-    const [balances, setBalances] = useState([]);
-    const [balancesPagination, setBalancesPagination] = useState({});
-    const [balancesLoading, setBalancesLoading] = useState(true);
-
     const [overviewStats, setOverviewStats] = useState({});
     const [overviewLoading, setOverviewLoading] = useState(true);
 
     const [applicationsQuery, setApplicationsQuery] = useState(
         DEFAULT_APPLICATIONS_QUERY,
     );
-    const [balancesQuery, setBalancesQuery] = useState(DEFAULT_BALANCES_QUERY);
 
     const [showFormModal, setShowFormModal] = useState(false);
     const [selectedApplication, setSelectedApplication] = useState(null);
+    const [editingApplication, setEditingApplication] = useState(null);
     const [detailAction, setDetailAction] = useState(null);
-
-    const [balanceEmployeeSearch, setBalanceEmployeeSearch] = useState("");
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     useEffect(() => {
         if (!employeeParam) return;
 
         setApplicationsQuery((prev) => ({
-        ...prev,
-        employee_id: employeeParam,
-        page: 1,
-        }));
-
-        setBalancesQuery((prev) => ({
         ...prev,
         employee_id: employeeParam,
         page: 1,
@@ -109,7 +97,7 @@ const LeaveManagement = () => {
         try {
             const res = await getEmployees({
             page: 1,
-            limit: 200,
+            limit: 1000,
             record_status: "SUBMITTED",
             });
 
@@ -131,48 +119,17 @@ const LeaveManagement = () => {
     const refreshOverview = useCallback(async () => {
         try {
         setOverviewLoading(true);
-        const res = await getLeaveApplications({ page: 1, limit: 250 });
-        const list = res.applications || [];
-        const today = new Date();
-        const currentMonth = today.getMonth();
-        const currentYear = today.getFullYear();
-
-        const isSameMonth = (dateValue) => {
-            if (!dateValue) return false;
-            const date = new Date(dateValue);
-            return (
-            date.getFullYear() === currentYear && date.getMonth() === currentMonth
-            );
-        };
-
-        const isOnLeaveToday = (application) => {
-            if (application.status !== "APPROVED") return false;
-            const from = new Date(application.date_from);
-            const to = new Date(application.date_to);
-            if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()))
-            return false;
-            return from <= today && to >= today;
-        };
-
-        const totalThisMonth = list.filter((item) =>
-            isSameMonth(item.date_filed || item.created_at),
-        ).length;
-        const pending = list.filter((item) => item.status === "PENDING").length;
-        const approvedThisMonth = list.filter(
-            (item) =>
-            item.status === "APPROVED" &&
-            isSameMonth(item.date_filed || item.created_at),
-        ).length;
-        const onLeaveToday = list.filter(isOnLeaveToday).length;
-
+        const res = await getLeaveOverview();
+        const stats = res.stats || {};
         setOverviewStats({
-            totalThisMonth,
-            pending,
-            approvedThisMonth,
-            onLeaveToday,
+            totalThisMonth: stats.totalThisMonth || 0,
+            pending: stats.pending || 0,
+            approvedThisMonth: stats.approvedThisMonth || 0,
+            onLeaveToday: stats.onLeaveToday || 0,
         });
         } catch (error) {
         console.error(error);
+        toast.error("Failed to load overview stats.");
         } finally {
         setOverviewLoading(false);
         }
@@ -196,31 +153,13 @@ const LeaveManagement = () => {
         [applicationsQuery],
     );
 
-    const refreshBalances = useCallback(
-        async (overrideQuery) => {
-        try {
-            setBalancesLoading(true);
-            const params = overrideQuery || balancesQuery;
-            const res = await getLeaveBalances(params);
-            setBalances(res.balances || []);
-            setBalancesPagination(res.pagination || {});
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to load leave balances.");
-        } finally {
-            setBalancesLoading(false);
-        }
-        },
-        [balancesQuery],
-    );
+    // balances removed
 
     useEffect(() => {
         refreshApplications();
     }, [applicationsQuery, refreshApplications]);
 
-    useEffect(() => {
-        refreshBalances();
-    }, [balancesQuery, refreshBalances]);
+    useEffect(() => {}, []);
 
     useEffect(() => {
         refreshOverview();
@@ -234,31 +173,51 @@ const LeaveManagement = () => {
         }));
     };
 
-    const handleBalancesFilterChange = (field, value) => {
-        setBalancesQuery((prev) => ({
-        ...prev,
-        [field]: value,
-        page: 1,
-        }));
-    };
 
     const handleCreateLeave = async (data) => {
         try {
         const optionalDateFiled = data.date_filed
             ? { date_filed: data.date_filed }
             : {};
-        const payload = {
+        let payload;
+        if (Array.isArray(data.leave_types) && data.leave_types.length > 0) {
+            payload = {
             employee_id: data.employee_id,
-            leave_type_id: Number(data.leave_type_id),
             ...optionalDateFiled,
-            date_from: data.date_from,
-            date_to: data.date_to,
-            number_of_days: Number(data.number_of_days),
-            reason: data.reason || "",
-        };
+            department_unit: data.department_unit || null,
+            substitute_name: data.substitute_name || null,
+            subjects_covered: data.subjects_covered || null,
+            reason: data.reason || null,
+            leave_types: data.leave_types.map((lt) => ({
+                leave_type_id: Number(lt.leave_type_id),
+                date_from: lt.date_from,
+                date_to: lt.date_to,
+                number_of_days: Number(lt.number_of_days),
+                other_leave_details: lt.other_leave_details || null,
+            })),
+            };
+        } else {
+            payload = {
+            employee_id: data.employee_id,
+            ...optionalDateFiled,
+            department_unit: data.department_unit || null,
+            substitute_name: data.substitute_name || null,
+            subjects_covered: data.subjects_covered || null,
+            reason: data.reason || null,
+            leave_types: [
+                {
+                leave_type_id: Number(data.leave_type_id || 0),
+                date_from: data.date_from,
+                date_to: data.date_to,
+                number_of_days: Number(data.number_of_days || 0),
+                other_leave_details: data.other_leave_details || null,
+                },
+            ],
+            };
+        }
 
         await createLeaveApplication(payload);
-        toast.success("Leave application created successfully.");
+        toast.success("Leave application filed.");
         setShowFormModal(false);
         refreshApplications();
         refreshOverview();
@@ -272,117 +231,82 @@ const LeaveManagement = () => {
         }
     };
 
-    const handleApprove = async (remarks) => {
-        if (!selectedApplication) return false;
-
+    const handleUpdateLeave = async (appId, data) => {
         try {
-        await approveLeaveApplication(
-            selectedApplication.id,
-            remarks ? { remarks } : {},
-        );
-        toast.success("Leave application approved.");
-        setSelectedApplication(null);
-        setDetailAction(null);
+        const optionalDateFiled = data.date_filed
+            ? { date_filed: data.date_filed }
+            : {};
+        const payload = {
+            employee_id: data.employee_id,
+            ...optionalDateFiled,
+            department_unit: data.department_unit || null,
+            substitute_name: data.substitute_name || null,
+            subjects_covered: data.subjects_covered || null,
+            reason: data.reason || null,
+            leave_types: data.leave_types.map((lt) => ({
+            leave_type_id: Number(lt.leave_type_id),
+            date_from: lt.date_from,
+            date_to: lt.date_to,
+            number_of_days: Number(lt.number_of_days),
+            other_leave_details: lt.other_leave_details || null,
+            })),
+        };
+
+        await updateLeaveApplication(appId, payload);
+        toast.success("Leave application updated.");
+        setShowFormModal(false);
+        setEditingApplication(null);
         refreshApplications();
         refreshOverview();
         return true;
         } catch (error) {
         console.error(error);
         toast.error(
-            error.response?.data?.message || "Failed to approve leave application.",
+            error.response?.data?.message || "Failed to update leave application.",
         );
         return false;
         }
     };
 
-    const handleReject = async (remarks) => {
-        if (!selectedApplication) return false;
+    const handledDeleteLeave = async () => {
+                try {
+                setShowDeleteConfirm(false);
+                setApplicationsLoading(true);
+                await deleteLeaveApplication(deleteTarget.id);
+                toast.success("Leave application deleted.");
+                setDeleteTarget(null);
+                refreshApplications();
+                refreshOverview();
+                } catch (error) {
+                console.error(error);
+                toast.error(
+                    error.response?.data?.message ||
+                    "Failed to delete application.",
+                );
+                } finally {
+                setApplicationsLoading(false);
+                }
+            }
 
-        try {
-        await rejectLeaveApplication(selectedApplication.id, { remarks });
-        toast.success("Leave application rejected.");
-        setSelectedApplication(null);
-        setDetailAction(null);
-        refreshApplications();
-        refreshOverview();
-        return true;
-        } catch (error) {
-        console.error(error);
-        toast.error(
-            error.response?.data?.message || "Failed to reject leave application.",
-        );
-        return false;
-        }
-    };
+    // status updates are handled via LeaveStatusModal
 
-    const handleUpdateBalance = async (id, values) => {
-        const total = Number(values.total_entitlement);
-        const used = Number(values.used_days);
+    // balances removed
 
-        if (
-        !Number.isFinite(total) ||
-        !Number.isFinite(used) ||
-        total < 0 ||
-        used < 0
-        ) {
-        toast.error("Total entitlement and used days must be 0 or greater.");
-        return false;
-        }
-
-        try {
-        await updateLeaveBalance(id, {
-            total_entitlement: total,
-            used_days: used,
-        });
-        toast.success("Leave balance updated successfully.");
-        refreshBalances();
-        return true;
-        } catch (error) {
-        console.error(error);
-        toast.error(
-            error.response?.data?.message || "Failed to update leave balance.",
-        );
-        return false;
-        }
-    };
-
-    const yearOptions = useMemo(() => {
-        const currentYear = new Date().getFullYear();
-
-        return Array.from({ length: 6 }).map((_, index) => {
-        const year = currentYear - index;
-        return { value: String(year), label: String(year) };
-        });
-    }, []);
-
-    const balanceEmployeeOptions = useMemo(() => {
-        const normalizedSearch = balanceEmployeeSearch.trim().toLowerCase();
-        const filtered = employees.filter((employee) => {
-        if (!normalizedSearch) return true;
-
-        const display = `${employee.employee_no || ""} ${employee.display_name || ""}`;
-        return display.toLowerCase().includes(normalizedSearch);
-        });
-
-        return [
-        { value: "", label: "All employees" },
-        ...filtered.map((employee) => ({
-            value: String(employee.id),
-            label: `${employee.employee_no || ""} - ${employee.display_name || ""}`,
-        })),
-        ];
-    }, [employees, balanceEmployeeSearch]);
+    // balances removed
 
     return (
         <div className="space-y-6">
         <PageHeader
             title="Leave Management"
-            description="Review leave applications, approve requests, and manage employee leave balances."
+            description="Review and manage leave applications."
             actions={
             <Button
                 size="small"
                 className="w-full md:w-auto"
-                onClick={() => setShowFormModal(true)}
+                onClick={() => {
+                setEditingApplication(null);
+                setShowFormModal(true);
+                }}
             >
                 + File Leave
             </Button>
@@ -402,16 +326,6 @@ const LeaveManagement = () => {
             onClick={() => setActiveTab("applications")}
             >
             Applications
-            </button>
-            <button
-            className={`text-sm font-medium pb-1 transition-all duration-200 ${
-                activeTab === "balances"
-                ? "text-primary border-b-2 border-primary"
-                : "text-muted hover:text-primary"
-            }`}
-            onClick={() => setActiveTab("balances")}
-            >
-            Leave Balances
             </button>
         </div>
 
@@ -503,17 +417,45 @@ const LeaveManagement = () => {
                 <LeaveTable
                     applications={applications}
                     loading={applicationsLoading}
-                    onView={(row) => {
-                    setSelectedApplication(row);
-                    setDetailAction(null);
+                    onView={async (row) => {
+                    try {
+                        setApplicationsLoading(true);
+                        const res = await getLeaveApplication(row.id);
+                        // Keep application root fields but include leaveTypes in the same object
+                        const appObj = res.application || res;
+                        const leaveTypes = res.leaveTypes || res.leave_types || [];
+                        setSelectedApplication({ ...appObj, leaveTypes });
+                        setDetailAction(null);
+                    } catch (error) {
+                        console.error(error);
+                        toast.error("Failed to load application details.");
+                    } finally {
+                        setApplicationsLoading(false);
+                    }
                     }}
-                    onApprove={(row) => {
-                    setSelectedApplication(row);
-                    setDetailAction("approve");
+                    onEdit={async (row) => {
+                    try {
+                        console.log("Editing application ID:", row.id);
+                        setApplicationsLoading(true);
+                        const res = await getLeaveApplication(row.id);
+                        const appObj = res.application || res;
+                        const leaveTypes = res.leaveTypes || res.leave_types || [];
+                        setEditingApplication({ ...appObj, leaveTypes });
+                        setShowFormModal(true);
+                    } catch (error) {
+                        console.error(error);
+                        toast.error("Failed to load application for editing.");
+                    } finally {
+                        setApplicationsLoading(false);
+                    }
                     }}
-                    onReject={(row) => {
+                    onStatus={(row) => {
                     setSelectedApplication(row);
-                    setDetailAction("reject");
+                    setDetailAction("status");
+                    }}
+                    onDelete={(row) => {
+                    setDeleteTarget(row);
+                    setShowDeleteConfirm(true);
                     }}
                 />
 
@@ -530,85 +472,21 @@ const LeaveManagement = () => {
             </div>
         )}
 
-        {activeTab === "balances" && (
-            <div className="space-y-4">
-            <Card className="rounded-2xl shadow-sm p-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
-                <div className="md:col-span-5">
-                    <label className="text-xs mb-1 text-muted">Search</label>
-                    <input
-                    type="text"
-                    placeholder="Search employee..."
-                    value={balanceEmployeeSearch}
-                    onChange={(event) =>
-                        setBalanceEmployeeSearch(event.target.value)
-                    }
-                    className="
-                        w-full px-4 py-2 
-                        text-heading 
-                        border border-border
-                        rounded-xl
-                        focus:outline-none
-                        focus:ring-2 focus:ring-primary
-                        focus:border-primary
-                        transition duration-200
-                    "
-                    />
-                </div>
-
-                <div className="md:col-span-4">
-                    <SelectField
-                    label="Employee"
-                    value={balancesQuery.employee_id}
-                    onChange={(value) =>
-                        handleBalancesFilterChange("employee_id", value)
-                    }
-                    options={balanceEmployeeOptions}
-                    className="text-sm"
-                    />
-                </div>
-
-                <div className="md:col-span-3">
-                    <SelectField
-                    label="Year"
-                    value={String(balancesQuery.year)}
-                    onChange={(value) =>
-                        handleBalancesFilterChange("year", value)
-                    }
-                    options={yearOptions}
-                    className="text-sm"
-                    />
-                </div>
-                </div>
-            </Card>
-
-            <Card className="rounded-2xl shadow-sm">
-                <div className="p-4 space-y-4">
-                <LeaveBalanceTable
-                    balances={balances}
-                    loading={balancesLoading}
-                    onSave={handleUpdateBalance}
-                />
-
-                {!balancesLoading && (balances?.length || 0) > 0 && (
-                    <PaginationFooter
-                    total={balancesPagination.total || 0}
-                    page={balancesPagination.page || 1}
-                    totalPages={balancesPagination.total_pages || 1}
-                    setQuery={setBalancesQuery}
-                    />
-                )}
-                </div>
-            </Card>
-            </div>
-        )}
-
         <LeaveFormModal
             isOpen={showFormModal}
-            onClose={() => setShowFormModal(false)}
-            onSubmit={handleCreateLeave}
+            onClose={() => {
+            setShowFormModal(false);
+            setEditingApplication(null);
+            }}
+            onSubmit={async (data) => {
+                if (editingApplication && editingApplication.id) {
+                    return await handleUpdateLeave(editingApplication.id || application.id, data);
+                }
+                return await handleCreateLeave(data);
+            }}
             employees={employees}
             leaveTypes={leaveTypes}
+            initialData={editingApplication}
         />
 
         <LeaveDetailModal
@@ -618,10 +496,49 @@ const LeaveManagement = () => {
             setDetailAction(null);
             }}
             application={selectedApplication}
-            onApprove={handleApprove}
-            onReject={handleReject}
-            defaultAction={detailAction}
         />
+
+        <LeaveStatusModal
+            isOpen={detailAction === "status" && !!selectedApplication}
+            onClose={() => {
+            setDetailAction(null);
+            setSelectedApplication(null);
+            }}
+            application={selectedApplication}
+            onUpdate={async ({ status, remarks }) => {
+            if (!selectedApplication) return;
+            try {
+                await updateLeaveStatus(selectedApplication.id, {
+                status,
+                remarks,
+                });
+                toast.success("Leave status updated.");
+                setDetailAction(null);
+                setSelectedApplication(null);
+                refreshApplications();
+                refreshOverview();
+            } catch (error) {
+                console.error(error);
+                toast.error(
+                error.response?.data?.message || "Failed to update leave status.",
+                );
+            }
+            }}
+        />
+
+        {showDeleteConfirm && deleteTarget && (
+            <ConfirmModal
+            title="Delete leave application"
+            description="Are you sure you want to delete this leave application? This cannot be undone."
+            action="Delete"
+            primaryButtonVariant="solidDanger"
+            onCancel={() => {
+                setShowDeleteConfirm(false);
+                setDeleteTarget(null);
+            }}
+            onConfirm={handledDeleteLeave}
+            />
+        )}
         </div>
     );
 };

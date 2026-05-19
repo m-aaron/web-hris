@@ -18,6 +18,7 @@ import EmployeeView from "./pages/private/EmployeeView";
 import UserManagement from "./pages/private/UserManagement";
 import ProfileSettings from "./pages/private/ProfileSettings";
 import LeaveManagement from "./pages/private/LeaveManagement";
+import SystemSettings from "./pages/private/SystemSettings";
 import { useTheme } from "./hooks/useTheme";
 
 
@@ -59,6 +60,7 @@ const App = () => {
           <Route element={<RoleGuard allowedRoles={ [ROLES.ADMIN] } userRole={ user?.role } />}>
             <Route element={ <MainLayout /> }>
               <Route path="/users" element={ <UserManagement /> } />
+              <Route path="/settings/system" element={ <SystemSettings /> } />
             </Route>
           </Route>
 

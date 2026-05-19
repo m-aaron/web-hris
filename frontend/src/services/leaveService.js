@@ -15,27 +15,32 @@ export const createLeaveApplication = async (payload) => {
     return response.data;
 };
 
-export const approveLeaveApplication = async (id, payload = {}) => {
-    const response = await API.patch(`/leave/applications/${id}/approve`, payload);
+export const getLeaveApplication = async (id) => {
+    const response = await API.get(`/leave/applications/${id}`);
     return response.data;
 };
 
-export const rejectLeaveApplication = async (id, payload) => {
-    const response = await API.patch(`/leave/applications/${id}/reject`, payload);
+export const updateLeaveStatus = async (id, payload) => {
+    const response = await API.patch(`/leave/applications/${id}/status`, payload);
     return response.data;
 };
 
-export const getLeaveBalances = async (params) => {
-    const response = await API.get("/leave/balances", { params });
-    return response.data;
-};
-
-export const updateLeaveBalance = async (id, payload) => {
-    const response = await API.patch(`/leave/balances/${id}`, payload);
+export const deleteLeaveApplication = async (id) => {
+    const response = await API.delete(`/leave/applications/${id}`);
     return response.data;
 };
 
 export const getLeaveSummary = async (employeeId) => {
     const response = await API.get(`/leave/summary/${employeeId}`);
+    return response.data;
+};
+
+export const getLeaveOverview = async () => {
+    const response = await API.get(`/leave/overview`);
+    return response.data;
+};
+
+export const updateLeaveApplication = async (id, payload) => {
+    const response = await API.patch(`/leave/applications/${id}`, payload);
     return response.data;
 };

@@ -78,6 +78,11 @@ const MainHeader = () => {
                                 User Management
                             </NavLink>
                         )}
+                        {isAdmin && (
+                            <NavLink to="/settings/system" className={navLinkClass}>
+                                System Settings
+                            </NavLink>
+                        )}
                     </nav>
 
                     {/* Right */}
@@ -139,6 +144,16 @@ const MainHeader = () => {
                             onClick={() => setOpen(false)}
                         >
                             User Management
+                        </NavLink>
+                    )}
+
+                    {isAdmin && (
+                        <NavLink
+                            to="/settings/system"
+                            className={mobileLinkClass}
+                            onClick={() => setOpen(false)}
+                        >
+                            System Settings
                         </NavLink>
                     )}
 

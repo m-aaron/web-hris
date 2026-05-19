@@ -1,34 +1,22 @@
-import pool from "../configs/dbConfig.js";
 import asyncHandler from "express-async-handler";
+import pool from "../configs/dbConfig.js";
 
 
-// @desc    Get leave types
+// @desc    Get active leave types
 // @route   GET /api/leave/types
-// @access  Private
+// @access  Private (ADMIN, HR)
 export const getLeaveTypes = asyncHandler(async (req, res) => {
-
-    const typesResult = await pool.query(
-        `SELECT *
-        FROM leave_types
-        ORDER BY name ASC`
-    );
-
-    res.status(200).json({
-        message: "Leave types fetched successfully.",
-        success: true,
-        leaveTypes: typesResult.rows
-    });
-
+    const result = await pool.query(`SELECT id, name, is_active FROM leave_types WHERE is_active = true ORDER BY id`);
+    res.status(200).json({ leaveTypes: result.rows });
 });
 
-// @desc    Get leave applications
-// @route   GET /api/leave/applications
-// @access  Private
-export const getLeaveApplications = asyncHandler(async (req, res) => {
 
+// @desc    Get leave applications with filters
+// @route   GET /api/leave/applications
+// @access  Private (ADMIN, HR)
+export const getLeaveApplications = asyncHandler(async (req, res) => {
     const {
         status,
-        leave_type_id,
         employee_id,
         date_from,
         date_to,
@@ -38,481 +26,464 @@ export const getLeaveApplications = asyncHandler(async (req, res) => {
 
     const offset = (page - 1) * limit;
 
-    const whereClauses = [];
-    const values = [];
-    let index = 1;
+    let whereClauses = [];
+    let values = [];
+    let idx = 1;
 
-    const normalizedStatus = String(status || "").trim().toUpperCase();
-    if (normalizedStatus && normalizedStatus !== "ALL") {
-        whereClauses.push(`la.status = $${index}`);
-        values.push(normalizedStatus);
-        index += 1;
-    }
-
-    if (leave_type_id) {
-        whereClauses.push(`la.leave_type_id = $${index}`);
-        values.push(leave_type_id);
-        index += 1;
+    if (status) {
+        whereClauses.push(`la.status = $${idx++}`);
+        values.push(String(status).toUpperCase());
     }
 
     if (employee_id) {
-        whereClauses.push(`la.employee_id = $${index}`);
+        whereClauses.push(`la.employee_id = $${idx++}`);
         values.push(employee_id);
-        index += 1;
     }
 
     if (date_from) {
-        whereClauses.push(`la.date_from >= $${index}`);
+        whereClauses.push(`la.date_filed >= $${idx++}`);
         values.push(date_from);
-        index += 1;
     }
 
     if (date_to) {
-        whereClauses.push(`la.date_to <= $${index}`);
+        whereClauses.push(`la.date_filed <= $${idx++}`);
         values.push(date_to);
-        index += 1;
     }
 
-    const whereQuery = whereClauses.length > 0
-        ? `WHERE ${whereClauses.join(" AND ")}`
-        : "";
+    const whereQuery = whereClauses.length ? `WHERE ${whereClauses.join(" AND ")}` : "";
 
-    const dataQuery = 
-        `
-            SELECT
-                la.id,
-                la.employee_id,
-                e.employee_no,
-                lt.id AS leave_type_id,
-                lt.name AS leave_type,
-                la.date_filed,
-                la.date_from,
-                la.date_to,
-                la.number_of_days,
-                la.reason,
-                la.status,
-                la.remarks,
-                la.created_at,
-                la.updated_at,
-                pd.first_name,
-                pd.middle_name,
-                pd.last_name,
-                pd.name_extension
-            FROM leave_applications la
-            LEFT JOIN employees e ON e.id = la.employee_id
-            LEFT JOIN personal_data pd ON pd.employee_id = e.id
-            LEFT JOIN leave_types lt ON lt.id = la.leave_type_id
-            ${whereQuery}
-            ORDER BY la.created_at DESC
-            LIMIT $${index}
-            OFFSET $${index + 1}
-        `;
-
-    values.push(limit);
-    values.push(offset);
-
-    const applicationsResult = await pool.query(dataQuery, values);
-
-    const countResult = await pool.query(
-        `SELECT
-        COUNT(*)
-        FROM leave_applications la
-        LEFT JOIN employees e ON e.id = la.employee_id
-        LEFT JOIN personal_data pd ON pd.employee_id = e.id
-        LEFT JOIN leave_types lt ON lt.id = la.leave_type_id
-        ${whereQuery}`,
-        values.slice(0, values.length - 2)
-    );
-
-    res.status(200).json({
-        message: "Leave applications fetched successfully.",
-        success: true,
-        applications: applicationsResult.rows,
-        pagination: {
-            total: Number(countResult.rows[0].count),
-            page: Number(page),
-            limit: Number(limit),
-            total_pages: Math.ceil(countResult.rows[0].count / limit)
-        }
-    });
-    
-});
-
-// @desc    Create leave application
-// @route   POST /api/leave/applications
-// @access  Private
-export const createLeaveApplication = asyncHandler(async (req, res) => {
-
-    const {
-        employee_id,
-        leave_type_id,
-        date_filed,
-        date_from,
-        date_to,
-        number_of_days,
-        reason
-    } = req.body;
-
-    // Validate required fields
-    if (!employee_id || !leave_type_id || !date_from || !date_to || !number_of_days) {
-        return res.status(400).json({ message: "Required fields are missing.", success: false });
-    }
-
-    // Validate date filed if provided
-    let parsedFiledDate = new Date();
-    if (date_filed) {
-        const parsedDateFiled = new Date(date_filed);
-        if (Number.isNaN(parsedDateFiled.getTime())) {
-            return res.status(400).json({ message: "Invalid date filed.", success: false });
-        }
-        parsedFiledDate = parsedDateFiled;
-    }
-
-    if (parsedFiledDate > new Date()) {
-        return res.status(400).json({ message: "Date filed cannot be in the future.", success: false });
-    }
-
-    // Validate date formats and logic
-    const parsedFrom = new Date(date_from);
-    const parsedTo = new Date(date_to);
-    if (Number.isNaN(parsedFrom.getTime()) || Number.isNaN(parsedTo.getTime())) {
-        return res.status(400).json({ message: "Invalid leave dates.", success: false });
-    }
-
-    // Validate that date_to is not before date_from
-    if (parsedTo < parsedFrom) {
-        return res.status(400).json({ message: "Leave end date must be after or equal to start date.", success: false });
-    }
-
-    // Validate that number_of_days is a positive integer
-    const parsedDays = Number(number_of_days);
-    if (!Number.isFinite(parsedDays) || parsedDays <= 0) {
-        return res.status(400).json({ message: "Number of days must be greater than 0.", success: false });
-    }
-
-    const employeeResult = await pool.query(
-        `SELECT 1 FROM employees WHERE id = $1`,
-        [employee_id]
-    );
-
-    if (employeeResult.rowCount === 0) {
-        return res.status(404).json({ message: "Employee not found.", success: false });
-    }
-
-    const typeResult = await pool.query(
-        `SELECT 1 FROM leave_types WHERE id = $1`,
-        [leave_type_id]
-    );
-
-    if (typeResult.rowCount === 0) {
-        return res.status(404).json({ message: "Leave type not found.", success: false });
-    }
-
-    const applicationResult = await pool.query(
-        `INSERT INTO leave_applications (
-            employee_id,
-            leave_type_id,
-            date_filed,
-            date_from,
-            date_to,
-            number_of_days,
-            reason
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-        RETURNING *`,
-        [employee_id, leave_type_id, parsedFiledDate, date_from, date_to, parsedDays, reason || ""]
-    );
-
-    if (applicationResult.rowCount === 0) {
-        return res.status(500).json({ message: "Failed to create leave application.", success: false });
-    }
-
-    res.status(201).json({
-        message: "Leave application created successfully.",
-        success: true,
-        application: applicationResult.rows[0]
-    });
-});
-
-// @desc    Approve leave application
-// @route   PATCH /api/leave/applications/:id/approve
-// @access  Private
-export const approveLeaveApplication = asyncHandler(async (req, res) => {
-
-    const { id } = req.params;
-    const remarks = req.body?.remarks;
-    const remarksValue = String(remarks || "").trim();
-
-    const checkApplicationResult = await pool.query(
-        `SELECT id, status FROM leave_applications WHERE id = $1`,
-        [id]
-    );
-
-    if (checkApplicationResult.rowCount === 0) {
-        return res.status(404).json({ message: "Leave application not found.", success: false });
-    }
-
-    if (checkApplicationResult.rows[0].status !== "PENDING") {
-        return res.status(409).json({ message: "Only pending applications can be approved.", success: false });
-    }
-
-    const updateResult = await pool.query(
-        `UPDATE leave_applications
-        SET 
-            status = $1, 
-            remarks = $2
-        WHERE id = $3
-        RETURNING *`,
-        ["APPROVED", remarksValue || "", id]
-    );
-
-    if (updateResult.rowCount === 0) {
-        return res.status(500).json({ message: "Failed to approve leave application.", success: false });
-    }
-
-    res.status(200).json({
-        message: "Leave application approved.",
-        success: true,
-        application: updateResult.rows[0]
-    });
-});
-
-// @desc    Reject leave application
-// @route   PATCH /api/leave/applications/:id/reject
-// @access  Private
-export const rejectLeaveApplication = asyncHandler(async (req, res) => {
-
-    const { id } = req.params;
-    const remarks = req.body?.remarks;
-    const remarksValue = String(remarks || "").trim();
-
-    if (!remarksValue) {
-        return res.status(400).json({ message: "Remarks are required for rejection.", success: false });
-    }
-
-    const checkApplicationResult = await pool.query(
-        `SELECT id, status FROM leave_applications WHERE id = $1`,
-        [id]
-    );
-
-    if (checkApplicationResult.rowCount === 0) {
-        return res.status(404).json({ message: "Leave application not found.", success: false });
-    }
-
-    if (checkApplicationResult.rows[0].status !== "PENDING") {
-        return res.status(409).json({ message: "Only pending applications can be rejected.", success: false });
-    }
-
-    const updateResult = await pool.query(
-        `UPDATE leave_applications
-        SET 
-            status = $1, 
-            remarks = $2
-        WHERE id = $3
-        RETURNING *`,
-        ["REJECTED", remarksValue || "", id]
-    );
-
-    if (updateResult.rowCount === 0) {
-        return res.status(500).json({ message: "Failed to reject leave application.", success: false });
-    }
-
-    res.status(200).json({
-        message: "Leave application rejected.",
-        success: true,
-        application: updateResult.rows[0]
-    });
-
-});
-
-// @desc    Get leave balances
-// @route   GET /api/leave/balances
-// @access  Private
-export const getLeaveBalances = asyncHandler(async (req, res) => {
-
-    const { employee_id, year, page = 1, limit = 10 } = req.query;
-    const targetYear = year ? Number.parseInt(year, 10) : new Date().getFullYear();
-
-    const offset = (page - 1) * limit;
-
-    if (!Number.isInteger(targetYear)) {
-        return res.status(400).json({ message: "Invalid year filter.", success: false });
-    }
-
-    if (employee_id) {
-        await pool.query(
-            `INSERT INTO leave_balances (employee_id, leave_type_id, year, total_entitlement, used_days)
-            SELECT $1, lt.id, $2, 0, 0
-            FROM leave_types lt
-            WHERE lt.is_active = TRUE
-            ON CONFLICT (employee_id, leave_type_id, year) DO NOTHING`,
-            [employee_id, targetYear]
-        );
-    }
-
-    const whereClauses = [`lb.year = $1`];
-    const values = [targetYear];
-    let index = 2;
-
-    if (employee_id) {
-        whereClauses.push(`lb.employee_id = $${index}`);
-        values.push(employee_id);
-        index += 1;
-    }
-
-    const whereQuery = `WHERE ${whereClauses.join(" AND ")}`;
-
-    const dataQuery = `SELECT
-            lb.id,
-            lb.employee_id,
+    const dataQuery = `
+        SELECT
+            la.id,
+            la.employee_id,
             e.employee_no,
             pd.first_name,
-            pd.middle_name,
             pd.last_name,
+            pd.middle_name,
             pd.name_extension,
-            lt.id AS leave_type_id,
-            lt.name AS leave_type,
-            lb.year,
-            lb.total_entitlement,
-            lb.used_days,
-            lb.created_at,
-            lb.updated_at
-        FROM leave_balances lb
-        LEFT JOIN employees e ON e.id = lb.employee_id
-        LEFT JOIN personal_data pd ON pd.employee_id = e.id
-        LEFT JOIN leave_types lt ON lt.id = lb.leave_type_id
+            e.employment_type,
+            la.date_filed,
+            la.reason,
+            la.department_unit,
+            la.substitute_name,
+            la.status,
+            la.remarks,
+            STRING_AGG(DISTINCT lt.name, ', ') AS leave_types_display,
+            COALESCE(SUM(lat.number_of_days), 0) AS total_days
+        FROM leave_applications la
+        JOIN employees e ON la.employee_id = e.id
+        LEFT JOIN personal_data pd ON e.id = pd.employee_id
+        -- substitute_name stored on la.substitute_name (text), no join to employees
+        LEFT JOIN leave_application_types lat ON la.id = lat.leave_application_id
+        LEFT JOIN leave_types lt ON lat.leave_type_id = lt.id
         ${whereQuery}
-        ORDER BY pd.last_name ASC NULLS LAST, pd.first_name ASC NULLS LAST, lt.name ASC
-        LIMIT $${index}
-        OFFSET $${index + 1}`;
+        GROUP BY la.id, e.employee_no, pd.first_name, pd.last_name, pd.middle_name, pd.name_extension, e.employment_type, la.date_filed, la.reason, la.department_unit, la.substitute_name, la.status, la.remarks
+        ORDER BY la.date_filed DESC
+        LIMIT $${idx++}
+        OFFSET $${idx++}
+    `;
 
     values.push(limit);
     values.push(offset);
 
-    const balancesResult = await pool.query(dataQuery, values);
+    const dataResult = await pool.query(dataQuery, values);
 
-    const countResult = await pool.query(
-        `SELECT COUNT(*)
-        FROM leave_balances lb
-        LEFT JOIN employees e ON e.id = lb.employee_id
-        LEFT JOIN personal_data pd ON pd.employee_id = e.id
-        LEFT JOIN leave_types lt ON lt.id = lb.leave_type_id
-        ${whereQuery}`,
-        values.slice(0, values.length - 2)
-    );
+    // count
+    const countQuery = `
+        SELECT COUNT(DISTINCT la.id) AS total
+        FROM leave_applications la
+        ${whereQuery}
+    `;
+
+    const countValues = values.slice(0, values.length - 2);
+    const countResult = await pool.query(countQuery, countValues);
 
     res.status(200).json({
-        message: "Leave balances fetched successfully.",
-        success: true,
-        balances: balancesResult.rows,
+        applications: dataResult.rows,
         pagination: {
-            total: Number(countResult.rows[0].count),
+            total: Number(countResult.rows[0]?.total || 0),
             page: Number(page),
             limit: Number(limit),
-            total_pages: Math.ceil(countResult.rows[0].count / limit)
+            total_pages: Math.ceil(Number(countResult.rows[0]?.total || 0) / Number(limit))
         }
     });
-
 });
 
-// @desc    Update leave balance
-// @route   PATCH /api/leave/balances/:id
-// @access  Private
-export const updateLeaveBalance = asyncHandler(async (req, res) => {
+
+// @desc    Get single leave application detail
+// @route   GET /api/leave/applications/:id
+// @access  Private (ADMIN, HR)
+export const getLeaveApplicationById = asyncHandler(async (req, res) => {
 
     const { id } = req.params;
-    const { total_entitlement, used_days } = req.body;
 
-    if (total_entitlement === undefined || used_days === undefined) {
-        return res.status(400).json({ message: "Total entitlement and used days are required.", success: false });
+    const appQuery = `
+        SELECT la.*, e.employee_no, e.employment_type,
+            pd.first_name, pd.last_name, pd.middle_name, pd.name_extension,
+            ed.position_id, p.name AS position
+        FROM leave_applications la
+        JOIN employees e ON la.employee_id = e.id
+        LEFT JOIN personal_data pd ON e.id = pd.employee_id
+        LEFT JOIN employment_data ed ON e.id = ed.employee_id
+        LEFT JOIN positions p ON ed.position_id = p.id
+        WHERE la.id = $1
+        LIMIT 1
+    `;
+
+    const appResult = await pool.query(appQuery, [id]);
+    if (appResult.rows.length === 0) {
+        return res.status(404).json({ success: false, message: "Leave application not found." });
     }
 
-    const totalEntitlementValue = Number(total_entitlement);
-    const usedDaysValue = Number(used_days);
+    const application = appResult.rows[0];
 
-    if (
-        !Number.isFinite(totalEntitlementValue) ||
-        !Number.isFinite(usedDaysValue) ||
-        totalEntitlementValue < 0 ||
-        usedDaysValue < 0
-    ) {
-        return res.status(400).json({ message: "Total entitlement and used days must be 0 or greater.", success: false });
-    }
+    const typesQuery = `
+        SELECT lat.id, lat.leave_application_id, lat.leave_type_id, lt.name AS leave_type_name,
+            lat.date_from, lat.date_to, lat.number_of_days, lat.other_leave_details
+        FROM leave_application_types lat
+        LEFT JOIN leave_types lt ON lat.leave_type_id = lt.id
+        WHERE lat.leave_application_id = $1
+        ORDER BY lat.date_from
+    `;
 
-    if (usedDaysValue > totalEntitlementValue) {
-        return res.status(400).json({ message: "Used days cannot exceed total entitlement.", success: false });
-    }
-
-    const updateResult = await pool.query(
-        `UPDATE leave_balances
-        SET total_entitlement = $1, used_days = $2
-        WHERE id = $3
-        RETURNING *`,
-        [totalEntitlementValue, usedDaysValue, id]
-    );
-
-    if (updateResult.rowCount === 0) {
-        return res.status(404).json({ message: "Leave balance not found.", success: false });
-    }
+    const typesResult = await pool.query(typesQuery, [id]);
 
     res.status(200).json({
-        message: "Leave balance updated successfully.",
-        success: true,
-        balance: updateResult.rows[0]
+        application,
+        leaveTypes: typesResult.rows
     });
-
 });
 
-// @desc    Get leave summary for employee
-// @route   GET /api/leave/summary/:employeeId
-// @access  Private
-export const getLeaveSummary = asyncHandler(async (req, res) => {
-    
-    const { employeeId } = req.params;
-    const targetYear = new Date().getFullYear();
 
-    if (!employeeId) {
-        return res.status(400).json({ message: "Employee ID is required.", success: false });
+// @desc    Create a leave application (with types)
+// @route   POST /api/leave/applications
+// @access  Private (ADMIN, HR)
+export const createLeaveApplication = asyncHandler(async (req, res) => {
+    const {
+        employee_id,
+        date_filed,
+        reason,
+        department_unit,
+        substitute_name,
+        subjects_covered,
+        remarks,
+        leave_types
+    } = req.body;
+
+    if (!employee_id) {
+        return res.status(400).json({ success: false, message: 'Employee is required' });
     }
 
-    const [balancesResult, applicationsResult] = await Promise.all([
-        pool.query(
-            `SELECT
-                lb.id,
-                lb.leave_type_id,
-                lt.name AS leave_type,
-                lb.year,
-                lb.total_entitlement,
-                lb.used_days
-            FROM leave_balances lb
-            LEFT JOIN leave_types lt ON lt.id = lb.leave_type_id
-            WHERE lb.employee_id = $1 AND lb.year = $2
-            ORDER BY lt.name ASC`,
-            [employeeId, targetYear]
-        ),
-        pool.query(
-            `SELECT
-                la.id,
-                la.leave_type_id,
-                lt.name AS leave_type,
-                la.date_from,
-                la.date_to,
-                la.number_of_days,
-                la.reason,
-                la.status,
-                la.created_at
-            FROM leave_applications la
-            LEFT JOIN leave_types lt ON lt.id = la.leave_type_id
-            WHERE la.employee_id = $1
-            ORDER BY la.created_at DESC
-            LIMIT 3`,
-            [employeeId]
-        )
-    ]);
+    if (!Array.isArray(leave_types) || leave_types.length === 0) {
+        return res.status(400).json({ success: false, message: 'Leave Type is required' });
+    }
+
+    // validate each leave type
+    // fetch leave type names to validate 'Others' properly
+    const typeIds = leave_types.map((lt) => Number(lt.leave_type_id)).filter(Boolean);
+    let typeMap = {};
+    if (typeIds.length > 0) {
+        const typesRes = await pool.query(`SELECT id, name FROM leave_types WHERE id = ANY($1::int[])`, [typeIds]);
+        for (const row of typesRes.rows) {
+            typeMap[row.id] = row.name;
+        }
+    }
+
+    for (const lt of leave_types) {
+        if (!lt.leave_type_id) return res.status(400).json({ success: false, message: 'Leave ID is required for each leave type' });
+        if (!lt.date_from || !lt.date_to) return res.status(400).json({ success: false, message: 'Date from and Date to are required for each leave type' });
+        if (new Date(lt.date_to) < new Date(lt.date_from)) return res.status(400).json({ success: false, message: 'Date to must be >= Date from' });
+        if (!(Number(lt.number_of_days) > 0)) return res.status(400).json({ success: false, message: 'Number of days must be > 0' });
+
+        const typeName = typeMap[Number(lt.leave_type_id)] || "";
+        if (String(typeName).toLowerCase() === 'others' && !lt.other_leave_details) {
+            return res.status(400).json({ success: false, message: 'Other leave details is required for Others leave type' });
+        }
+    }
+
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        const insertAppQuery = `
+            INSERT INTO leave_applications (employee_id, date_filed, reason, department_unit, substitute_name, subjects_covered, remarks)
+            VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7)
+            RETURNING *
+        `;
+
+        // Ensure subjects_covered is proper JSON string for the JSONB column
+        let subjectsParam = null;
+        if (subjects_covered) {
+            try {
+                let parsed = null;
+                if (typeof subjects_covered === 'string') {
+                    parsed = JSON.parse(subjects_covered);
+                } else {
+                    parsed = subjects_covered;
+                }
+                // stringify to ensure we always send valid JSON text to Postgres
+                subjectsParam = JSON.stringify(parsed);
+            } catch (e) {
+                throw new Error('Invalid subjects_covered JSON payload');
+            }
+        }
+
+        const appResult = await client.query(insertAppQuery, [
+            employee_id,
+            date_filed || new Date(),
+            reason || null,
+            department_unit || null,
+            // substitute_name text (optional)
+            substitute_name || null,
+            subjectsParam,
+            remarks || null
+        ]);
+
+        const appId = appResult.rows[0].id;
+
+        const insertTypeQuery = `
+            INSERT INTO leave_application_types (leave_application_id, leave_type_id, date_from, date_to, number_of_days, other_leave_details)
+            VALUES ($1, $2, $3, $4, $5, $6)
+        `;
+
+        for (const lt of leave_types) {
+            await client.query(insertTypeQuery, [
+                appId,
+                lt.leave_type_id,
+                lt.date_from,
+                lt.date_to,
+                lt.number_of_days,
+                lt.other_leave_details || null
+            ]);
+        }
+
+        await client.query('COMMIT');
+
+        res.status(201).json({ success: true, message: 'Leave application created.' });
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('Error creating leave application:', error?.message || error);
+        // Return error details for dev troubleshooting
+        return res.status(500).json({ success: false, message: error?.message || 'Internal server error' });
+    } finally {
+        client.release();
+    }
+});
+
+
+// @desc    Update a leave application (replace types and update fields)
+// @route   PATCH /api/leave/applications/:id
+// @access  Private (ADMIN, HR)
+export const updateLeaveApplication = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const {
+        employee_id,
+        date_filed,
+        reason,
+        department_unit,
+        substitute_name,
+        subjects_covered,
+        remarks,
+        leave_types
+    } = req.body;
+
+    if (!id) {
+        return res.status(400).json({ success: false, message: 'Application id is required' });
+    }
+
+    if (!employee_id) {
+        return res.status(400).json({ success: false, message: 'Employee is required' });
+    }
+
+    if (!Array.isArray(leave_types) || leave_types.length === 0) {
+        return res.status(400).json({ success: false, message: 'Leave Type is required' });
+    }
+
+    // validate leave types similar to create
+    const typeIds = leave_types.map((lt) => Number(lt.leave_type_id)).filter(Boolean);
+    let typeMap = {};
+    if (typeIds.length > 0) {
+        const typesRes = await pool.query(`SELECT id, name FROM leave_types WHERE id = ANY($1::int[])`, [typeIds]);
+        for (const row of typesRes.rows) {
+            typeMap[row.id] = row.name;
+        }
+    }
+
+    for (const lt of leave_types) {
+        if (!lt.leave_type_id) return res.status(400).json({ success: false, message: 'Leave ID is required for each leave type' });
+        if (!lt.date_from || !lt.date_to) return res.status(400).json({ success: false, message: 'Date from and Date to are required for each leave type' });
+        if (new Date(lt.date_to) < new Date(lt.date_from)) return res.status(400).json({ success: false, message: 'Date to must be >= Date from' });
+        if (!(Number(lt.number_of_days) > 0)) return res.status(400).json({ success: false, message: 'Number of days must be > 0' });
+
+        const typeName = typeMap[Number(lt.leave_type_id)] || "";
+        if (String(typeName).toLowerCase() === 'others' && !lt.other_leave_details) {
+            return res.status(400).json({ success: false, message: 'Other leave details is required for Others leave type' });
+        }
+    }
+
+    const client = await pool.connect();
+    try {
+        await client.query('BEGIN');
+
+        const updateAppQuery = `
+            UPDATE leave_applications SET
+                employee_id = $1,
+                date_filed = $2,
+                reason = $3,
+                department_unit = $4,
+                substitute_name = $5,
+                subjects_covered = $6::jsonb,
+                remarks = $7
+            WHERE id = $8
+            RETURNING *
+        `;
+
+        let subjectsParam = null;
+        if (subjects_covered) {
+            try {
+                let parsed = null;
+                if (typeof subjects_covered === 'string') parsed = JSON.parse(subjects_covered);
+                else parsed = subjects_covered;
+                subjectsParam = JSON.stringify(parsed);
+            } catch (e) {
+                throw new Error('Invalid subjects_covered JSON payload');
+            }
+        }
+
+        const updateResult = await client.query(updateAppQuery, [
+            employee_id,
+            date_filed || new Date(),
+            reason || null,
+            department_unit || null,
+            substitute_name || null,
+            subjectsParam,
+            remarks || null,
+            id,
+        ]);
+
+        if (updateResult.rowCount === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ success: false, message: 'Leave application not found' });
+        }
+
+        // remove existing leave_application_types for this application
+        await client.query(`DELETE FROM leave_application_types WHERE leave_application_id = $1`, [id]);
+
+        const insertTypeQuery = `
+            INSERT INTO leave_application_types (leave_application_id, leave_type_id, date_from, date_to, number_of_days, other_leave_details)
+            VALUES ($1, $2, $3, $4, $5, $6)
+        `;
+
+        for (const lt of leave_types) {
+            await client.query(insertTypeQuery, [
+                id,
+                lt.leave_type_id,
+                lt.date_from,
+                lt.date_to,
+                lt.number_of_days,
+                lt.other_leave_details || null,
+            ]);
+        }
+
+        await client.query('COMMIT');
+
+        res.status(200).json({ success: true, message: 'Leave application updated.' });
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('Error updating leave application:', error?.message || error);
+        return res.status(500).json({ success: false, message: error?.message || 'Internal server error' });
+    } finally {
+        client.release();
+    }
+});
+
+
+// @desc    Update leave status
+// @route   PATCH /api/leave/applications/:id/status
+// @access  Private (ADMIN, HR)
+export const updateLeaveStatus = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const { status, remarks } = req.body || {};
+
+    const allowed = ['PENDING', 'APPROVED', 'DISAPPROVED'];
+    if (!status || !allowed.includes(String(status).toUpperCase())) {
+        return res.status(400).json({ success: false, message: 'Invalid status' });
+    }
+
+    const result = await pool.query(
+        `UPDATE leave_applications SET status = $1, remarks = $2 WHERE id = $3 RETURNING *`,
+        [String(status).toUpperCase(), remarks || null, id]
+    );
+
+    if (result.rowCount === 0) {
+        return res.status(404).json({ success: false, message: 'Leave application not found' });
+    }
+
+    res.status(200).json({ success: true, message: 'Status updated', data: result.rows[0] });
+});
+
+
+// @desc    Delete leave application
+// @route   DELETE /api/leave/applications/:id
+// @access  Private (ADMIN, HR)
+export const deleteLeaveApplication = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const result = await pool.query(`DELETE FROM leave_applications WHERE id = $1`, [id]);
+    if (result.rowCount === 0) {
+        return res.status(404).json({ success: false, message: 'Leave application not found' });
+    }
+
+    res.status(200).json({ success: true, message: 'Leave application deleted' });
+});
+
+
+// @desc    Get leave summary (last 3) for an employee
+// @route   GET /api/leave/summary/:employeeId
+// @access  Private (ADMIN, HR)
+export const getLeaveSummary = asyncHandler(async (req, res) => {
+    const { employeeId } = req.params;
+
+    const query = `
+        SELECT la.id, la.date_filed, la.status,
+            STRING_AGG(DISTINCT lt.name, ', ') AS leave_types_display,
+            COALESCE(SUM(lat.number_of_days),0) AS total_days
+        FROM leave_applications la
+        LEFT JOIN leave_application_types lat ON la.id = lat.leave_application_id
+        LEFT JOIN leave_types lt ON lat.leave_type_id = lt.id
+        WHERE la.employee_id = $1
+        GROUP BY la.id
+        ORDER BY la.date_filed DESC
+        LIMIT 3
+    `;
+
+    const result = await pool.query(query, [employeeId]);
+    res.status(200).json({ recentApplications: result.rows });
+});
+
+
+// @desc    Get leave overview stats
+// @route   GET /api/leave/overview
+// @access  Private (ADMIN, HR)
+export const getLeaveOverview = asyncHandler(async (req, res) => {
+    const sql = `
+        SELECT
+            (SELECT COUNT(*) FROM leave_applications la WHERE date_trunc('month', COALESCE(la.date_filed, la.created_at)) = date_trunc('month', CURRENT_DATE))::int AS total_this_month,
+            (SELECT COUNT(*) FROM leave_applications la WHERE la.status = 'PENDING')::int AS pending,
+            (SELECT COUNT(*) FROM leave_applications la WHERE la.status = 'APPROVED' AND date_trunc('month', COALESCE(la.date_filed, la.created_at)) = date_trunc('month', CURRENT_DATE))::int AS approved_this_month,
+            (SELECT COUNT(DISTINCT la2.id) FROM leave_applications la2 JOIN leave_application_types lat ON la2.id = lat.leave_application_id WHERE la2.status = 'APPROVED' AND lat.date_from <= CURRENT_DATE AND lat.date_to >= CURRENT_DATE)::int AS on_leave_today
+    `;
+
+    const result = await pool.query(sql);
+    const row = result.rows[0] || {};
 
     res.status(200).json({
-        message: "Leave summary fetched successfully.",
         success: true,
-        balances: balancesResult.rows,
-        recentApplications: applicationsResult.rows
+        stats: {
+            totalThisMonth: Number(row.total_this_month || 0),
+            pending: Number(row.pending || 0),
+            approvedThisMonth: Number(row.approved_this_month || 0),
+            onLeaveToday: Number(row.on_leave_today || 0),
+        },
     });
 });
