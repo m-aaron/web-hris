@@ -44,24 +44,30 @@ export const getDashboardSummary = async (req, res) => {
             COUNT(*) FILTER (WHERE employment_status = $4)
                 AS total_regular,
 
+            COUNT(*) FILTER (WHERE employment_status = $5)
+                AS total_contractual,
+
+            COUNT(*) FILTER (WHERE employment_status = $6)
+                AS total_resigned,
+
             COUNT(*) FILTER (
                 WHERE regularization_date >= date_trunc('month', CURRENT_DATE)
                 AND regularization_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'
             ) AS total_upcoming_regular_this_month,
 
             COUNT(*) FILTER (
-                WHERE employment_status = $5
+                WHERE employment_status = $7
                 AND EXTRACT(YEAR FROM regularization_date) = EXTRACT(YEAR FROM CURRENT_DATE)
             ) AS total_upcoming_regular_this_year,
 
             COUNT(*) FILTER (
-                WHERE employment_status = $6
+                WHERE employment_status = $8
                     AND regularization_date BETWEEN CURRENT_DATE 
                     AND CURRENT_DATE + INTERVAL '30 days'
             ) AS total_near_regularization_30_days,
 
             COUNT(*) FILTER (
-                WHERE employment_status = $7
+                WHERE employment_status = $9
                 AND regularization_date < CURRENT_DATE
             ) AS total_overdue_regularization,
 
@@ -94,10 +100,10 @@ export const getDashboardSummary = async (req, res) => {
             COUNT(*) FILTER (WHERE sex = 'FEMALE')
                 AS total_female,
 
-            COUNT(*) FILTER (WHERE employment_type = $8)
+            COUNT(*) FILTER (WHERE employment_type = $10)
                 AS total_teaching,
 
-            COUNT(*) FILTER (WHERE employment_type = $9)
+            COUNT(*) FILTER (WHERE employment_type = $11)
                 AS total_non_teaching
 
         FROM base;
@@ -106,6 +112,8 @@ export const getDashboardSummary = async (req, res) => {
         TYPE.NON_TEACHING,
         STATUS.PROBATIONARY,
         STATUS.REGULAR,
+        STATUS.CONTRACTUAL,
+        STATUS.RESIGNED,
         STATUS.PROBATIONARY,
         STATUS.PROBATIONARY,
         STATUS.PROBATIONARY,

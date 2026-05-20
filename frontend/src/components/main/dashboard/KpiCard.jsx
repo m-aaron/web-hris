@@ -7,8 +7,10 @@ export const KpiCard = ({
     icon: Icon,
     variant = "default",
     onClick,
+    className = "",
 }) => {
     const variantStyles = {
+        primary: "bg-primary",
         default: "bg-grey",
         success: "bg-light-green",
         warning: "bg-light-yellow",
@@ -16,6 +18,7 @@ export const KpiCard = ({
     };
 
     const iconColorStyles = {
+        primary: "text-card",
         success: "text-green",
         warning: "text-yellow",
         danger: "text-red",
@@ -27,7 +30,7 @@ export const KpiCard = ({
             onClick={onClick}
             className={`p-5 rounded-xl shadow-sm transition hover:shadow-lg hover:scale-[1.02] ${
                 onClick ? "cursor-pointer" : "cursor-default"
-            }`}
+            } ${className}`}
         >
 
             <CardContent className="p-4 flex items-center justify-between">

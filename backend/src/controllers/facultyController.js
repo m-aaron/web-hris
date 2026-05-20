@@ -2,6 +2,9 @@ import asyncHandler from 'express-async-handler';
 import pool from '../configs/dbConfig.js';
 
 
+// @desc    Create a new faculty member
+// @route   POST /api/faculty
+// @access  Private (Admin, HR)
 export const createFaculty = asyncHandler(async (req, res) => {
 
     const { employee, department, academicQualification, teachingLoad } = req.body;
