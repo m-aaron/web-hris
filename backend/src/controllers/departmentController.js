@@ -134,7 +134,7 @@ export const deleteDepartment = asyncHandler(async (req, res) => {
     }
 
     const linkedResult = await pool.query(
-        `SELECT COUNT(*) FROM faculty WHERE department_id = $1`,
+        `SELECT COUNT(*) FROM faculties WHERE department_id = $1`,
         [id]
     );
 

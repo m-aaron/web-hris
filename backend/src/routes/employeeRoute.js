@@ -17,7 +17,9 @@ import {
     exportSelectedEmployeesExcel,
 
     getAllPositions,
-    getAllDesignations
+    getAllDesignations,
+
+    getAllActiveEmployees
 } from "../controllers/employeeController.js";
 
 
@@ -36,6 +38,7 @@ router.post("/export-selected", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.
 router.get("/positions", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), getAllPositions);
 router.get("/designations", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), getAllDesignations);
 
+router.get("/active", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), getAllActiveEmployees);
 
 
 // DYNAMIC ROUTES

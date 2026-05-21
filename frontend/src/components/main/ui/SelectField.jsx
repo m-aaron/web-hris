@@ -10,6 +10,7 @@ const SelectField = ({
   required = false,
   className = "",
   disabled = false,
+  message = null,
   ...props
 }) => {
   const id = useId();
@@ -51,9 +52,9 @@ const SelectField = ({
         ))}
       </select>
 
-      {error && (
+      {(message || error) && (
         <span className="text-xs text-destructive mt-1">
-          {error.message}
+          {message || error?.message}
         </span>
       )}
     </div>

@@ -11,11 +11,11 @@ const MainHeader = () => {
     const { user } = useAuth();
     const isAdmin = user?.role === "ADMIN";
 
-    const handleReportsClick = (e) => {
-        e.preventDefault();
-        setOpen(false);
-        toast.info("Reports is not implemented yet.");
-    };
+    // const handleReportsClick = (e) => {
+    //     e.preventDefault();
+    //     setOpen(false);
+    //     toast.info("Reports is not implemented yet.");
+    // };
 
     // Close mobile menu when screen resizes to desktop
     useEffect(() => {
@@ -72,6 +72,9 @@ const MainHeader = () => {
                         </NavLink>
                         <NavLink to="/leave" className={navLinkClass}>
                         Leave Management
+                        </NavLink>
+                        <NavLink to="/faculties" className={navLinkClass}>
+                        Reports
                         </NavLink>
                         {isAdmin && (
                             <NavLink to="/users" className={navLinkClass}>
@@ -135,6 +138,14 @@ const MainHeader = () => {
                         onClick={() => setOpen(false)}
                     >
                     Leave Management
+                    </NavLink>
+
+                    <NavLink
+                        to="/faculties"
+                        className={mobileLinkClass}
+                        onClick={() => setOpen(false)}
+                    >
+                    Reports
                     </NavLink>
 
                     {isAdmin && (

@@ -926,3 +926,32 @@ export const getAllDesignations = asyncHandler(async (req, res) => {
     });
 
 });
+
+
+// @desc    Get all active employees (for dropdown selection)
+// @route   GET /api/employees/active
+// @access  Private
+export const getAllActiveEmployees = asyncHandler(async (req, res) => {
+
+    const result = await pool.query(
+        `SELECT
+            e.id,
+            e.employee_no,
+            e.status,
+            pd.first_name,
+            pd.middle_name,
+            pd.last_name,
+            pd.name_extension
+        FROM employees e
+        LEFT JOIN personal_data pd ON pd.employee_id = e.id
+        WHERE e.status = 'SUBMITTED'
+        ORDER BY pd.last_name ASC NULLS LAST, pd.first_name ASC NULLS LAST`
+    );
+
+    res.json({
+        message: "Active employees retrieved successfully.",
+        success: true,
+        employees: result.rows
+    });
+
+});

@@ -12,6 +12,7 @@ import ForgotPassword from "./pages/public/ForgotPassword";
 import ResetPassword from "./pages/public/ResetPassword";
 import Dashboard from "./pages/private/Dashboard";
 import Employee from "./pages/private/Employee";
+import Faculty from "./pages/private/Faculty";
 import EmployeeEdit from "./pages/private/EmployeeEdit";
 import EmployeeCreate from "./pages/private/EmployeeCreate";
 import EmployeeView from "./pages/private/EmployeeView";
@@ -48,6 +49,7 @@ const App = () => {
             <Route element={ <MainLayout /> }>
               <Route path="/dashboard" element={ <Dashboard /> } />
               <Route path="/employees" element={ <Employee /> } />
+              <Route path="/faculties" element={ <Faculty /> } />
               <Route path="/leave" element={ <LeaveManagement /> } />
               <Route path="/settings" element={ <ProfileSettings /> } />
             </Route>

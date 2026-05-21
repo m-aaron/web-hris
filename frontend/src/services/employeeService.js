@@ -5,6 +5,13 @@ export const getEmployees = (params) => {
     return API.get("/employees", { params });
 };
 
+export const getAllActiveEmployees = async () => {
+    const response = await API.get("/employees/active");
+
+    return response.data;
+}
+
+
 // Archive Employee
 export const archiveEmployee = async (id) => {
     const response = await API.put(`/employees/${id}/archive`);
