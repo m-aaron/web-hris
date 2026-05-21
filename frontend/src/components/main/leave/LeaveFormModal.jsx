@@ -89,12 +89,11 @@ const LeaveFormModal = ({
             const app = initialData;
             const leaveRows = initialData.leaveTypes || initialData.leave_types || [];
             const mapped = {
-                id: String(app.id || ""),
                 employee_id: String(app.employee_id || ""),
                 date_filed: app.date_filed ? formatPHDate(app.date_filed) : new Date().toISOString().slice(0,10),
                 department_unit: app.department_unit || "",
                 substitute_name: app.substitute_name || "",
-                subjects_covered: app.subjects_covered || [],
+                subjects_covered: Array.isArray(app.subjects_covered) ? app.subjects_covered : [],
                 reason: app.reason || "",
                 leave_types: leaveRows.map((lt) => ({
                     leave_type_id: lt.leave_type_id ? String(lt.leave_type_id) : String(lt.leave_type_id || ""),
@@ -112,13 +111,13 @@ const LeaveFormModal = ({
         setIsDaysManualMap({});
         setShowConfirm(false);
         setPendingData(null);
-        // // default Date Filed to today (YYYY-MM-DD)
-        // const today = new Date().toISOString().slice(0, 10);
-        // try {
-        //   setValue("date_filed", today);
-        // } catch (e) {
-        //   // ignore
-        // }
+        // default Date Filed to today (YYYY-MM-DD)
+        const today = formatPHDate(new Date());
+        try {
+          setValue("date_filed", today);
+        } catch (e) {
+          // ignore
+        }
     }, [isOpen, reset, setValue, initialData]);
 
     // compute days per leave type row when dates change
@@ -289,6 +288,7 @@ const LeaveFormModal = ({
                         label="Employee"
                         required
                         message={errors.employee_id?.message}
+                        disabled={!!initialData}
                         {...register("employee_id")}
                         options={[
                         { value: "", label: "Select employee" },

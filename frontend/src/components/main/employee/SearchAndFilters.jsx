@@ -15,6 +15,7 @@ const SearchAndFilters = ({ query, setQuery }) => {
       query.basis,
       query.sex,
       query.regularization_filter,
+      query.on_leave_today,
     ];
 
     return filterValues.filter(Boolean).length;
@@ -25,6 +26,7 @@ const SearchAndFilters = ({ query, setQuery }) => {
     query.basis,
     query.sex,
     query.regularization_filter,
+    query.on_leave_today,
   ]);
 
   const handleChange = (field, value) => {
@@ -49,7 +51,7 @@ const SearchAndFilters = ({ query, setQuery }) => {
             value={query.search}
             onChange={(e) => handleChange("search", e.target.value)}
             className="
-              col-span-10 md:col-span-3 
+              col-span-10 md:col-span-2
               w-full px-4 py-2 
               text-heading 
               border border-border
@@ -73,7 +75,7 @@ const SearchAndFilters = ({ query, setQuery }) => {
           </div>
 
           <div
-            className={`col-span-10 md:col-span-7 ${showMobileFilters ? "grid" : "hidden"} md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3`}
+            className={`col-span-10 md:col-span-8 ${showMobileFilters ? "grid" : "hidden"} md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-3`}
           >
             <SelectField
               label="Employee Type"
@@ -146,6 +148,17 @@ const SearchAndFilters = ({ query, setQuery }) => {
                 { value: RECORD_STATUSES.SUBMITTED, label: "Submitted" },
                 { value: RECORD_STATUSES.DRAFT, label: "Draft" },
                 { value: RECORD_STATUSES.ARCHIVED, label: "Archived" }
+              ]}
+              className="px-3 py-2 text-sm"
+            />
+
+            <SelectField
+              label="On Leave Today"
+              value={query.on_leave_today}
+              onChange={(value) => handleChange("on_leave_today", value)}
+              options={[
+                { value: "", label: "All" },
+                { value: "true", label: "Yes" },
               ]}
               className="px-3 py-2 text-sm"
             />

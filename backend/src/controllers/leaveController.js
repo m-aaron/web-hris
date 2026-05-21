@@ -17,6 +17,7 @@ export const getLeaveTypes = asyncHandler(async (req, res) => {
 export const getLeaveApplications = asyncHandler(async (req, res) => {
     const {
         status,
+        leave_type_id,
         employee_id,
         date_from,
         date_to,
@@ -33,6 +34,13 @@ export const getLeaveApplications = asyncHandler(async (req, res) => {
     if (status) {
         whereClauses.push(`la.status = $${idx++}`);
         values.push(String(status).toUpperCase());
+    }
+
+    if (leave_type_id) {
+        whereClauses.push(`la.id IN (
+            SELECT leave_application_id FROM leave_application_types WHERE leave_type_id = $${idx++}
+        )`);
+        values.push(leave_type_id);
     }
 
     if (employee_id) {
@@ -291,10 +299,6 @@ export const updateLeaveApplication = asyncHandler(async (req, res) => {
         return res.status(400).json({ success: false, message: 'Application id is required' });
     }
 
-    if (!employee_id) {
-        return res.status(400).json({ success: false, message: 'Employee is required' });
-    }
-
     if (!Array.isArray(leave_types) || leave_types.length === 0) {
         return res.status(400).json({ success: false, message: 'Leave Type is required' });
     }
@@ -327,14 +331,13 @@ export const updateLeaveApplication = asyncHandler(async (req, res) => {
 
         const updateAppQuery = `
             UPDATE leave_applications SET
-                employee_id = $1,
-                date_filed = $2,
-                reason = $3,
-                department_unit = $4,
-                substitute_name = $5,
-                subjects_covered = $6::jsonb,
-                remarks = $7
-            WHERE id = $8
+                date_filed = $1,
+                reason = $2,
+                department_unit = $3,
+                substitute_name = $4,
+                subjects_covered = $5::jsonb,
+                remarks = $6
+            WHERE id = $7
             RETURNING *
         `;
 
@@ -351,7 +354,6 @@ export const updateLeaveApplication = asyncHandler(async (req, res) => {
         }
 
         const updateResult = await client.query(updateAppQuery, [
-            employee_id,
             date_filed || new Date(),
             reason || null,
             department_unit || null,

@@ -236,8 +236,8 @@ const LeaveManagement = () => {
         const optionalDateFiled = data.date_filed
             ? { date_filed: data.date_filed }
             : {};
+        // Don't include employee_id in update - it cannot be changed
         const payload = {
-            employee_id: data.employee_id,
             ...optionalDateFiled,
             department_unit: data.department_unit || null,
             substitute_name: data.substitute_name || null,
@@ -343,7 +343,7 @@ const LeaveManagement = () => {
                     { value: "", label: "All" },
                     { value: "PENDING", label: "Pending" },
                     { value: "APPROVED", label: "Approved" },
-                    { value: "REJECTED", label: "Rejected" },
+                    { value: "DISAPPROVED", label: "Disapproved" },
                     ]}
                     className="text-sm"
                 />
@@ -479,8 +479,8 @@ const LeaveManagement = () => {
             setEditingApplication(null);
             }}
             onSubmit={async (data) => {
-                if (editingApplication && editingApplication.id) {
-                    return await handleUpdateLeave(editingApplication.id || application.id, data);
+                if (editingApplication?.id) {
+                    return await handleUpdateLeave(editingApplication.id, data);
                 }
                 return await handleCreateLeave(data);
             }}

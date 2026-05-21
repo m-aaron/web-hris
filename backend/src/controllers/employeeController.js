@@ -178,6 +178,7 @@ export const getEmployees = asyncHandler(async (req, res) => {
         basis,
         sex,
         regularization_filter,
+        on_leave_today,
         sort = "date_hired_desc"
     } = req.query;
 
@@ -277,6 +278,20 @@ export const getEmployees = asyncHandler(async (req, res) => {
                 END
             ) < CURRENT_DATE
             AND ed.employment_status != 'REGULAR'
+        `);
+    }
+
+    // Leave filter - employees on leave today
+    if (on_leave_today === "true") {
+        whereClauses.push(`
+            e.id IN (
+                SELECT DISTINCT la.employee_id
+                FROM leave_applications la
+                JOIN leave_application_types lat ON la.id = lat.leave_application_id
+                WHERE la.status = 'APPROVED'
+                AND lat.date_from <= CURRENT_DATE
+                AND lat.date_to >= CURRENT_DATE
+            )
         `);
     }
 

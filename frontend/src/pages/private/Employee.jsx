@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEmployeesQuery } from "../../hooks/useEmployeesQuery";
 import {
   bulkArchiveEmployees,
@@ -21,6 +21,7 @@ import { RECORD_STATUSES } from "../../constants/employeeConstant";
 
 export default function EmployeesPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [query, setQuery] = useState({
     search: "",
@@ -32,8 +33,26 @@ export default function EmployeesPage() {
     basis: "",
     sex: "",
     regularization_filter: "",
+    on_leave_today: "",
     sort: "date_hired_desc",
   });
+
+  // Read URL search params and apply to query
+  useState(() => {
+    const status = searchParams.get("status");
+    const type = searchParams.get("type");
+    const on_leave_today = searchParams.get("on_leave_today");
+    
+    if (status || type || on_leave_today) {
+      setQuery((prev) => ({
+        ...prev,
+        status: status || prev.status,
+        type: type || prev.type,
+        on_leave_today: on_leave_today || prev.on_leave_today,
+        page: 1,
+      }));
+    }
+  }, [searchParams]);
 
   const [drawerEmployee, setDrawerEmployee] = useState(null);
 

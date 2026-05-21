@@ -248,6 +248,7 @@ export const getRegularizationForecast = async () => {
 export const getBirthdaysToday = async () => {
     const result = await pool.query(`
         SELECT
+            e.id,
             pd.last_name,
             pd.first_name,
             pd.middle_name,
@@ -263,7 +264,7 @@ export const getBirthdaysToday = async () => {
             TO_CHAR(pd.birth_date, 'Mon DD') AS birth_date
 
         FROM employees e
-        JOIN personal_data pd ON e.id = pd.employee_id
+        LEFT JOIN personal_data pd ON pd.employee_id = e.id
         WHERE e.status = 'SUBMITTED'
             AND EXTRACT(MONTH FROM pd.birth_date) = EXTRACT(MONTH FROM CURRENT_DATE)
             AND EXTRACT(DAY FROM pd.birth_date) = EXTRACT(DAY FROM CURRENT_DATE)
