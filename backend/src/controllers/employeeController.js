@@ -44,7 +44,7 @@ export const createEmployee = asyncHandler(async (req, res) => {
             VALUES ($1, $2)
             RETURNING *
         `,
-        [employeeNumber , employmentType]
+        [employeeNumber, employmentType]
     );
 
     if (employeeResult.rows.length === 0) {
@@ -108,7 +108,7 @@ export const updateEmployeePhoto = asyncHandler(async (req, res) => {
     const { id } = req.params;
 
     // Check if file is uploaded
-    if(!req.file) {
+    if (!req.file) {
         return res.status(400).json({ message: "No file uploaded.", success: false });
     };
 
@@ -143,7 +143,7 @@ export const updateEmployeePhoto = asyncHandler(async (req, res) => {
     const outputPath = path.join(uploadDir, fileName);
 
     // Process and save the image
-    await sharp(req.file.buffer)        
+    await sharp(req.file.buffer)
         .resize(600, 600, { fit: "cover" })
         .webp({ quality: 80 })
         .toFile(outputPath);
@@ -158,7 +158,7 @@ export const updateEmployeePhoto = asyncHandler(async (req, res) => {
     if (updateResult.rowCount === 0) {
         return res.status(500).json({ message: "Failed to update employee photo.", success: false });
     };
-    
+
     res.status(200).json({ message: "Employee photo updated successfully.", success: true, photoUrl });
 
 });
@@ -397,7 +397,25 @@ export const getEmployees = asyncHandler(async (req, res) => {
     values.push(limit);
     values.push(offset);
 
+    const computeYears = (dateStr) => {
+        if (!dateStr) return null;
+        const d = new Date(dateStr);
+        const now = new Date();
+        let years = now.getFullYear() - d.getFullYear();
+        const m = now.getMonth() - d.getMonth();
+        if (m < 0 || (m === 0 && now.getDate() < d.getDate())) years--;
+        return years;
+    };
+
     const result = await pool.query(dataQuery, values);
+
+    const formattedRows = result.rows.map((row) => {
+        const years = computeYears(row.date_hired);
+        return {
+            ...row,
+            years_in_service: years !== null && years !== undefined ? `${years} ${years === 1 ? 'year' : 'years'}` : null,
+        };
+    });
 
     const countResult = await pool.query(
         `
@@ -412,7 +430,7 @@ export const getEmployees = asyncHandler(async (req, res) => {
 
     res.json({
         success: true,
-        data: result.rows,
+        data: formattedRows,
         pagination: {
             total: Number(countResult.rows[0].count),
             page: Number(page),
@@ -541,8 +559,8 @@ export const bulkArchiveEmployees = asyncHandler(async (req, res) => {
     // Validate input
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
         return res.status(400).json({
-        message: "Employee IDs are required.",
-        success: false,
+            message: "Employee IDs are required.",
+            success: false,
         });
     }
 
@@ -554,8 +572,8 @@ export const bulkArchiveEmployees = asyncHandler(async (req, res) => {
 
     if (checkResult.rowCount === 0) {
         return res.status(404).json({
-        message: "No employees found to archive.",
-        success: false,
+            message: "No employees found to archive.",
+            success: false,
         });
     }
 
@@ -569,8 +587,8 @@ export const bulkArchiveEmployees = asyncHandler(async (req, res) => {
 
     if (result.rowCount === 0) {
         return res.status(500).json({
-        message: "Failed to archive employees.",
-        success: false,
+            message: "Failed to archive employees.",
+            success: false,
         });
     };
 
@@ -914,10 +932,10 @@ export const getEmployeeById = asyncHandler(async (req, res) => {
 // @desc    Get all positions
 // @route   GET /api/employees/positions
 // @access  Private
-export const getAllPositions = asyncHandler(async (req, res) => {
+export const getAllActivePositions = asyncHandler(async (req, res) => {
 
     const result = await pool.query(
-        `SELECT id, name FROM positions ORDER BY name ASC`
+        `SELECT id, name FROM positions WHERE is_active = true ORDER BY name ASC`
     );
 
     res.json({
@@ -928,10 +946,10 @@ export const getAllPositions = asyncHandler(async (req, res) => {
 
 });
 
-export const getAllDesignations = asyncHandler(async (req, res) => {
+export const getAllActiveDesignations = asyncHandler(async (req, res) => {
 
     const result = await pool.query(
-        `SELECT id, name FROM designations ORDER BY name ASC`
+        `SELECT id, name FROM designations WHERE is_active = true ORDER BY name ASC`
     );
 
     res.json({

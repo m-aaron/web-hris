@@ -2,13 +2,7 @@ import { RegularizationForecastChart } from "./analytics/RegularizationForecastC
 import { EmployeeTypeChart } from "./analytics/EmployeeTypeChart";
 import { GenderDistributionChart } from "./analytics/GenderDistributionChart";
 
-import {
-    forecastData,
-    employeeTypeData,
-    genderData,
-} from "./analytics/data";
-
-export const AnalyticsSection = ( { summary, forecast } ) => {
+export const AnalyticsSection = ({ summary, forecast }) => {
     return (
         <section className="space-y-6">
             <h2 className="text-xl font-semibold text-heading">Analytics Overview</h2>
@@ -18,8 +12,8 @@ export const AnalyticsSection = ( { summary, forecast } ) => {
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
-                <EmployeeTypeChart summary={ summary } />
-                <GenderDistributionChart summary={ summary } />
+                <EmployeeTypeChart summary={summary} />
+                <GenderDistributionChart summary={summary} />
             </div>
         </section>
     );

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import LoadingState from "../../components/LoadingState";
 import { getDashboardSummary } from "../../services/dashboardService";
@@ -11,6 +12,7 @@ import EmptyState from "../../components/main/ui/EmptyState";
 import PageHeader from "../../components/main/ui/PageHeader";
 
 const Dashboard = () => {
+    const navigate = useNavigate();
     const [dashboardSummary, setDashboardSummary] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -56,7 +58,7 @@ const Dashboard = () => {
                 title="Dashboard"
                 description="View workforce trends, regularization status, and key employee insights."
                 actions={(
-                    <Button size="medium" className="w-full md:w-auto">
+                    <Button size="medium" className="w-full md:w-auto" onClick={() => navigate("/employees/create")}>
                         + Create Employee
                     </Button>
                 )}
@@ -67,13 +69,13 @@ const Dashboard = () => {
             {/* Separator */}
             <div className="border-t border-border pb-6" />
 
-            <WorkforceSection summary={ dashboardSummary.summary } />
-            <RegularizationSection 
-                summary={ dashboardSummary.summary } 
-                becomingRegular={ dashboardSummary.becomingRegular } 
+            <WorkforceSection summary={dashboardSummary.summary} />
+            <RegularizationSection
+                summary={dashboardSummary.summary}
+                becomingRegular={dashboardSummary.becomingRegular}
             />
-            <BirthdaySection summary={ dashboardSummary.summary } birthdaysTodayData={ dashboardSummary.birthdaysToday } />
-            <AnalyticsSection 
+            <BirthdaySection summary={dashboardSummary.summary} birthdaysTodayData={dashboardSummary.birthdaysToday} />
+            <AnalyticsSection
                 summary={dashboardSummary.summary}
                 forecast={dashboardSummary.forecast}
             />

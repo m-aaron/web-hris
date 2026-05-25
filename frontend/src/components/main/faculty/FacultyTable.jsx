@@ -7,8 +7,6 @@ import {
   TableHeaderCell,
   TableCell,
 } from "../ui/Table";
-import { ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
-import Button from "../../Button";
 import { useState } from "react";
 import { formatEmployeeDisplayName } from "../../../helpers/employeeHelper";
 import EmptyState from "../ui/EmptyState";
@@ -60,41 +58,41 @@ const FacultyTable = ({ faculties = [], loading = false, onEdit, onDelete, query
               <TableCell>{idx + 1}</TableCell>
               <TableCell>
                 <div className="flex flex-col">
-                    <span className="font-medium text-heading">{formatEmployeeDisplayName({ last_name: f.last_name, first_name: f.first_name, middle_name: f.middle_name, name_extension: f.name_extension }, "N/A")}</span>
-                    <span className="text-xs text-muted">{f.employee_no || "-"}</span>
+                  <span className="font-medium text-heading">{formatEmployeeDisplayName({ last_name: f.last_name, first_name: f.first_name, middle_name: f.middle_name, name_extension: f.name_extension }, "N/A")}</span>
+                  <span className="text-xs text-muted">{f.employee_no || "-"}</span>
                 </div>
               </TableCell>
               <TableCell>{f.date_hired || "N/A"}</TableCell>
               <TableCell>{f.years_in_service || "N/A"}</TableCell>
-                <TableCell className="text-xs">
-                    {f.academic_qualifications ? (
-                        <ul className="list-disc list-inside">
-                            {f.academic_qualifications.split(';').map((q, i) => (
-                                <li key={i} className="flex items-start gap-1.5">
-                                    <span className="mt-1 shrink-0 w-1 h-1 rounded-full bg-muted inline-block" />
-                                    <span>{q}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <span className="text-muted">N/A</span>
-                    )}
-                </TableCell>
+              <TableCell className="text-xs">
+                {f.academic_qualifications ? (
+                  <ul className="list-disc list-inside">
+                    {f.academic_qualifications.split(';').map((q, i) => (
+                      <li key={i} className="flex items-start gap-1.5">
+                        <span className="mt-1 shrink-0 w-1 h-1 rounded-full bg-muted inline-block" />
+                        <span>{q}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <span className="text-muted">N/A</span>
+                )}
+              </TableCell>
               <TableCell>
                 <p className="font-semibold">{f.position_name || "-"}</p>
                 <div className="text-xs text-muted">
-                    {f.teaching_load ? (
-                        <ul className="list-disc list-inside">
-                            {f.teaching_load.split(',').map((q, i) => (
-                                <li key={i} className="flex items-start gap-1.5">
-                                    <span className="mt-1 shrink-0 w-1 h-1 rounded-full bg-muted inline-block" />
-                                    <span>{q}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <span className="text-muted">N/A</span>
-                    )}
+                  {f.teaching_load ? (
+                    <ul className="list-disc list-inside">
+                      {f.teaching_load.split(',').map((q, i) => (
+                        <li key={i} className="flex items-start gap-1.5">
+                          <span className="mt-1 shrink-0 w-1 h-1 rounded-full bg-muted inline-block" />
+                          <span>{q}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span className="text-muted">N/A</span>
+                  )}
                 </div>
               </TableCell>
               <TableCell>{f.employment_status || "N/A"}</TableCell>

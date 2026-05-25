@@ -32,8 +32,11 @@ export const AuthProvider = ({ children }) => {
                 await refreshUser();
                 
             } catch (error) { 
-                if (error.response?.status === 401) {
+                // Only show "Session expired" if the user had an active session before
+                const hadSession = localStorage.getItem("hris_had_session");
+                if (error.response?.status === 401 && hadSession) {
                     toast.error("Session expired. Please log in again.");
+                    localStorage.removeItem("hris_had_session");
                 }
                 setUser(null);
             } finally {
@@ -48,7 +51,7 @@ export const AuthProvider = ({ children }) => {
     const login = async ({ email, password }) => {
         const response = await API.post("/auth/login", { email, password });
         await refreshUser();
-
+        localStorage.setItem("hris_had_session", "1"); // Mark that a session was established
         return response.data;
     };
 
@@ -58,6 +61,7 @@ export const AuthProvider = ({ children }) => {
             await API.post("/auth/logout");
         } finally {
             // Always clear client auth state so guarded routes redirect immediately.
+            localStorage.removeItem("hris_had_session");
             setUser(null);
         }
     };

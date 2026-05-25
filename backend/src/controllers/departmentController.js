@@ -2,16 +2,15 @@ import pool from "../configs/dbConfig.js";
 import asyncHandler from "express-async-handler";
 
 
-// @desc    Get active departments
+// @desc    Get all departments (active and inactive)
 // @route   GET /api/departments
 // @access  Private
 export const getDepartments = asyncHandler(async (req, res) => {
 
     const departmentsResult = await pool.query(
         `SELECT 
-            id, name, description
+            id, name, description AS descriptions, is_active
         FROM departments
-        WHERE is_active = TRUE
         ORDER BY name ASC`
     );
 
@@ -28,10 +27,10 @@ export const getDepartments = asyncHandler(async (req, res) => {
 // @access  Private
 export const createDepartment = asyncHandler(async (req, res) => {
 
-    const { name, description } = req.body;
+    const { name, descriptions } = req.body;
 
     const normalizedName = String(name || "").trim();
-    const normalizedDescription = String(description || "").trim();
+    const normalizedDescriptions = String(descriptions || "").trim();
 
     if (!normalizedName) {
         return res.status(400).json({ message: "Department name is required.", success: false });
@@ -47,10 +46,10 @@ export const createDepartment = asyncHandler(async (req, res) => {
     }
 
     const createResult = await pool.query(
-        `INSERT INTO departments (name, description)
-        VALUES ($1, $2)    
-        RETURNING *`,
-        [normalizedName, normalizedDescription]
+        `INSERT INTO departments (name, description, is_active)
+        VALUES ($1, $2, true)    
+        RETURNING id, name, description AS descriptions, is_active`,
+        [normalizedName, normalizedDescriptions]
     );
 
     if (createResult.rowCount === 0) {
@@ -71,10 +70,10 @@ export const createDepartment = asyncHandler(async (req, res) => {
 export const updateDepartment = asyncHandler(async (req, res) => {
 
     const { id } = req.params;
-    const { name, description } = req.body;
+    const { name, descriptions } = req.body;
 
     const normalizedName = String(name || "").trim();
-    const normalizedDescription = String(description || "").trim();
+    const normalizedDescriptions = String(descriptions || "").trim();
 
     if (!normalizedName) {
         return res.status(400).json({ message: "Department name is required.", success: false });
@@ -101,8 +100,8 @@ export const updateDepartment = asyncHandler(async (req, res) => {
     const updateResult = await pool.query(
         `UPDATE departments SET name = $1, description = $2
         WHERE id = $3
-        RETURNING *`,
-        [normalizedName, normalizedDescription, id]
+        RETURNING id, name, description AS descriptions, is_active`,
+        [normalizedName, normalizedDescriptions, id]
     );      
 
     if (updateResult.rowCount === 0) {
@@ -117,7 +116,48 @@ export const updateDepartment = asyncHandler(async (req, res) => {
 
 });
 
-// @desc    Soft delete department
+// @desc    Toggle department active/inactive status
+// @route   PATCH /api/departments/:id/toggle-active
+// @access  Private
+export const toggleDepartmentActive = asyncHandler(async (req, res) => {
+
+    const { id } = req.params;
+
+    const departmentResult = await pool.query(
+        `SELECT id, is_active FROM departments WHERE id = $1`,
+        [id]
+    );
+
+    if (departmentResult.rowCount === 0) {
+        return res.status(404).json({ message: "Department not found.", success: false });
+    }
+
+    const currentActive = departmentResult.rows[0].is_active;
+    const newActive = !currentActive;
+
+    const toggleResult = await pool.query(
+        `UPDATE departments
+        SET is_active = $1
+        WHERE id = $2
+        RETURNING id, name, description AS descriptions, is_active`,
+        [newActive, id]
+    );
+
+    if (toggleResult.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to update department status.", success: false });
+    }
+
+    const action = newActive ? "activated" : "deactivated";
+
+    res.status(200).json({
+        message: `Department ${action} successfully.`,
+        success: true,
+        department: toggleResult.rows[0],
+    });
+
+});
+
+// @desc    Delete department (hard delete — only if no linked faculties)
 // @route   DELETE /api/departments/:id
 // @access  Private
 export const deleteDepartment = asyncHandler(async (req, res) => {
@@ -142,22 +182,12 @@ export const deleteDepartment = asyncHandler(async (req, res) => {
 
     if (linkedCount > 0) {
         return res.status(400).json({
-            message: "Cannot delete - employees are linked to this department",
+            message: "Cannot delete — employees are linked to this department. Deactivate it instead.",
             success: false,
         });
     }
 
-    const deleteResult = await pool.query(
-        `UPDATE departments
-            SET is_active = FALSE
-        WHERE id = $1
-        RETURNING *`,
-        [id]
-    );
-
-    if (deleteResult.rowCount === 0) {
-        return res.status(500).json({ message: "Failed to delete department.", success: false });
-    }
+    await pool.query(`DELETE FROM departments WHERE id = $1`, [id]);
 
     res.status(200).json({
         message: "Department deleted successfully.",

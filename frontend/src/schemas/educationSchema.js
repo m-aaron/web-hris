@@ -51,13 +51,13 @@ const educSchema = z
                 })
             }
 
-            if (!data.school) {
-                ctx.addIssue({
-                code: "custom",
-                path: ["school"],
-                message: "School is required if education info is provided"
-                })
-            }
+            // if (!data.school) {
+            //     ctx.addIssue({
+            //     code: "custom",
+            //     path: ["school"],
+            //     message: "School is required if education info is provided"
+            //     })
+            // }
         }
 
         if (data.year_started && data.year_finished && parseInt(data.year_finished) < parseInt(data.year_started)) {

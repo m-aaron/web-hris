@@ -104,7 +104,7 @@ const EmployeesTable = ({
 
             <TableHeaderCell
               onClick={() => toggleSort("name")}
-              className="w-[20%] cursor-pointer"
+              className="w-[15%] cursor-pointer"
             >
               Full Name
               {getSortIcon("name")}
@@ -134,7 +134,7 @@ const EmployeesTable = ({
 
             <TableHeaderCell
               onClick={() => toggleSort("date_hired")}
-              className="w-[10%] cursor-pointer"
+              className="w-[15%] cursor-pointer"
             >
               Date Hired
               {getSortIcon("date_hired")}
@@ -299,7 +299,13 @@ const EmployeesTable = ({
                   className="cursor-pointer"
                   onClick={() => setDrawerEmployee(row)}
                 >
-                  {row.date_hired ? formatPHDate(row.date_hired) : "N/A"}
+                  {row.date_hired ? (
+                    row.years_in_service ? (
+                      `${formatPHDate(row.date_hired)} (${row.years_in_service.replace("year", "Year").replace("years", "Years")})`
+                    ) : (
+                      formatPHDate(row.date_hired)
+                    )
+                  ) : "N/A"}
                 </TableCell>
 
                 <TableCell

@@ -99,7 +99,7 @@ export const RegularizationForecastChart = ({ data }) => {
                                 />
                             </BarChart>
                         ) : (
-                            <LineChart data={data}>
+                            <LineChart data={formattedData}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--grey)" />
                                 <XAxis dataKey="month" stroke="var(--muted)" />
                                 <YAxis allowDecimals={false} stroke="var(--muted)" />

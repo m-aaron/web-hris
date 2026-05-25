@@ -45,7 +45,13 @@ echo [OK] MC HRIS started successfully.
 echo Frontend URL: http://localhost:3002
 echo Backend URL:  http://localhost:5001
 echo.
-echo Note: On first run, please wait about 30 seconds before using the system.
+echo Note: On first run, please wait about 30-60 seconds before using the system.
+echo       The database is being initialized and seeded automatically.
 echo.
+
+REM Wait a few seconds before opening browser so Docker has time to spin up
+timeout /t 5 /nobreak >nul
+start http://localhost:3002
+
 pause
 exit /b 0

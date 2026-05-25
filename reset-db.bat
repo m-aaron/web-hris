@@ -47,7 +47,21 @@ if not "%SEED_EXIT%"=="0" (
 
 echo.
 echo [OK] Database reset/reseed completed successfully.
-echo Backup file is saved under backend\backups.
+echo.
+echo ================================================================
+echo  Backup Information
+echo ================================================================
+echo The database state before reset has been backed up.
+echo Backup location: backups\
+echo.
+echo Recent backups:
+for /f "delims=" %%f in ('dir /b /o-d "backups\hris_backup_*.sql" 2^>nul ^| findstr /c:".sql"') do (
+    for %%A in ("backups\%%f") do (
+        set /A SIZE_KB=%%~zA/1024
+        echo   - %%f [!SIZE_KB! KB]
+    )
+)
+echo ================================================================
 echo.
 pause
 exit /b 0

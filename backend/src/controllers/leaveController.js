@@ -11,6 +11,203 @@ export const getLeaveTypes = asyncHandler(async (req, res) => {
 });
 
 
+// @desc    Get all leave types (including inactive) - for admin settings
+// @route   GET /api/leave/types/all
+// @access  Private (ADMIN, HR)
+export const getAllLeaveTypes = asyncHandler(async (req, res) => {
+
+    const leaveTypesResult = await pool.query(
+        `SELECT 
+            id, name, is_active
+        FROM leave_types
+        ORDER BY name ASC`
+    );
+
+    res.status(200).json({
+        message: "Leave types fetched successfully.",
+        success: true,
+        leaveTypes: leaveTypesResult.rows,
+    }); 
+
+});
+
+
+// @desc    Create leave type
+// @route   POST /api/leave/types
+// @access  Private
+export const createLeaveType = asyncHandler(async (req, res) => {
+
+    const { name } = req.body;
+
+    const normalizedName = String(name || "").trim();
+
+    if (!normalizedName) {
+        return res.status(400).json({ message: "Leave type name is required.", success: false });
+    }
+
+    const existingResult = await pool.query(
+        `SELECT id FROM leave_types WHERE LOWER(name) = LOWER($1)`
+        , [normalizedName]
+    );
+
+    if (existingResult.rowCount > 0) {
+        return res.status(409).json({ message: "Leave type name already exists.", success: false });
+    }
+
+    const createResult = await pool.query(
+        `INSERT INTO leave_types (name)
+        VALUES ($1)    
+        RETURNING *`,
+        [normalizedName]
+    );
+
+    if (createResult.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to create leave type.", success: false });
+    }
+
+    res.status(201).json({
+        message: "Leave type created successfully.",
+        success: true,
+        leaveType: createResult.rows[0],
+    });
+
+});
+
+// @desc    Update leave type
+// @route   PATCH /api/leave/types/:id
+// @access  Private
+export const updateLeaveType = asyncHandler(async (req, res) => {
+
+    const { id } = req.params;
+    const { name, description } = req.body;
+
+    const normalizedName = String(name || "").trim();
+    const normalizedDescription = String(description || "").trim();
+
+    if (!normalizedName) {
+        return res.status(400).json({ message: "Leave type name is required.", success: false });
+    }
+
+    const leaveTypeResult = await pool.query(
+        `SELECT id FROM leave_types WHERE id = $1`,
+        [id]
+    );
+
+    if (leaveTypeResult.rowCount === 0) {
+        return res.status(404).json({ message: "Leave type not found.", success: false });
+    }
+
+    const duplicateResult = await pool.query(
+        `SELECT id FROM leave_types WHERE LOWER(name) = LOWER($1) AND id <> $2`,
+        [normalizedName, id]
+    );
+
+    if (duplicateResult.rowCount > 0) {
+        return res.status(409).json({ message: "Leave type name already exists.", success: false });
+    }
+
+    const updateResult = await pool.query(
+        `UPDATE leave_types SET name = $1
+        WHERE id = $2
+        RETURNING *`,
+        [normalizedName, id]
+    );      
+
+    if (updateResult.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to update leave type.", success: false });
+    }
+
+    res.status(200).json({
+        message: "Leave type updated successfully.",
+        success: true,
+        leaveType: updateResult.rows[0],
+    });
+
+});
+
+// @desc    Soft delete leave type
+// @route   DELETE /api/leave/types/:id
+// @access  Private
+export const deleteLeaveType = asyncHandler(async (req, res) => {
+
+    const { id } = req.params;
+
+    const leaveTypeResult = await pool.query(
+        `SELECT id FROM leave_types WHERE id = $1`,
+        [id]
+    );
+
+    if (leaveTypeResult.rowCount === 0) {
+        return res.status(404).json({ message: "Leave type not found.", success: false });
+    }
+
+    const linkedResult = await pool.query(
+        `SELECT COUNT(*) FROM leave_application_types WHERE leave_type_id = $1`,
+        [id]
+    );
+
+    const linkedCount = Number(linkedResult.rows[0]?.count || 0);
+
+    if (linkedCount > 0) {
+        return res.status(400).json({
+            message: "Cannot delete — this leave type has existing applications. Deactivate it instead.",
+            success: false,
+        });
+    }
+
+    await pool.query(`DELETE FROM leave_types WHERE id = $1`, [id]);
+
+    res.status(200).json({
+        message: "Leave type deleted successfully.",
+        success: true,
+    });
+
+});
+
+
+// @desc    Toggle leave type active/inactive status
+// @route   PATCH /api/leave/types/:id/toggle-active
+// @access  Private (ADMIN)
+export const toggleLeaveTypeActive = asyncHandler(async (req, res) => {
+
+    const { id } = req.params;
+
+    const leaveTypeResult = await pool.query(
+        `SELECT id, is_active FROM leave_types WHERE id = $1`,
+        [id]
+    );
+
+    if (leaveTypeResult.rowCount === 0) {
+        return res.status(404).json({ message: "Leave type not found.", success: false });
+    }
+
+    const currentActive = leaveTypeResult.rows[0].is_active;
+    const newActive = !currentActive;
+
+    const toggleResult = await pool.query(
+        `UPDATE leave_types
+        SET is_active = $1
+        WHERE id = $2
+        RETURNING id, name, is_active`,
+        [newActive, id]
+    );
+
+    if (toggleResult.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to update leave type status.", success: false });
+    }
+
+    const action = newActive ? "activated" : "deactivated";
+
+    res.status(200).json({
+        message: `Leave type ${action} successfully.`,
+        success: true,
+        leaveType: toggleResult.rows[0],
+    });
+
+});
+
+
+
 // @desc    Get leave applications with filters
 // @route   GET /api/leave/applications
 // @access  Private (ADMIN, HR)
@@ -76,6 +273,8 @@ export const getLeaveApplications = asyncHandler(async (req, res) => {
             la.substitute_name,
             la.status,
             la.remarks,
+            MIN(lat.date_from) AS date_from,
+            MAX(lat.date_to) AS date_to,
             STRING_AGG(DISTINCT lt.name, ', ') AS leave_types_display,
             COALESCE(SUM(lat.number_of_days), 0) AS total_days
         FROM leave_applications la

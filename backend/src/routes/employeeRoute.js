@@ -16,8 +16,8 @@ import {
     exportEmployeesExcel,
     exportSelectedEmployeesExcel,
 
-    getAllPositions,
-    getAllDesignations,
+    getAllActivePositions,
+    getAllActiveDesignations,
 
     getAllActiveEmployees
 } from "../controllers/employeeController.js";
@@ -35,8 +35,8 @@ router.put("/bulk-archive", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR),
 router.get("/export", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), exportEmployeesExcel);
 router.post("/export-selected", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), exportSelectedEmployeesExcel);
 
-router.get("/positions", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), getAllPositions);
-router.get("/designations", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), getAllDesignations);
+router.get("/positions/active", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), getAllActivePositions);
+router.get("/designations/active", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), getAllActiveDesignations);
 
 router.get("/active", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), getAllActiveEmployees);
 

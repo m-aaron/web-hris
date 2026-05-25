@@ -2,16 +2,15 @@ import pool from "../configs/dbConfig.js";
 import asyncHandler from "express-async-handler";
 
 
-// @desc    Get active positions
+// @desc    Get all positions (active and inactive)
 // @route   GET /api/positions
 // @access  Private
 export const getPositions = asyncHandler(async (_req, res) => {
 
     const positionsResult = await pool.query(
         `SELECT 
-            id, name, description AS descriptions
+            id, name, description AS descriptions, is_active
         FROM positions
-        WHERE is_active = TRUE
         ORDER BY name ASC`
     );
 
@@ -47,9 +46,9 @@ export const createPosition = asyncHandler(async (req, res) => {
     }
 
     const createResult = await pool.query(
-        `INSERT INTO positions (name, description)
-        VALUES ($1, $2)
-        RETURNING *`,
+        `INSERT INTO positions (name, description, is_active)
+        VALUES ($1, $2, true)
+        RETURNING id, name, description AS descriptions, is_active`,
         [normalizedName, normalizedDescriptions]
     );
 
@@ -102,7 +101,7 @@ export const updatePosition = asyncHandler(async (req, res) => {
         `UPDATE positions
         SET name = $1, description = $2
         WHERE id = $3
-        RETURNING *`,
+        RETURNING id, name, description AS descriptions, is_active`,
         [normalizedName, normalizedDescriptions, id]
     );
 
@@ -118,7 +117,51 @@ export const updatePosition = asyncHandler(async (req, res) => {
 
 });
 
-// @desc    Soft delete position
+// @desc    Toggle position active/inactive status
+// @route   PATCH /api/positions/:id/toggle-active
+// @access  Private
+export const togglePositionActive = asyncHandler(async (req, res) => {
+
+    const { id } = req.params;
+
+    const positionResult = await pool.query(
+        `SELECT id, is_active FROM positions WHERE id = $1`,
+        [id]
+    );
+
+    if (positionResult.rowCount === 0) {
+        return res.status(404).json({ message: "Position not found.", success: false });
+    }
+
+    const currentActive = positionResult.rows[0].is_active;
+    const newActive = !currentActive;
+
+    // If re-activating, no linked-employee check needed.
+    // If deactivating while employees are linked — we allow it (soft deactivate only).
+
+    const toggleResult = await pool.query(
+        `UPDATE positions
+        SET is_active = $1
+        WHERE id = $2
+        RETURNING id, name, description AS descriptions, is_active`,
+        [newActive, id]
+    );
+
+    if (toggleResult.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to update position status.", success: false });
+    }
+
+    const action = newActive ? "activated" : "deactivated";
+
+    res.status(200).json({
+        message: `Position ${action} successfully.`,
+        success: true,
+        position: toggleResult.rows[0],
+    });
+
+});
+
+// @desc    Delete position (hard delete — only if no linked employees)
 // @route   DELETE /api/positions/:id
 // @access  Private
 export const deletePosition = asyncHandler(async (req, res) => {
@@ -143,22 +186,12 @@ export const deletePosition = asyncHandler(async (req, res) => {
 
     if (linkedCount > 0) {
         return res.status(400).json({
-            message: "Cannot delete - employees are linked to this position",
+            message: "Cannot delete — employees are linked to this position. Deactivate it instead.",
             success: false,
         });
     }
 
-    const deleteResult = await pool.query(
-        `UPDATE positions
-        SET is_active = FALSE
-        WHERE id = $1
-        RETURNING *`,
-        [id]
-    );
-
-    if (deleteResult.rowCount === 0) {
-        return res.status(500).json({ message: "Failed to delete position.", success: false });
-    }
+    await pool.query(`DELETE FROM positions WHERE id = $1`, [id]);
 
     res.status(200).json({
         message: "Position deleted successfully.",

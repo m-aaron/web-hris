@@ -81,7 +81,6 @@ const EducationCard = ({ index, savingRow, openSaveConfirm, setDeleteIndex, isDi
 
         <InputForm
           label="School / College"
-          required
           message={educationErrors?.school?.message}
           {...register(`education.${index}.school`)}
         />

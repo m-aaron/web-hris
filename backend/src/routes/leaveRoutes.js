@@ -4,6 +4,11 @@ import { authenticate } from "../middlewares/authenticateMiddleware.js";
 import { authorizeRoles } from "../middlewares/authorizeMiddleware.js";
 import {
     getLeaveTypes,
+    getAllLeaveTypes,
+    createLeaveType,
+    updateLeaveType,
+    deleteLeaveType,
+    toggleLeaveTypeActive,
     getLeaveApplications,
     getLeaveApplicationById,
     createLeaveApplication,
@@ -18,6 +23,11 @@ const router = Router();
 
 // Public to authenticated HR / Admin users
 router.get("/types", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), getLeaveTypes);
+router.get("/types/all", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), getAllLeaveTypes);
+router.post("/types", authenticate, authorizeRoles(ROLES.ADMIN), createLeaveType);
+router.patch("/types/:id/toggle-active", authenticate, authorizeRoles(ROLES.ADMIN), toggleLeaveTypeActive);
+router.patch("/types/:id", authenticate, authorizeRoles(ROLES.ADMIN), updateLeaveType);
+router.delete("/types/:id", authenticate, authorizeRoles(ROLES.ADMIN), deleteLeaveType);
 
 router.get("/applications", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), getLeaveApplications);
 router.get("/overview", authenticate, authorizeRoles(ROLES.ADMIN, ROLES.HR), getLeaveOverview);

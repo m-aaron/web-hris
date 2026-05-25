@@ -14,7 +14,7 @@ export const saveEducationalQualification = asyncHandler(async (req, res) => {
     if (!id) {
         return res.status(400).json({ message: "Employee ID is required.", success: false });
     };
-    if (!title || !school) {
+    if (!title) {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
     };
 
@@ -64,7 +64,7 @@ export const updateEducationalQualification = asyncHandler(async (req, res) => {
     const { title, school, yearStarted, yearFinished } = req.body;
 
     // Validate required fields
-    if (!title || !school) {
+    if (!title) {
         return res.status(400).json({ message: "Required fields are missing.", success: false });
     };
 

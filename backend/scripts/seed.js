@@ -2,10 +2,33 @@ import fs from "fs";
 import path from "path";
 import { execFileSync } from "child_process";
 import pool from "../src/configs/dbConfig.js";
+import {
+    getBackupFilePath,
+    generateBackupFilename,
+    createBackupMetadata,
+    updateBackupMetadata,
+    addBackupHeader,
+    cleanupOldBackups,
+    formatFileSize
+} from "../src/utils/backupUtils.js";
+
+/**
+ * seed.js — Full reset + reseed (development/admin tool)
+ *
+ * WARNING: This truncates ALL tables and reseeds from scratch.
+ * Run via:  npm run db:reset-seed  (from backend/ directory)
+ * Or via:   reset-db.bat           (from project root)
+ *
+ * NOT used for Docker startup — see scripts/seed-docker.js instead.
+ */
 
 const EMPLOYEE_COUNT = Number(process.env.SEED_EMPLOYEE_COUNT || 30);
-const DEFAULT_ADMIN_EMAIL = "hris.system2026@gmail.com";
-const DEFAULT_ADMIN_HASH = "$2b$10$fhchnT8rXSB.IBacF3Q7EentqsNLnoI0dRK9OkKxbdrfUBRT6fYKO";
+
+// TODO(security): Change default admin credentials after first login.
+// Default admin: admin@mabinicolleges.edu / Admin@2026 (bcrypt hash below)
+const DEFAULT_ADMIN_EMAIL = "admin@mabinicolleges.edu";
+const DEFAULT_ADMIN_HASH = "$2b$10$QWSyzJ6aTbd1ptFuBEBp6ubzkX6aTJdxbO7Q0ti.jloDNROENKHcy";
+
 const DB_CONTAINER_NAME = process.env.DB_CONTAINER_NAME || "hris_postgres";
 
 const FIRST_NAMES = [
@@ -63,18 +86,12 @@ function dateOnly(value) {
     return value.toISOString().slice(0, 10);
 }
 
-function ensureBackupDir() {
-    const backupDir = path.resolve(process.cwd(), "backups");
-    if (!fs.existsSync(backupDir)) {
-        fs.mkdirSync(backupDir, { recursive: true });
-    }
-    return backupDir;
-}
-
 function backupDatabase() {
-    const backupDir = ensureBackupDir();
-    const timestamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z");
-    const backupPath = path.join(backupDir, `backup_${timestamp}.sql`);
+    const filename = generateBackupFilename();
+    const backupPath = getBackupFilePath(filename);
+    
+    // Create metadata entry
+    createBackupMetadata(filename, "reset", `Database reset/reseed on ${new Date().toLocaleString()}`);
 
     console.log(`Creating backup before reset: ${backupPath}`);
 
@@ -86,12 +103,36 @@ function backupDatabase() {
         );
 
         fs.writeFileSync(backupPath, dump, "utf-8");
+        
+        // Add informative header to SQL file
+        addBackupHeader(backupPath, "reset", "Database state before reset/reseed");
+        
+        // Update metadata with success info
+        const stats = fs.statSync(backupPath);
+        updateBackupMetadata(filename, "completed", stats.size);
+        
+        console.log(`✓ Backup completed: ${filename} (${formatFileSize(stats.size)})`);
+        
+        // Cleanup old backups - keep last 15
+        const cleanup = cleanupOldBackups(15);
+        if (cleanup.deleted > 0) {
+            console.log(`✓ Cleaned up ${cleanup.deleted} old backups (keeping last 15)`);
+        }
+        
     } catch (error) {
         const stderr = error?.stderr ? String(error.stderr) : "";
+        updateBackupMetadata(filename, "failed", null);
         throw new Error(`Backup failed. ${stderr}`.trim());
     }
+}
 
-    console.log("Backup completed.");
+function ensureBackupDir() {
+    // This is now handled by backupUtils, but keeping for backwards compatibility
+    const backupDir = getBackupFilePath().replace(/[\\\/][^\\\/]*\.sql$/, "");
+    if (!fs.existsSync(backupDir)) {
+        fs.mkdirSync(backupDir, { recursive: true });
+    }
+    return backupDir;
 }
 
 async function truncateAllPublicTables(client) {
@@ -110,27 +151,114 @@ async function truncateAllPublicTables(client) {
     await client.query(`TRUNCATE TABLE ${tables} RESTART IDENTITY CASCADE`);
 }
 
+// ─── Reference Data ─────────────────────────────────────────────────────────
+
+async function seedLeaveTypes(client) {
+    const leaveTypes = [
+        "Vacation Leave",
+        "Sick Leave",
+        "Maternity Leave",
+        "Paternity Leave",
+        "Emergency Leave",
+        "Solo Parent Leave",
+        "Study Leave",
+        "Others",
+    ];
+
+    for (const name of leaveTypes) {
+        await client.query(
+            `INSERT INTO leave_types (name, is_active) VALUES ($1, true)`,
+            [name]
+        );
+    }
+
+    console.log(`[seed] leave_types: ${leaveTypes.length} entries inserted.`);
+}
+
+async function seedDepartments(client) {
+    const departments = [
+        { name: "College of Education",           description: "Teacher education programs" },
+        { name: "College of Business",            description: "Business and management programs" },
+        { name: "College of Engineering",         description: "Engineering and technology programs" },
+        { name: "College of Arts and Sciences",   description: "Liberal arts and sciences programs" },
+        { name: "College of Nursing",             description: "Nursing and health sciences programs" },
+        { name: "College of Criminal Justice",    description: "Criminology and law enforcement programs" },
+        { name: "Senior High School",             description: "Senior High School department" },
+        { name: "Basic Education",                description: "Elementary and Junior High School" },
+        { name: "Administration",                 description: "Administrative and non-teaching staff" },
+        { name: "Finance and Accounting",         description: "Finance, accounting, and budget staff" },
+        { name: "Human Resources",                description: "Human resources office" },
+        { name: "Information Technology",         description: "IT support and systems staff" },
+        { name: "Registrar",                      description: "Registrar office" },
+        { name: "Library",                        description: "Library services" },
+        { name: "Guidance and Counseling",        description: "Student guidance services" },
+    ];
+
+    for (const dept of departments) {
+        await client.query(
+            `INSERT INTO departments (name, description, is_active) VALUES ($1, $2, true)`,
+            [dept.name, dept.description]
+        );
+    }
+
+    console.log(`[seed] departments: ${departments.length} entries inserted.`);
+}
+
 async function seedReferenceTables(client) {
+    // Leave types
+    try {
+        await seedLeaveTypes(client);
+    } catch (err) {
+        console.error("[seed] FAILED seeding leave_types:", err.message);
+        throw err;
+    }
+
+    // Departments
+    try {
+        await seedDepartments(client);
+    } catch (err) {
+        console.error("[seed] FAILED seeding departments:", err.message);
+        throw err;
+    }
+
+    // Positions
     const positionRows = await client.query(
         `INSERT INTO positions (name, description, category)
         VALUES
-            ('Professor I', 'Teaching faculty rank I', 'TEACHING'),
-            ('Professor II', 'Teaching faculty rank II', 'TEACHING'),
-            ('Instructor', 'Teaching faculty instructor level', 'TEACHING'),
-            ('Registrar', 'Registrar office personnel', 'NON_TEACHING'),
-            ('HR Officer', 'Human resources personnel', 'NON_TEACHING'),
-            ('Accounting Staff', 'Accounting office staff', 'NON_TEACHING'),
-            ('IT Support Staff', 'Technical support staff', 'NON_TEACHING')
+            ('Professor I',              'Teaching faculty rank I',         'TEACHING'),
+            ('Professor II',             'Teaching faculty rank II',        'TEACHING'),
+            ('Professor III',            'Teaching faculty rank III',       'TEACHING'),
+            ('Associate Professor I',    'Associate professor rank I',      'TEACHING'),
+            ('Associate Professor II',   'Associate professor rank II',     'TEACHING'),
+            ('Assistant Professor I',    'Assistant professor rank I',      'TEACHING'),
+            ('Assistant Professor II',   'Assistant professor rank II',     'TEACHING'),
+            ('Instructor I',             'Instructor rank I',               'TEACHING'),
+            ('Instructor II',            'Instructor rank II',              'TEACHING'),
+            ('Instructor III',           'Instructor rank III',             'TEACHING'),
+            ('Registrar',                'Registrar office personnel',      'NON_TEACHING'),
+            ('HR Officer',               'Human resources personnel',       'NON_TEACHING'),
+            ('Accounting Staff',         'Accounting office staff',         'NON_TEACHING'),
+            ('IT Support Staff',         'Technical support staff',         'NON_TEACHING'),
+            ('Administrative Assistant', 'Administrative support staff',    'NON_TEACHING'),
+            ('Security Guard',           'Campus security personnel',       'NON_TEACHING'),
+            ('Utility Staff',            'Utility and maintenance staff',   'NON_TEACHING'),
+            ('Librarian',                'Library personnel',               'NON_TEACHING'),
+            ('Guidance Counselor',       'Student guidance counselor',      'NON_TEACHING'),
+            ('Cashier',                  'Finance cashier',                 'NON_TEACHING')
         RETURNING id, category`
     );
 
+    // Designations
     const designationRows = await client.query(
         `INSERT INTO designations (name, description)
         VALUES
-            ('Department Head', 'Leads a department'),
-            ('Coordinator', 'Coordinates unit operations'),
-            ('Staff', 'General staff designation'),
-            ('Assistant', 'Assistant designation')
+            ('Department Head',     'Leads a department'),
+            ('Dean',                'Leads a college or school'),
+            ('Program Coordinator', 'Coordinates a program or unit'),
+            ('Coordinator',         'Coordinates unit operations'),
+            ('Staff',               'General staff designation'),
+            ('Assistant',           'Assistant designation'),
+            ('Officer-in-Charge',   'Temporary head of a unit')
         RETURNING id`
     );
 
@@ -142,12 +270,20 @@ async function seedReferenceTables(client) {
 }
 
 async function seedDefaultAdmin(client) {
-    await client.query(
-        `INSERT INTO users (email, password, role, is_active)
-        VALUES ($1, $2, 'ADMIN', true)`,
-        [DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_HASH]
-    );
+    try {
+        await client.query(
+            `INSERT INTO users (email, password, role, is_active)
+            VALUES ($1, $2, 'ADMIN', true)`,
+            [DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_HASH]
+        );
+        console.log(`[seed] Admin account seeded: ${DEFAULT_ADMIN_EMAIL}`);
+    } catch (err) {
+        console.error("[seed] FAILED seeding admin user:", err.message);
+        throw err;
+    }
 }
+
+// ─── Employee Data ───────────────────────────────────────────────────────────
 
 async function seedEmployees(client, references) {
     const employmentStatuses = ["REGULAR", "PROBATIONARY", "CONTRACTUAL", "RESIGNED"];
@@ -167,6 +303,7 @@ async function seedEmployees(client, references) {
         const birthDate = dateOnly(randomDate(new Date("1970-01-01"), new Date("2000-12-31")));
         const dateHired = dateOnly(randomDate(new Date("2014-01-01"), new Date()));
         const workHours = randomItem([20, 30, 40, 48]);
+        const salary = randomInt(18000, 65000);
 
         const employeeResult = await client.query(
             `INSERT INTO employees (employee_no, employment_type, status)
@@ -225,6 +362,7 @@ async function seedEmployees(client, references) {
                 date_hired,
                 position_id,
                 designation_id,
+                salary,
                 sss,
                 pagibig,
                 tax,
@@ -236,13 +374,14 @@ async function seedEmployees(client, references) {
                 other_employment,
                 other_employment_working_hours
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
             )`,
             [
                 employeeId,
                 dateHired,
                 randomItem(positionPool),
                 randomItem(references.designationIds),
+                salary,
                 `SSS-${randomInt(10000000, 99999999)}`,
                 `PAG-${randomInt(10000000, 99999999)}`,
                 `TIN-${randomInt(100000000, 999999999)}`,
@@ -459,7 +598,11 @@ async function seedEmployees(client, references) {
             ]
         );
     }
+
+    console.log(`[seed] employees: ${EMPLOYEE_COUNT} employees seeded with full related records.`);
 }
+
+// ─── Main ────────────────────────────────────────────────────────────────────
 
 async function seed() {
     const client = await pool.connect();
@@ -479,7 +622,7 @@ async function seed() {
         console.log("Seeding default admin account...");
         await seedDefaultAdmin(client);
 
-        console.log("Seeding reference tables...");
+        console.log("Seeding reference tables (leave types, departments, positions, designations)...");
         const references = await seedReferenceTables(client);
 
         console.log(`Seeding ${EMPLOYEE_COUNT} employees with complete related records...`);
@@ -487,10 +630,11 @@ async function seed() {
 
         await client.query("COMMIT");
         console.log("Database reset and reseed completed successfully.");
+        process.exit(0);
     } catch (error) {
         await client.query("ROLLBACK");
         console.error("Seed failed:", error);
-        process.exitCode = 1;
+        process.exit(1);
     } finally {
         client.release();
         await pool.end();

@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner"
 import PublicRoute from "./components/PublicRoute";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -32,6 +32,9 @@ const App = () => {
       <Toaster richColors position="top-right" theme={theme} />
       <Routes>
         
+        { /* Root redirect */ }
+        <Route path="/" element={<Navigate to="/login" replace />} />
+
         { /* Auth/Public */ }
         <Route element={<PublicRoute />}>
           <Route element={<AuthLayout />}>

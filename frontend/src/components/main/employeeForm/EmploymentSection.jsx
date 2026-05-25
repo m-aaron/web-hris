@@ -5,8 +5,8 @@ import { toast } from "sonner";
 
 import {
   saveEmploymentData,
-  getAllPositions,
-  getAllDesignations,
+  getAllActivePositions,
+  getAllActiveDesignations,
 } from "../../../services/employeeService";
 import { employmentSchema } from "../../../schemas/employmentSchema";
 import { STATUSES, BASIS } from "../../../constants/employeeConstant";
@@ -73,8 +73,8 @@ const EmploymentSection = ({
   useEffect(() => {
     const fetchPositionsAndDesignations = async () => {
       try {
-        const positionsRes = await getAllPositions();
-        const designationsRes = await getAllDesignations();
+        const positionsRes = await getAllActivePositions();
+        const designationsRes = await getAllActiveDesignations();
 
         setPositions(positionsRes.positions);
         setDesignations(designationsRes.designations);
@@ -145,7 +145,7 @@ const EmploymentSection = ({
     } catch (err) {
       toast.error(
         err?.response?.data?.message ||
-          "Failed to update employment information",
+        "Failed to update employment information",
       );
       return false;
     }

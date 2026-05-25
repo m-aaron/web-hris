@@ -2,16 +2,15 @@ import pool from "../configs/dbConfig.js";
 import asyncHandler from "express-async-handler";
 
 
-// @desc    Get active designations
+// @desc    Get all designations (active and inactive)
 // @route   GET /api/designations
 // @access  Private
 export const getDesignations = asyncHandler(async (_req, res) => {
 
     const designationsResult = await pool.query(
         `SELECT 
-            id, name, description AS descriptions
+            id, name, description AS descriptions, is_active
         FROM designations
-        WHERE is_active = TRUE
         ORDER BY name ASC`
     );
 
@@ -21,6 +20,24 @@ export const getDesignations = asyncHandler(async (_req, res) => {
         designations: designationsResult.rows,
     });
 
+});
+
+// @desc    Get only active designations for dropdowns
+// @route   GET /api/designations/active
+// @access  Public
+export const getActiveDesignations = asyncHandler(async (_req, res) => {
+    const result = await pool.query(
+        `SELECT id, name
+       FROM designations
+       WHERE is_active = TRUE
+       ORDER BY name ASC`
+    );
+
+    res.status(200).json({
+        message: "Active designations fetched successfully.",
+        success: true,
+        designations: result.rows,
+    });
 });
 
 // @desc    Create designation
@@ -47,9 +64,9 @@ export const createDesignation = asyncHandler(async (req, res) => {
     }
 
     const createResult = await pool.query(
-        `INSERT INTO designations (name, description)
-        VALUES ($1, $2)
-        RETURNING *`,
+        `INSERT INTO designations (name, description, is_active)
+        VALUES ($1, $2, true)
+        RETURNING id, name, description AS descriptions, is_active`,
         [normalizedName, normalizedDescriptions]
     );
 
@@ -102,7 +119,7 @@ export const updateDesignation = asyncHandler(async (req, res) => {
         `UPDATE designations
         SET name = $1, description = $2
         WHERE id = $3
-        RETURNING *`,
+        RETURNING id, name, description AS descriptions, is_active`,
         [normalizedName, normalizedDescriptions, id]
     );
 
@@ -118,7 +135,48 @@ export const updateDesignation = asyncHandler(async (req, res) => {
 
 });
 
-// @desc    Soft delete designation
+// @desc    Toggle designation active/inactive status
+// @route   PATCH /api/designations/:id/toggle-active
+// @access  Private
+export const toggleDesignationActive = asyncHandler(async (req, res) => {
+
+    const { id } = req.params;
+
+    const designationResult = await pool.query(
+        `SELECT id, is_active FROM designations WHERE id = $1`,
+        [id]
+    );
+
+    if (designationResult.rowCount === 0) {
+        return res.status(404).json({ message: "Designation not found.", success: false });
+    }
+
+    const currentActive = designationResult.rows[0].is_active;
+    const newActive = !currentActive;
+
+    const toggleResult = await pool.query(
+        `UPDATE designations
+        SET is_active = $1
+        WHERE id = $2
+        RETURNING id, name, description AS descriptions, is_active`,
+        [newActive, id]
+    );
+
+    if (toggleResult.rowCount === 0) {
+        return res.status(500).json({ message: "Failed to update designation status.", success: false });
+    }
+
+    const action = newActive ? "activated" : "deactivated";
+
+    res.status(200).json({
+        message: `Designation ${action} successfully.`,
+        success: true,
+        designation: toggleResult.rows[0],
+    });
+
+});
+
+// @desc    Delete designation (hard delete — only if no linked employees)
 // @route   DELETE /api/designations/:id
 // @access  Private
 export const deleteDesignation = asyncHandler(async (req, res) => {
@@ -143,22 +201,12 @@ export const deleteDesignation = asyncHandler(async (req, res) => {
 
     if (linkedCount > 0) {
         return res.status(400).json({
-            message: "Cannot delete - employees are linked to this designation",
+            message: "Cannot delete — employees are linked to this designation. Deactivate it instead.",
             success: false,
         });
     }
 
-    const deleteResult = await pool.query(
-        `UPDATE designations
-        SET is_active = FALSE
-        WHERE id = $1
-        RETURNING *`,
-        [id]
-    );
-
-    if (deleteResult.rowCount === 0) {
-        return res.status(500).json({ message: "Failed to delete designation.", success: false });
-    }
+    await pool.query(`DELETE FROM designations WHERE id = $1`, [id]);
 
     res.status(200).json({
         message: "Designation deleted successfully.",

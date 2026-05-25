@@ -46,11 +46,13 @@ const LeaveTable = ({
                 <TableHead>
                     <TableRow>
                         <TableHeaderCell className="w-[1%]">No.</TableHeaderCell>
-                        <TableHeaderCell className="w-[25%]">Employee</TableHeaderCell>
-                        <TableHeaderCell className="w-[20%]">Leave Types</TableHeaderCell>
-                        <TableHeaderCell className="w-[12%]">Date Filed</TableHeaderCell>
+                        <TableHeaderCell className="w-[20%]">Employee</TableHeaderCell>
+                        <TableHeaderCell className="w-[15%]">Leave Types</TableHeaderCell>
+                        <TableHeaderCell className="w-[11%]">Date Filed</TableHeaderCell>
+                        <TableHeaderCell className="w-[11%]">Date From</TableHeaderCell>
+                        <TableHeaderCell className="w-[11%]">Date To</TableHeaderCell>
                         <TableHeaderCell className="w-[8%]">Total Days</TableHeaderCell>
-                        <TableHeaderCell className="w-[10%]">Status</TableHeaderCell>
+                        <TableHeaderCell className="w-[11%]">Status</TableHeaderCell>
                         <TableHeaderCell className="w-[12%]">Actions</TableHeaderCell>
                     </TableRow>
                 </TableHead>
@@ -58,7 +60,7 @@ const LeaveTable = ({
                 <TableBody className="divide-y">
                     {loading && Array.from({ length: 6 }).map((_, rowIndex) => (
                         <TableRow key={`leave-row-${rowIndex}`}>
-                            {Array.from({ length: 7 }).map((__, cellIndex) => (
+                            {Array.from({ length: 9 }).map((__, cellIndex) => (
                                 <TableCell key={`leave-cell-${rowIndex}-${cellIndex}`}>
                                     <Skeleton className="h-4 w-full" />
                                 </TableCell>
@@ -68,7 +70,7 @@ const LeaveTable = ({
 
                     {!loading && applications.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={7} className="py-8">
+                            <TableCell colSpan={9} className="py-8">
                                 <EmptyState
                                     title="No leave applications found"
                                     description="Try adjusting your filters or date range."
@@ -94,6 +96,8 @@ const LeaveTable = ({
 
                                 <TableCell>{row.leave_types_display || "-"}</TableCell>
                                 <TableCell>{formatPHDate(row.date_filed)}</TableCell>
+                                <TableCell>{formatPHDate(row.date_from)}</TableCell>
+                                <TableCell>{formatPHDate(row.date_to)}</TableCell>
                                 <TableCell>{row.total_days ?? 0}</TableCell>
                                 <TableCell>
                                     <span className={`inline-flex items-center text-xs px-3 py-1 rounded-full font-medium border ${statusClass}`}>{row.status}</span>

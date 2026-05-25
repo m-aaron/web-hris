@@ -11,15 +11,23 @@ import {
     getPositions,
     createPosition,
     updatePosition,
+    togglePositionActive,
     deletePosition,
     getDesignations,
     createDesignation,
     updateDesignation,
+    toggleDesignationActive,
     deleteDesignation,
-    getLeaveTypes,
+    getAllLeaveTypes,
     createLeaveType,
     updateLeaveType,
+    toggleLeaveTypeActive,
     deleteLeaveType,
+    getDepartments,
+    createDepartment,
+    updateDepartment,
+    toggleDepartmentActive,
+    deleteDepartment,
 } from "../../services/systemSettingsService";
 
 const TAB_CONFIGS = [
@@ -34,6 +42,7 @@ const TAB_CONFIGS = [
         fetcher: getPositions,
         creator: createPosition,
         updater: updatePosition,
+        toggler: togglePositionActive,
         remover: deletePosition,
     },
     {
@@ -47,6 +56,7 @@ const TAB_CONFIGS = [
         fetcher: getDesignations,
         creator: createDesignation,
         updater: updateDesignation,
+        toggler: toggleDesignationActive,
         remover: deleteDesignation,
     },
     {
@@ -57,11 +67,26 @@ const TAB_CONFIGS = [
         emptyTitle: "No leave types found",
         emptyDescription: "Add a leave type to get started.",
         responseKey: "leaveTypes",
-        fetcher: getLeaveTypes,
+        fetcher: getAllLeaveTypes,
         creator: createLeaveType,
         updater: updateLeaveType,
+        toggler: toggleLeaveTypeActive,
         remover: deleteLeaveType,
     },
+    {
+        key: "departments",
+        label: "Departments",
+        singularLabel: "Department",
+        showDescriptions: true,
+        emptyTitle: "No departments found",
+        emptyDescription: "Add a department to get started.",
+        responseKey: "departments",
+        fetcher: getDepartments,
+        creator: createDepartment,
+        updater: updateDepartment,
+        toggler: toggleDepartmentActive,
+        remover: deleteDepartment,
+    }
 ];
 
 const SystemSettings = () => {
@@ -70,10 +95,12 @@ const SystemSettings = () => {
     const [positions, setPositions] = useState([]);
     const [designations, setDesignations] = useState([]);
     const [leaveTypes, setLeaveTypes] = useState([]);
+    const [departments, setDepartments] = useState([]);
     const [loadingMap, setLoadingMap] = useState({
         positions: true,
         designations: true,
         "leave-types": true,
+        departments: true,
     });
 
     const [modalState, setModalState] = useState({
@@ -86,6 +113,9 @@ const SystemSettings = () => {
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
 
+    const [toggleTarget, setToggleTarget] = useState(null);
+    const [toggleLoading, setToggleLoading] = useState(false);
+
     const activeConfig = useMemo(
         () => TAB_CONFIGS.find((tab) => tab.key === activeTab),
         [activeTab]
@@ -94,8 +124,9 @@ const SystemSettings = () => {
     const activeRows = useMemo(() => {
         if (activeTab === "positions") return positions;
         if (activeTab === "designations") return designations;
+        if (activeTab === "departments") return departments;
         return leaveTypes;
-    }, [activeTab, positions, designations, leaveTypes]);
+    }, [activeTab, positions, designations, leaveTypes, departments]);
 
     const activeLoading = loadingMap[activeTab] ?? false;
 
@@ -114,6 +145,7 @@ const SystemSettings = () => {
             if (tabKey === "positions") setPositions(data);
             if (tabKey === "designations") setDesignations(data);
             if (tabKey === "leave-types") setLeaveTypes(data);
+            if (tabKey === "departments") setDepartments(data);
         } catch (error) {
             console.error(error);
             toast.error(error.response?.data?.message || `Failed to load ${config.label.toLowerCase()}.`);
@@ -128,6 +160,7 @@ const SystemSettings = () => {
         refreshTab("positions");
         refreshTab("designations");
         refreshTab("leave-types");
+        refreshTab("departments");
     }, []);
 
     const openAddModal = () => {
@@ -182,6 +215,29 @@ const SystemSettings = () => {
         }
     };
 
+    const handleToggleActive = async () => {
+        if (!toggleTarget) return;
+
+        const config = TAB_CONFIGS.find((tab) => tab.key === toggleTarget.tabKey);
+        if (!config) return;
+
+        const isCurrentlyActive = toggleTarget.record?.is_active !== false;
+        const action = isCurrentlyActive ? "deactivated" : "activated";
+
+        try {
+            setToggleLoading(true);
+            await config.toggler(toggleTarget.record.id);
+            toast.success(`${config.singularLabel} ${action} successfully.`);
+            await refreshTab(toggleTarget.tabKey, { keepLoading: false });
+            setToggleTarget(null);
+        } catch (error) {
+            console.error(error);
+            toast.error(error.response?.data?.message || `Failed to ${isCurrentlyActive ? "deactivate" : "activate"} ${config.singularLabel.toLowerCase()}.`);
+        } finally {
+            setToggleLoading(false);
+        }
+    };
+
     const handleDelete = async () => {
         if (!deleteTarget) return;
 
@@ -207,11 +263,14 @@ const SystemSettings = () => {
         }
     };
 
+    // Derived toggle modal labels
+    const toggleIsActivating = toggleTarget?.record?.is_active === false;
+
     return (
         <div className="space-y-6">
             <PageHeader
                 title="System Settings"
-                description="Manage organization positions, designations, and leave types."
+                description="Manage organization positions, designations, leave types, and departments."
                 actions={(
                     <Button
                         size="small"
@@ -248,7 +307,12 @@ const SystemSettings = () => {
                             loading={activeLoading}
                             showDescriptions={activeConfig.showDescriptions}
                             onEdit={openEditModal}
-                            onDelete={(record) => setDeleteTarget({ tabKey: activeTab, record })}
+                            onToggleActive={(record) =>
+                                setToggleTarget({ tabKey: activeTab, record })
+                            }
+                            onDelete={(record) =>
+                                setDeleteTarget({ tabKey: activeTab, record })
+                            }
                             emptyTitle={activeConfig.emptyTitle}
                             emptyDescription={activeConfig.emptyDescription}
                         />
@@ -268,10 +332,30 @@ const SystemSettings = () => {
                 />
             )}
 
+            {/* Deactivate / Activate Confirm Modal */}
+            {toggleTarget && (
+                <ConfirmModal
+                    title={`${toggleIsActivating ? "Activate" : "Deactivate"} "${toggleTarget.record?.name || ""}"?`}
+                    description={
+                        toggleIsActivating
+                            ? `Activating this ${activeConfig?.singularLabel?.toLowerCase()} will make it available for selection again.`
+                            : `Deactivating this ${activeConfig?.singularLabel?.toLowerCase()} will hide it from selection options. Existing records will not be affected.`
+                    }
+                    action={toggleLoading
+                        ? (toggleIsActivating ? "Activating..." : "Deactivating...")
+                        : (toggleIsActivating ? "Activate" : "Deactivate")
+                    }
+                    primaryButtonVariant={toggleIsActivating ? "primary" : "solidDanger"}
+                    onCancel={() => setToggleTarget(null)}
+                    onConfirm={handleToggleActive}
+                />
+            )}
+
+            {/* Delete Confirm Modal */}
             {deleteTarget && (
                 <ConfirmModal
-                    title={`Delete ${deleteTarget.record?.name || ""}?`}
-                    description={`Are you sure you want to delete ${deleteTarget.record?.name || "this item"}?`}
+                    title={`Delete "${deleteTarget.record?.name || ""}"?`}
+                    description={`Are you sure you want to permanently delete ${deleteTarget.record?.name || "this item"}? This cannot be undone.`}
                     action={deleteLoading ? "Deleting..." : "Delete"}
                     primaryButtonVariant="solidDanger"
                     onCancel={() => setDeleteTarget(null)}

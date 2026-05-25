@@ -10,16 +10,35 @@ import {
     TableCell,
 } from "../ui/Table";
 
+const StatusBadge = ({ isActive }) => (
+    <span
+        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+            isActive
+                ? "bg-green-500/10 text-green-600"
+                : "bg-red-500/10 text-red-500"
+        }`}
+    >
+        <span
+            className={`inline-block h-1.5 w-1.5 rounded-full ${
+                isActive ? "bg-green-500" : "bg-red-500"
+            }`}
+        />
+        {isActive ? "Active" : "Inactive"}
+    </span>
+);
+
 const MasterDataTable = ({
     rows,
     loading = false,
     showDescriptions = false,
     onEdit,
+    onToggleActive,
     onDelete,
     emptyTitle,
     emptyDescription,
 }) => {
-    const colCount = showDescriptions ? 4 : 3;
+    // Columns: No. | Name | [Description] | Status | Actions
+    const colCount = showDescriptions ? 5 : 4;
 
     return (
         <div className="flex-1 overflow-y-auto">
@@ -27,15 +46,16 @@ const MasterDataTable = ({
                 <TableHead>
                     <TableRow>
                         <TableHeaderCell className="w-[5%]">No.</TableHeaderCell>
-                        <TableHeaderCell className={showDescriptions ? "w-[30%]" : "w-[70%]"}>
+                        <TableHeaderCell className={showDescriptions ? "w-[25%]" : "w-[45%]"}>
                             Name
                         </TableHeaderCell>
                         {showDescriptions && (
-                            <TableHeaderCell className="w-[45%]">
-                                Descriptions
+                            <TableHeaderCell className="w-[30%]">
+                                Description
                             </TableHeaderCell>
                         )}
-                        <TableHeaderCell className={showDescriptions ? "w-[20%]" : "w-[25%]"}>
+                        <TableHeaderCell className="w-[10%]">Status</TableHeaderCell>
+                        <TableHeaderCell className={showDescriptions ? "w-[30%]" : "w-[40%]"}>
                             Actions
                         </TableHeaderCell>
                     </TableRow>
@@ -65,7 +85,14 @@ const MasterDataTable = ({
                     )}
 
                     {!loading && rows.map((row, index) => (
-                        <TableRow key={row.id} className="text-muted hover:bg-soft-surface/80 transition">
+                        <TableRow
+                            key={row.id}
+                            className={`text-muted transition ${
+                                row.is_active === false
+                                    ? "opacity-60 hover:opacity-80 hover:bg-soft-surface/50"
+                                    : "hover:bg-soft-surface/80"
+                            }`}
+                        >
                             <TableCell>{index + 1}</TableCell>
                             <TableCell className="font-medium text-heading">
                                 {row.name || "-"}
@@ -73,6 +100,9 @@ const MasterDataTable = ({
                             {showDescriptions && (
                                 <TableCell>{row.descriptions || "-"}</TableCell>
                             )}
+                            <TableCell>
+                                <StatusBadge isActive={row.is_active !== false} />
+                            </TableCell>
                             <TableCell>
                                 <div className="flex flex-wrap items-center gap-2">
                                     <Button
@@ -84,7 +114,14 @@ const MasterDataTable = ({
                                     </Button>
                                     <Button
                                         size="small"
-                                        variant="danger"
+                                        variant={row.is_active !== false ? "danger" : "secondary"}
+                                        onClick={() => onToggleActive?.(row)}
+                                    >
+                                        {row.is_active !== false ? "Deactivate" : "Activate"}
+                                    </Button>
+                                    <Button
+                                        size="small"
+                                        variant="ghost"
                                         onClick={() => onDelete?.(row)}
                                     >
                                         Delete

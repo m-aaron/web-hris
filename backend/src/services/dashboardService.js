@@ -51,7 +51,8 @@ export const getDashboardSummary = async (req, res) => {
                 AS total_resigned,
 
             COUNT(*) FILTER (
-                WHERE regularization_date >= date_trunc('month', CURRENT_DATE)
+                WHERE employment_status = $3
+                AND regularization_date >= date_trunc('month', CURRENT_DATE)
                 AND regularization_date < date_trunc('month', CURRENT_DATE) + INTERVAL '1 month'
             ) AS total_upcoming_regular_this_month,
 

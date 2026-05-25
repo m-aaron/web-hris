@@ -15,7 +15,7 @@ export const getAllActiveEmployees = async () => {
 // Archive Employee
 export const archiveEmployee = async (id) => {
     const response = await API.put(`/employees/${id}/archive`);
-    
+
     return response.data;
 };
 
@@ -55,8 +55,8 @@ export const exportEmployeesExcel = async (query) => {
 
 // Export Selected Employees to Excel
 export const exportSelectedEmployeesExcel = async (ids) => {
-    return await API.post("/employees/export-selected", 
-        { ids }, 
+    return await API.post("/employees/export-selected",
+        { ids },
         { responseType: "blob" }
     );
 };
@@ -253,7 +253,7 @@ export const deleteTrainingProgram = async (employeeId, trainingId) => {
 
 
 // HISTORY SECTION
-export const saveEmploymentHistory = async (employeeId, historyData) => {   
+export const saveEmploymentHistory = async (employeeId, historyData) => {
     const response = await API.post(`/employees/${employeeId}/employment-history`, historyData);
     return response.data;
 }
@@ -297,11 +297,21 @@ export const deleteReference = async (employeeId, referenceId) => {
 
 
 export const getAllPositions = async () => {
-    const response = await API.get("/employees/positions");
+    const response = await API.get("/positions");
+    return response.data;
+}
+
+export const getAllActivePositions = async () => {
+    const response = await API.get("/employees/positions/active");
     return response.data;
 }
 
 export const getAllDesignations = async () => {
-    const response = await API.get("/employees/designations");
+    const response = await API.get("/designations");
+    return response.data;
+}
+
+export const getAllActiveDesignations = async () => {
+    const response = await API.get("/employees/designations/active");
     return response.data;
 }
